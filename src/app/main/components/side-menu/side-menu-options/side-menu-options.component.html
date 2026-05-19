@@ -1,0 +1,96 @@
+<ul class="menu p-4 w-64 min-h-full bg-gray-900 text-white border-r border-gray-700">
+  <!-- MENÚ OPERATIVO -->
+  @for(item of menuOptsOperative; track item.label) {
+  <li>
+    @if (item.children) {
+    <details>
+      <summary><i [class]="item.icon"></i> {{ item.label }}</summary>
+      <ul>
+        @for(child of item.children; track child.label) {
+        <li>
+          @if (child.children) {
+          <details>
+            <summary><i [class]="child.icon"></i> {{ child.label }}</summary>
+            <ul>
+              @for(grandSon of child.children; track grandSon.label) {
+              <li><a [routerLink]="grandSon.route"><i [class]="grandSon.icon"></i> {{ grandSon.label }}</a></li>
+              }
+            </ul>
+          </details>
+          } @else {
+          <a [routerLink]="child.route">
+            <i [class]="child.icon"></i> {{ child.label }}
+            @if(child.spanPro){
+            <span class="badge badge-sm">Pro</span>
+            }
+            @if(child.spanNotify){
+            <span class="badge badge-error badge-sm">{{ child.cantidadNotify }}</span>
+            }
+          </a>
+          }
+        </li>
+        }
+      </ul>
+    </details>
+    } @else {
+    <a [routerLink]="item.route">
+      <i [class]="item.icon"></i> {{ item.label }}
+      @if(item.spanPro){
+      <span class="badge badge-sm">Pro</span>
+      }
+      @if(item.spanNotify){
+      <span class="badge badge-error badge-sm">{{ item.cantidadNotify }}</span>
+      }
+    </a>
+    }
+  </li>
+  }
+  <!-- DIVISOR -->
+  <div class="divider before:bg-gray-700 after:bg-gray-700 text-gray-500"></div>
+  <!-- MENÚ DE INFORMACIÓN DEL SISTEMA -->
+  @for(item of menuOptsSystem; track item.label) {
+  <li>
+    @if (item.children) {
+    <details>
+      <summary><i [class]="item.icon"></i> {{ item.label }}</summary>
+      <ul>
+        @for(child of item.children; track child.label) {
+        <li>
+          @if (child.children) {
+          <details>
+            <summary><i [class]="child.icon"></i> {{ child.label }}</summary>
+            <ul>
+              @for(grandSon of child.children; track grandSon.label) {
+              <li><a [routerLink]="grandSon.route">{{ grandSon.label }}</a></li>
+              }
+            </ul>
+          </details>
+          } @else {
+          <a [routerLink]="child.route">
+            <i [class]="child.icon"></i> {{ child.label }}
+            @if(child.spanPro){
+            <span class="badge badge-sm">Pro</span>
+            }
+            @if(child.spanNotify){
+            <span class="badge badge-error badge-sm">{{ child.cantidadNotify }}</span>
+            }
+          </a>
+          }
+        </li>
+        }
+      </ul>
+    </details>
+    } @else {
+    <a [routerLink]="item.route">
+      <i [class]="item.icon"></i> {{ item.label }}
+      @if(item.spanPro){
+      <span class="badge badge-sm">Pro</span>
+      }
+      @if(item.spanNotify){
+      <span class="badge badge-error badge-sm">{{ item.cantidadNotify }}</span>
+      }
+    </a>
+    }
+  </li>
+  }
+</ul>

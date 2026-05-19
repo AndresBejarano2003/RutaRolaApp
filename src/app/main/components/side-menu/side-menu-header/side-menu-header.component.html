@@ -1,0 +1,89 @@
+<div class="h-[60px] flex flex-col flex-1 w-full ">
+  <div class="navbar bg-gray-900 text-white border-b border-gray-700 px-4">
+    <!-- IZQUIERDA -->
+    <div class="flex-1">
+      <div class="breadcrumbs text-sm mt-1">
+        <ul>
+          <li>
+            <a>
+              <img src="logos/logo-oficial-sin-fondo-lb.png" class="w-27" alt="">
+            </a>
+          </li>
+          <li>
+            <a>
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="h-4 w-4 stroke-current">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"></path>
+              </svg>
+              E-commerce
+            </a>
+          </li>
+          <li>
+            <span class="inline-flex items-center gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="h-4 w-4 stroke-current">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+                </path>
+              </svg>
+              Facturación
+            </span>
+          </li>
+        </ul>
+      </div>
+    </div>
+    <!-- DERECHA -->
+    <div class="flex-none flex items-center gap-2">
+      <!-- NOTIFICACIONES -->
+      <div class="dropdown dropdown-end">
+        <label tabindex="0" class="btn btn-ghost btn-circle hover:bg-gray-800">
+          <div class="indicator">
+            <i class="fa-solid fa-bell text-gray-300"></i>
+            <span class="badge badge-error badge-xs indicator-item">8</span>
+          </div>
+        </label>
+        <div tabindex="0"
+          class="mt-3 z-[1] card card-compact dropdown-content w-64 bg-gray-800 text-white shadow border border-gray-700">
+          <div class="card-body">
+            <span class="font-bold text-lg">Notificaciones</span>
+            <span class="text-gray-400">Tienes 8 nuevas</span>
+            <div class="card-actions mt-2">
+              <button class="btn btn-sm btn-primary w-full">
+                Ver todas
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- USUARIO -->
+      <div class="dropdown dropdown-end">
+        <label tabindex="0" class="btn btn-ghost btn-circle avatar hover:bg-gray-800">
+          <div class="w-10 rounded-full border border-gray-600">
+            <img src="https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.webp" />
+          </div>
+        </label>
+        <ul tabindex="0"
+          class="menu menu-sm dropdown-content mt-3 w-52 bg-gray-800 text-white rounded-box shadow border border-gray-700">
+          <li>
+            <a class="flex items-center gap-2 hover:bg-gray-700">
+              <i class="fa-solid fa-user text-gray-400"></i>
+              Perfil
+              <span class="badge badge-xs">New</span>
+            </a>
+          </li>
+          <li>
+            <a class="flex items-center gap-2 hover:bg-gray-700">
+              <i class="fa-solid fa-gear text-gray-400"></i>
+              Configuración
+            </a>
+          </li>
+          <li>
+            <a class="flex items-center gap-2 hover:bg-gray-700 text-red-400" [routerLink]="['/login']">
+              <i class="fa-solid fa-right-from-bracket"></i>
+              Cerrar sesión
+            </a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
