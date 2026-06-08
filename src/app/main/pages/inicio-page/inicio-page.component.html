@@ -390,3 +390,129 @@
         <main-side-menu-options />
     </div>
 </div>
+
+<dialog id="modalNotificaciones" class="modal">
+
+    <div class="modal-box max-w-3xl bg-gray-800 border border-gray-700">
+
+        <!-- HEADER -->
+        <div class="flex justify-between items-center mb-6">
+
+            <h3 class="text-2xl font-bold text-white">
+
+                <i class="fa-solid fa-bell text-yellow-400 mr-2"></i>
+                Centro de notificaciones
+
+            </h3>
+
+            <form method="dialog">
+                <button class="btn btn-sm btn-circle btn-ghost">
+                    ✕
+                </button>
+            </form>
+
+        </div>
+
+        <!-- LISTADO -->
+        <div class="space-y-3 max-h-[500px] overflow-y-auto">
+
+            <!-- ITEM -->
+            <div
+                class="flex justify-between items-center p-4 rounded-xl bg-gray-900 border border-gray-700 hover:border-blue-500 transition">
+
+                <div class="flex gap-4 items-start">
+
+                    <div class="w-12 h-12 rounded-full bg-blue-500/20 flex items-center justify-center">
+
+                        <i class="fa-solid fa-bus text-blue-400"></i>
+
+                    </div>
+
+                    <div>
+
+                        <p class="text-white font-medium">
+
+                            Vehículo BUS-07 registrado
+
+                        </p>
+
+                        <p class="text-xs text-gray-400">
+
+                            Hace 10 minutos
+
+                        </p>
+
+                    </div>
+
+                </div>
+
+                <button class="btn btn-sm btn-circle btn-error btn-outline">
+
+                    <i class="fa-solid fa-trash"></i>
+
+                </button>
+
+            </div>
+
+            <!-- ITEM -->
+            <div class="flex justify-between items-center p-4 rounded-xl bg-gray-900 border border-gray-700">
+
+                <div class="flex gap-4 items-start">
+
+                    <div class="w-12 h-12 rounded-full bg-green-500/20 flex items-center justify-center">
+
+                        <i class="fa-solid fa-file-invoice text-green-400"></i>
+
+                    </div>
+
+                    <div>
+
+                        <p class="text-white font-medium">
+
+                            Factura #1523 enviada
+
+                        </p>
+
+                        <p class="text-xs text-gray-400">
+
+                            Hace 20 minutos
+
+                        </p>
+
+                    </div>
+
+                </div>
+
+                <button class="btn btn-sm btn-circle btn-error btn-outline">
+
+                    <i class="fa-solid fa-trash"></i>
+
+                </button>
+
+            </div>
+
+        </div>
+
+        <!-- FOOTER -->
+        <div class="modal-action">
+
+            <form method="dialog">
+
+                <button class="btn bg-yellow-400 hover:bg-yellow-300 text-black border-none">
+                    Cerrar
+                </button>
+
+            </form>
+
+            <button class="btn btn-error">
+
+                <i class="fa-solid fa-trash-can mr-2"></i>
+                Eliminar todas
+
+            </button>
+
+        </div>
+
+    </div>
+
+</dialog>

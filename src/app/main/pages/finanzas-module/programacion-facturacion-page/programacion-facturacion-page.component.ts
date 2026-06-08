@@ -1,6 +1,7 @@
-import { Component, signal } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { WhatsappService } from 'src/app/services/whatsapp';
 
 @Component({
   selector: 'app-programacion-facturacion-page',
@@ -13,6 +14,7 @@ import { FormsModule } from '@angular/forms';
 })
 export default class ProgramacionFacturacionPageComponent {
 
+  whatsappService = inject(WhatsappService);
   nombreAcudiente: any = "Andrés Bejarano";
   // ============================
   // FILTROS

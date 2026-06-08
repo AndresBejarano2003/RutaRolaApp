@@ -1,34 +1,23 @@
 <div class="h-[60px] flex flex-col flex-1 w-full ">
   <!-- <div class="navbar bg-gray-900 text-white border-b border-gray-700 px-4"> -->
-    <div class="navbar bg-gray-900 text-white border-b border-gray-700 px-4 sticky top-0 z-50">
+  <div class="navbar bg-gray-900 text-white border-b border-gray-700 px-4 sticky top-0 z-50">
     <!-- IZQUIERDA -->
     <div class="flex-1">
       <div class="breadcrumbs text-sm mt-1">
         <ul>
+          <!-- LOGO -->
           <li>
             <a>
-              <img src="logos/logo-oficial-sin-fondo-lb.png" class="w-27" alt="">
+              <img src="logos/logo-oficial-sin-fondo-lb.png" class="w-28" alt="RutaRola">
             </a>
           </li>
+          @for(item of breadcrumbs; track item){
           <li>
-            <a>
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="h-4 w-4 stroke-current">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                  d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"></path>
-              </svg>
-              E-commerce
-            </a>
-          </li>
-          <li>
-            <span class="inline-flex items-center gap-2">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="h-4 w-4 stroke-current">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                  d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
-                </path>
-              </svg>
-              Facturación
+            <span class="text-gray-200">
+              {{ item }}
             </span>
           </li>
+          }
         </ul>
       </div>
     </div>
@@ -48,7 +37,7 @@
             <span class="font-bold text-lg">Notificaciones</span>
             <span class="text-gray-400">Tienes 8 nuevas</span>
             <div class="card-actions mt-2">
-              <button class="btn btn-sm btn-primary w-full">
+              <button class="btn btn-sm btn-primary w-full" onclick="modalNotificaciones.showModal()">
                 Ver todas
               </button>
             </div>

@@ -1,7 +1,8 @@
-// side-menu-options.component.ts
-
 import { Component } from '@angular/core';
-import { RouterLink, RouterLinkActive } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
+import { NavigationEnd } from '@angular/router';
+import { filter } from 'rxjs';
 
 interface UserMenuOption {
   icon: string;
@@ -17,6 +18,39 @@ interface UserMenuOption {
 })
 export class SideMenuHeaderComponent {
 
+  breadcrumbs: string[] = [];
+
+  constructor(
+    private router: Router,
+    private route: ActivatedRoute
+  ) {
+
+    this.router.events
+      .pipe(
+        filter(event => event instanceof NavigationEnd)
+      )
+      .subscribe(() => {
+
+        this.loadBreadcrumb();
+
+      });
+
+  }
+
+  loadBreadcrumb() {
+
+    let currentRoute = this.route;
+
+    while (currentRoute.firstChild) {
+
+      currentRoute = currentRoute.firstChild;
+
+    }
+
+    this.breadcrumbs =
+      currentRoute.snapshot.data['breadcrumb'] || [];
+
+  }
   // =========================================================
   // INFORMACIÓN DEL USUARIO
   // =========================================================
