@@ -22,21 +22,18 @@ export default class LoginPageComponent {
     });
 
     onLogin(form: any) {
-        const gSesId: string = this.gifService.getValidarUsuario(
+        const bPasaLogin: boolean = this.gifService.getValidarUsuario(
             form.username,
             form.password
         );
 
-        if (gSesId != "") {
-
+        if (bPasaLogin) {
             this.showError.set(false);
             this.showSuccess.set(true);
             setTimeout(() => {
                 this.showSuccess.set(false);
-                this.router.navigate(['inicio', gSesId]);
+                this.router.navigate(['inicio']);
             }, 500);
-
-
         } else {
             this.showError.set(true);
             this.showSuccess.set(false);

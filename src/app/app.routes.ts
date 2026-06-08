@@ -2,12 +2,31 @@ import { Routes } from '@angular/router';
 
 export const routes: Routes = [
   {
+    path: '',
+    loadComponent: () =>
+      import('./main/pages/inicio-page/inicio-page.component'),
+    children: [
+
+      {
+        path: 'perfil',
+        loadComponent: () =>
+          import('./main/pages/perfil-page/perfil-page.component'),
+      },
+
+      {
+        path: 'configuracion',
+        loadComponent: () =>
+          import('./main/pages/configuracion-page/configuracion-page.component'),
+      },
+    ]
+  },
+  {
     path: 'login',
     loadComponent: () =>
       import('./main/pages/login/login-page/login-page.component'),
   },
   {
-    path: 'inicio/:query',
+    path: 'inicio',
     loadComponent: () =>
       import('./main/pages/inicio-page/inicio-page.component'),
   },
@@ -145,8 +164,28 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./main/pages/inicio-page/inicio-page.component'),
   },
+  // {
+  //   path: 'perfil',
+  //   loadComponent: () =>
+  //     import('./main/pages/perfil-page/perfil-page.component'),
+  // },
+  {
+    path: 'registro',
+    loadComponent: () =>
+      import('./main/pages/registro-page/registro-page.component'),
+  },
+  {
+    path: 'editar-usuario',
+    loadComponent: () =>
+      import('./main/pages/editar-usuario-page/editar-usuario-page.component'),
+  },
+  // {
+  //   path: 'configuracion',
+  //   loadComponent: () =>
+  //     import('./main/pages/inicio-page/inicio-page.component'),
+  // },
   {
     path: '**',
-    redirectTo: 'login',
+    redirectTo: 'inicio',
   }
 ];

@@ -95,11 +95,11 @@ export class GifService {
     return this.searchHistory()[query] ?? [];
   }
 
-  getValidarUsuario(username: any, password: any): string {
-    if (username == "andresf.bejarano@gmail.com" && password == "!Andres") {
-      return "AS456GDWEE3456FDKFPV09DN4IUT5M";
-    } else {
-      return "";
+  getValidarUsuario(username: any, password: any): boolean {
+    if (username == "andresf.bejarano@gmail.com" && password == "!Andres"){
+      return true;
+    } else{
+      return false;
     }
   }
 

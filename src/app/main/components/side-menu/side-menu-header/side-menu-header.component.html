@@ -1,5 +1,6 @@
 <div class="h-[60px] flex flex-col flex-1 w-full ">
-  <div class="navbar bg-gray-900 text-white border-b border-gray-700 px-4">
+  <!-- <div class="navbar bg-gray-900 text-white border-b border-gray-700 px-4"> -->
+    <div class="navbar bg-gray-900 text-white border-b border-gray-700 px-4 sticky top-0 z-50">
     <!-- IZQUIERDA -->
     <div class="flex-1">
       <div class="breadcrumbs text-sm mt-1">
@@ -56,33 +57,103 @@
       </div>
       <!-- USUARIO -->
       <div class="dropdown dropdown-end">
-        <label tabindex="0" class="btn btn-ghost btn-circle avatar hover:bg-gray-800">
-          <div class="w-10 rounded-full border border-gray-600">
-            <img src="https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.webp" />
+
+        <!-- AVATAR -->
+        <label tabindex="0"
+          class="btn btn-ghost btn-circle avatar hover:bg-gray-800 transition-all duration-300 hover:scale-105">
+
+          <div class="w-11 rounded-full border-2 border-blue-500 relative">
+
+            <img [src]="userInfo.image" alt="Avatar usuario" />
+
+            <!-- ONLINE / OFFLINE -->
+            <div class="absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-gray-900"
+              [class.bg-green-500]="userInfo.online" [class.bg-gray-500]="!userInfo.online"></div>
+
           </div>
+
         </label>
-        <ul tabindex="0"
-          class="menu menu-sm dropdown-content mt-3 w-52 bg-gray-800 text-white rounded-box shadow border border-gray-700">
-          <li>
-            <a class="flex items-center gap-2 hover:bg-gray-700">
-              <i class="fa-solid fa-user text-gray-400"></i>
-              Perfil
-              <span class="badge badge-xs">New</span>
-            </a>
-          </li>
-          <li>
-            <a class="flex items-center gap-2 hover:bg-gray-700">
-              <i class="fa-solid fa-gear text-gray-400"></i>
-              Configuración
-            </a>
-          </li>
-          <li>
-            <a class="flex items-center gap-2 hover:bg-gray-700 text-red-400" [routerLink]="['/login']">
-              <i class="fa-solid fa-right-from-bracket"></i>
-              Cerrar sesión
-            </a>
-          </li>
-        </ul>
+
+
+        <!-- DROPDOWN -->
+        <div tabindex="0"
+          class="dropdown-content mt-4 w-80 bg-gray-900 border border-gray-700 rounded-2xl shadow-2xl overflow-hidden animate-fadeIn z-[999]">
+
+          <!-- HEADER USER -->
+          <div class="p-5 bg-gradient-to-r from-blue-900/40 to-indigo-900/40 border-b border-gray-700">
+
+            <div class="flex items-center gap-4">
+
+              <!-- FOTO -->
+              <div class="avatar">
+                <div class="w-16 rounded-full border-2 border-blue-500">
+
+                  <img [src]="userInfo.image" alt="Avatar" />
+
+                </div>
+              </div>
+
+              <!-- INFO -->
+              <div class="flex-1">
+
+                <h2 class="font-bold text-white text-lg leading-5">
+                  {{ userInfo.name }}
+                </h2>
+
+                <p class="text-sm text-gray-400 mt-1">
+                  {{ userInfo.email }}
+                </p>
+
+                <div class="flex items-center gap-2 mt-2">
+
+                  <div class="w-2 h-2 rounded-full" [class.bg-green-500]="userInfo.online"
+                    [class.bg-gray-500]="!userInfo.online"></div>
+
+                  <span class="text-xs text-gray-400">
+                    {{ userInfo.online ? 'En línea' : 'Desconectado' }}
+                  </span>
+
+                  <span class="text-xs px-2 py-1 rounded-full bg-blue-900/40 text-blue-300 border border-blue-700 ml-2">
+                    {{ userInfo.role }}
+                  </span>
+
+                </div>
+
+              </div>
+
+            </div>
+
+          </div>
+
+
+          <!-- OPCIONES -->
+          <ul class="menu p-2">
+
+            @for(option of menuUserOptions; track option.label){
+
+            <li>
+
+              <a [routerLink]="[option.route]" routerLinkActive="bg-blue-800 text-white"
+                class="flex items-center gap-3 rounded-xl transition-all duration-200 hover:bg-gray-800"
+                [class.text-red-400]="option.danger" [class.hover:bg-red-900]="option.danger"
+                [class.hover:text-white]="option.danger" (click)="option.label === 'Cerrar sesión' ? logout() : null">
+
+                <i [class]="option.icon" class="w-5 text-center"></i>
+
+                <span class="font-medium">
+                  {{ option.label }}
+                </span>
+
+              </a>
+
+            </li>
+
+            }
+
+          </ul>
+
+        </div>
+
       </div>
     </div>
   </div>

@@ -28,7 +28,9 @@ export class SideMenuComponent {
       '/inicio',
       '/documentacion',
       '/soporte',
-      '/pro-version'
+      '/pro-version',
+      // '/perfil',
+      // '/configuracion'
     ];
 
     this.hasContent = !emptyRoutes.includes(url);

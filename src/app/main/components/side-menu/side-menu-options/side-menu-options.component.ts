@@ -20,8 +20,7 @@ interface MenuOption {
 })
 export class SideMenuOptionsComponent {
   GifService = inject(GifService);
-
-
+  openedMenus: Set<string> = new Set();
 
   menuOptsOperative: MenuOption[] = [
     {
@@ -151,5 +150,33 @@ export class SideMenuOptionsComponent {
     },
   ];
 
+  constructor() {
 
+    const savedMenus = localStorage.getItem('openedMenus');
+
+    if (savedMenus) {
+      this.openedMenus = new Set(JSON.parse(savedMenus));
+    }
+
+  }
+
+  toggleMenu(menu: string) {
+
+    if (this.openedMenus.has(menu)) {
+      this.openedMenus.delete(menu);
+    } else {
+      this.openedMenus.add(menu);
+    }
+
+    // GUARDAR EN LOCALSTORAGE
+    localStorage.setItem(
+      'openedMenus',
+      JSON.stringify([...this.openedMenus])
+    );
+
+  }
+
+  isMenuOpen(menu: string): boolean {
+    return this.openedMenus.has(menu);
+  }
 }

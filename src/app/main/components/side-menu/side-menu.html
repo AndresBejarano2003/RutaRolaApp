@@ -6,14 +6,14 @@
   <!-- Toggle -->
   <input id="drawer-toggle" type="checkbox" class="drawer-toggle" />
   <!-- CONTENIDO -->
-  <div class="drawer-content flex flex-col bg-gray-900 text-white">
+  <div class="drawer-content flex flex-col bg-gray-900 text-white h-screen overflow-hidden">
     <!-- BOTÓN MOBILE -->
     <label for="drawer-toggle"
       class="btn bg-gray-800 text-white hover:bg-gray-700 lg:hidden fixed bottom-6 right-6 z-50 shadow-lg rounded-full">
       <i class="fa-solid fa-bars text-lg"></i>
     </label>
 
-    <div class="p-4 w-full h-full">
+      <div class="p-4 pb-28 w-full flex-1 overflow-y-auto">
 
       @if (!hasContent) {
       <!-- LOADING -->

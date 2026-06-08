@@ -3,22 +3,26 @@
   @for(item of menuOptsOperative; track item.label) {
   <li>
     @if (item.children) {
-    <details>
-      <summary><i [class]="item.icon"></i> {{ item.label }}</summary>
+    <details [open]="isMenuOpen(item.label)">
+      <summary (click)="$event.preventDefault(); toggleMenu(item.label)">
+        <i [class]="item.icon"></i>
+        {{ item.label }}
+      </summary>
       <ul>
         @for(child of item.children; track child.label) {
         <li>
           @if (child.children) {
-          <details>
-            <summary><i [class]="child.icon"></i> {{ child.label }}</summary>
+          <details [open]="isMenuOpen(child.label)">
+            <summary (click)="$event.preventDefault(); toggleMenu(child.label)"><i [class]="child.icon"></i> {{ child.label }}</summary>
             <ul>
               @for(grandSon of child.children; track grandSon.label) {
-              <li><a [routerLink]="grandSon.route"><i [class]="grandSon.icon"></i> {{ grandSon.label }}</a></li>
+              <li><a [routerLink]="grandSon.route" routerLinkActive="bg-blue-800"><i [class]="grandSon.icon"></i> {{
+                  grandSon.label }}</a></li>
               }
             </ul>
           </details>
           } @else {
-          <a [routerLink]="child.route">
+          <a [routerLink]="child.route" routerLinkActive="bg-blue-800">
             <i [class]="child.icon"></i> {{ child.label }}
             @if(child.spanPro){
             <span class="badge badge-sm">Pro</span>
@@ -33,7 +37,7 @@
       </ul>
     </details>
     } @else {
-    <a [routerLink]="item.route">
+    <a [routerLink]="item.route" routerLinkActive="bg-blue-800">
       <i [class]="item.icon"></i> {{ item.label }}
       @if(item.spanPro){
       <span class="badge badge-sm">Pro</span>
@@ -51,14 +55,17 @@
   @for(item of menuOptsSystem; track item.label) {
   <li>
     @if (item.children) {
-    <details>
-      <summary><i [class]="item.icon"></i> {{ item.label }}</summary>
+    <details [open]="isMenuOpen(item.label)">
+      <summary (click)="$event.preventDefault(); toggleMenu(item.label)">
+        <i [class]="item.icon"></i>
+        {{ item.label }}
+      </summary>
       <ul>
         @for(child of item.children; track child.label) {
         <li>
           @if (child.children) {
-          <details>
-            <summary><i [class]="child.icon"></i> {{ child.label }}</summary>
+          <details [open]="isMenuOpen(child.label)">
+            <summary (click)="$event.preventDefault(); toggleMenu(child.label)"><i [class]="child.icon"></i> {{ child.label }}</summary>
             <ul>
               @for(grandSon of child.children; track grandSon.label) {
               <li><a [routerLink]="grandSon.route">{{ grandSon.label }}</a></li>
