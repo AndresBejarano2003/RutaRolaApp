@@ -73,7 +73,7 @@ export class SideMenuOptionsComponent {
         {
           icon: 'fa-solid fa-calendar-check',
           label: 'Programación de facturación',
-          route: '/finanzas/programacion-facturación',
+          route: '/finanzas/programacion-facturacion',
         },
         {
           icon: 'fa-solid fa-chart-line',
@@ -136,17 +136,17 @@ export class SideMenuOptionsComponent {
     {
       icon: 'fa-solid fa-book',
       label: 'Documentación',
-      route: '/documentacion',
+      route: '/sistema/documentacion',
     },
     {
       icon: 'fa-solid fa-headset',
       label: 'Soporte',
-      route: '/soporte',
+      route: '/sistema/soporte',
     },
     {
-      icon: 'fa-solid fa-rocket',
-      label: 'PRO version',
-      route: '/pro-version',
+      icon: 'fa-solid fa-crown',
+      label: 'Planes y Membresías',
+      route: '/sistema/membership',
     },
   ];
 

@@ -1,11 +1,11 @@
 import { Component, inject, signal } from '@angular/core';
 import { FormsModule, FormGroup, FormControl, Validators } from '@angular/forms';
 import { GifService } from 'src/app/main/services/main.service';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 
 @Component({
     selector: 'app-login-page',
-    imports: [FormsModule],
+    imports: [FormsModule, RouterLink],
     templateUrl: './login-page.component.html',
     styleUrl: './login-page.component.css'
 })

@@ -2,7 +2,12 @@ import { Routes } from '@angular/router';
 
 export const routes: Routes = [
   {
-    path: '',
+    path: 'login',
+    loadComponent: () =>
+      import('./main/pages/login/login-page/login-page.component'),
+  },
+  {
+    path: 'inicio',
     loadComponent: () =>
       import('./main/pages/inicio-page/inicio-page.component'),
     children: [
@@ -21,16 +26,6 @@ export const routes: Routes = [
     ]
   },
   {
-    path: 'login',
-    loadComponent: () =>
-      import('./main/pages/login/login-page/login-page.component'),
-  },
-  {
-    path: 'inicio',
-    loadComponent: () =>
-      import('./main/pages/inicio-page/inicio-page.component'),
-  },
-  {
     path: 'personas',
     loadComponent: () =>
       import('./main/pages/inicio-page/inicio-page.component'),
@@ -38,17 +33,22 @@ export const routes: Routes = [
       {
         path: 'estudiantes',
         loadComponent: () =>
-          import('./main/pages/trending-page/trending-page.component')
+          import('./main/pages/personas-module/estudiantes-page/estudiantes-page.component'),
+      },
+      {
+        path: 'estudiantes',
+        loadComponent: () =>
+          import('./main/pages/personas-module/estudiantes-page/estudiantes-page.component'),
       },
       {
         path: 'acudientes',
         loadComponent: () =>
-          import('./main/pages/search-page/search-page.component')
+          import('./main/pages/personas-module/acudientes-page/acudientes-page.component')
       },
       {
         path: 'empleados',
         loadComponent: () =>
-          import('./main/pages/trending-page/trending-page.component')
+          import('./main/pages/personas-module/empleados-page/empleados-page.component')
       },
       {
         path: '**',
@@ -64,22 +64,22 @@ export const routes: Routes = [
       {
         path: 'cotizaciones',
         loadComponent: () =>
-          import('./main/pages/trending-page/trending-page.component')
+          import('./main/pages/finanzas-module/cotizaciones-page/cotizaciones-page.component')
       },
       {
         path: 'contrataciones',
         loadComponent: () =>
-          import('./main/pages/search-page/search-page.component')
+          import('./main/pages/finanzas-module/contrataciones-page/contrataciones-page.component')
       },
       {
         path: 'recibos',
         loadComponent: () =>
-          import('./main/pages/trending-page/trending-page.component')
+          import('./main/pages/finanzas-module/recibos-page/recibos-page.component')
       },
       {
-        path: 'programacion-facturación',
+        path: 'programacion-facturacion',
         loadComponent: () =>
-          import('./main/pages/trending-page/trending-page.component')
+        import('./main/pages/finanzas-module/programacion-facturacion-page/programacion-facturacion-page.component')
       },
       {
         path: 'reportes-financieros',
@@ -121,7 +121,7 @@ export const routes: Routes = [
       {
         path: 'colegios',
         loadComponent: () =>
-          import('./main/pages/trending-page/trending-page.component')
+          import('./main/pages/operacion-module/colegios-page/colegios-page.component'),
       },
       {
         path: 'rutas',
@@ -150,19 +150,35 @@ export const routes: Routes = [
     ]
   },
   {
-    path: 'documentacion',
+    path: 'sistema',
     loadComponent: () =>
       import('./main/pages/inicio-page/inicio-page.component'),
-  },
-  {
-    path: 'soporte',
-    loadComponent: () =>
-      import('./main/pages/inicio-page/inicio-page.component'),
-  },
-  {
-    path: 'pro-version',
-    loadComponent: () =>
-      import('./main/pages/inicio-page/inicio-page.component'),
+    children: [
+
+      {
+        path: 'documentacion',
+        loadComponent: () =>
+          import('./main/pages/inicio-page/inicio-page.component'),
+      },
+
+      {
+        path: 'soporte',
+        loadComponent: () =>
+          import('./main/pages/inicio-page/inicio-page.component'),
+      },
+
+      {
+        path: 'membership',
+        loadComponent: () =>
+          import('./main/pages/membership-page/membership-page.component'),
+      },
+
+      {
+        path: '**',
+        redirectTo: 'membership'
+      }
+
+    ]
   },
   // {
   //   path: 'perfil',
@@ -179,6 +195,11 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./main/pages/editar-usuario-page/editar-usuario-page.component'),
   },
+  {
+    path: 'offline-membership',
+    loadComponent: () =>
+      import('./main/pages/membership-page/membership-page.component'),
+  },
   // {
   //   path: 'configuracion',
   //   loadComponent: () =>
@@ -186,6 +207,6 @@ export const routes: Routes = [
   // },
   {
     path: '**',
-    redirectTo: 'inicio',
+    redirectTo: 'login',
   }
 ];

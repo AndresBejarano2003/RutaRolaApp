@@ -1,1 +1,392 @@
-<main-side-menu />
+<!-- navbar -->
+<main-side-menu-header />
+
+<!-- CONTENEDOR PRINCIPAL -->
+<div class="drawer lg:drawer-open">
+    <!-- Toggle -->
+    <input id="drawer-toggle" type="checkbox" class="drawer-toggle" />
+    <!-- CONTENIDO -->
+    <div class="drawer-content flex flex-col bg-gray-900 text-white h-screen overflow-hidden">
+        <!-- BOTÓN MOBILE -->
+        <label for="drawer-toggle"
+            class="btn bg-gray-800 text-white hover:bg-gray-700 lg:hidden fixed bottom-6 right-6 z-50 shadow-lg rounded-full">
+            <i class="fa-solid fa-bars text-lg"></i>
+        </label>
+
+        <div class="p-4 pb-28 w-full flex-1 overflow-y-auto">
+            @if (!hasContent()) {
+            <!-- LOADING -->
+            <div class="space-y-6 animate-[pulse_1.5s_ease-in-out_infinite]">
+
+                <!-- HEADER -->
+                <div class="space-y-3">
+                    <div class="skeleton bg-gray-800 before:bg-gray-700/40 h-6 w-1/4"></div>
+                    <div class="skeleton bg-gray-800 before:bg-gray-700/40 h-4 w-1/2"></div>
+                    <div class="skeleton bg-gray-800 before:bg-gray-700/40 h-4 w-2/3"></div>
+                </div>
+
+                <!-- CARD PRINCIPAL -->
+                <div
+                    class="skeleton bg-gray-800 before:bg-gray-700/40 w-full h-64 rounded-2xl flex items-center justify-center">
+                    <i class="fa-regular fa-image text-4xl text-gray-500"></i>
+                </div>
+
+                <!-- CONTENIDO -->
+                <div class="space-y-3">
+                    <div class="skeleton bg-gray-800 before:bg-gray-700/40 h-4 w-full"></div>
+                    <div class="skeleton bg-gray-800 before:bg-gray-700/40 h-4 w-5/6"></div>
+                    <div class="skeleton bg-gray-800 before:bg-gray-700/40 h-4 w-4/6"></div>
+                    <div class="skeleton bg-gray-800 before:bg-gray-700/40 h-4 w-3/6"></div>
+                </div>
+
+                <!-- LISTADO -->
+                <div class="space-y-3">
+                    <div class="skeleton bg-gray-800 before:bg-gray-700/40 h-4 w-full"></div>
+                    <div class="skeleton bg-gray-800 before:bg-gray-700/40 h-4 w-11/12"></div>
+                    <div class="skeleton bg-gray-800 before:bg-gray-700/40 h-4 w-10/12"></div>
+                    <div class="skeleton bg-gray-800 before:bg-gray-700/40 h-4 w-9/12"></div>
+                    <div class="skeleton bg-gray-800 before:bg-gray-700/40 h-4 w-8/12"></div>
+                </div>
+
+            </div>
+            } @else if(isInicio()) {
+
+            <div class="space-y-6">
+
+                <!-- HEADER DASHBOARD -->
+                <div class="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4">
+
+                    <div>
+                        <h1 class="text-3xl font-bold text-white">
+                            Dashboard General
+                        </h1>
+
+                        <p class="text-gray-400">
+                            Resumen financiero y operativo del sistema.
+                        </p>
+                    </div>
+
+                </div>
+
+
+                <!-- KPI -->
+                <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+
+                    <!-- ESTUDIANTES -->
+                    <div class="stat bg-gray-800 border border-gray-700 rounded-2xl shadow-xl">
+                        <div class="stat-figure text-blue-400">
+                            <i class="fa-solid fa-user-graduate text-3xl"></i>
+                        </div>
+
+                        <div class="stat-title text-gray-400">
+                            Estudiantes activos
+                        </div>
+
+                        <div class="stat-value text-white">
+                            1.245
+                        </div>
+
+                        <div class="stat-desc text-success">
+                            ▲ +12%
+                        </div>
+                    </div>
+
+                    <!-- ACUDIENTES -->
+                    <div class="stat bg-gray-800 border border-gray-700 rounded-2xl shadow-xl">
+                        <div class="stat-figure text-green-400">
+                            <i class="fa-solid fa-people-roof text-3xl"></i>
+                        </div>
+
+                        <div class="stat-title text-gray-400">
+                            Acudientes
+                        </div>
+
+                        <div class="stat-value text-white">
+                            967
+                        </div>
+
+                        <div class="stat-desc text-success">
+                            ▲ +8%
+                        </div>
+                    </div>
+
+                    <!-- VEHICULOS -->
+                    <div class="stat bg-gray-800 border border-gray-700 rounded-2xl shadow-xl">
+                        <div class="stat-figure text-yellow-400">
+                            <i class="fa-solid fa-bus text-3xl"></i>
+                        </div>
+
+                        <div class="stat-title text-gray-400">
+                            Vehículos
+                        </div>
+
+                        <div class="stat-value text-white">
+                            38
+                        </div>
+
+                        <div class="stat-desc text-success">
+                            Operativos
+                        </div>
+                    </div>
+
+                    <!-- FACTURAS -->
+                    <div class="stat bg-gray-800 border border-gray-700 rounded-2xl shadow-xl">
+                        <div class="stat-figure text-red-400">
+                            <i class="fa-solid fa-file-invoice-dollar text-3xl"></i>
+                        </div>
+
+                        <div class="stat-title text-gray-400">
+                            Pendientes
+                        </div>
+
+                        <div class="stat-value text-white">
+                            14
+                        </div>
+
+                        <div class="stat-desc text-error">
+                            Requieren atención
+                        </div>
+                    </div>
+
+                </div>
+
+
+                <!-- CENTRO -->
+                <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
+
+                    <!-- FINANCIERO -->
+                    <div class="xl:col-span-2 card bg-gray-800 border border-gray-700 shadow-xl">
+
+                        <div class="card-body">
+
+                            <div class="flex justify-between items-center">
+
+                                <h2 class="card-title text-white">
+                                    Estado financiero
+                                </h2>
+
+                                <div class="badge badge-primary">
+                                    Últimos 12 meses
+                                </div>
+
+                            </div>
+
+                            <!-- GRAFICA -->
+                            <div class="rounded-xl bg-gray-900 border border-gray-700 p-4">
+
+                                <apx-chart [series]="financialChart.series!" [chart]="financialChart.chart!"
+                                    [xaxis]="financialChart.xaxis!" [stroke]="financialChart.stroke!"
+                                    [dataLabels]="financialChart.dataLabels!" [legend]="financialChart.legend!"
+                                    [tooltip]="financialChart.tooltip!">
+                                </apx-chart>
+
+                            </div>
+
+                            <!-- RESUMEN -->
+                            <div class="grid grid-cols-3 gap-4 mt-4">
+
+                                <div class="stat bg-gray-900 rounded-xl">
+                                    <div class="stat-title">
+                                        Ingresos
+                                    </div>
+                                    <div class="stat-value text-success text-2xl">
+                                        $18.5M
+                                    </div>
+                                </div>
+
+                                <div class="stat bg-gray-900 rounded-xl">
+                                    <div class="stat-title">
+                                        Facturado
+                                    </div>
+                                    <div class="stat-value text-info text-2xl">
+                                        $22M
+                                    </div>
+                                </div>
+
+                                <div class="stat bg-gray-900 rounded-xl">
+                                    <div class="stat-title">
+                                        Pendiente
+                                    </div>
+                                    <div class="stat-value text-error text-2xl">
+                                        $3.5M
+                                    </div>
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+
+                    <!-- ALERTAS -->
+                    <div class="card bg-gray-800 border border-gray-700 shadow-xl">
+
+                        <div class="card-body">
+
+                            <h2 class="card-title text-warning">
+                                Alertas
+                            </h2>
+
+                            <div class="space-y-3">
+
+                                <div class="alert bg-yellow-500/10 border border-yellow-500/20">
+                                    ⚠ 5 estudiantes sin ruta asignada
+                                </div>
+
+                                <div class="alert bg-orange-500/10 border border-orange-500/20">
+                                    ⚠ 2 vehículos próximos a mantenimiento
+                                </div>
+
+                                <div class="alert bg-red-500/10 border border-red-500/20">
+                                    ⚠ 14 facturas pendientes
+                                </div>
+
+                                <div class="alert bg-purple-500/10 border border-purple-500/20">
+                                    ⚠ 3 contratos por vencer
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- ACTIVIDAD -->
+                <div class="card bg-gray-800 border border-gray-700 shadow-xl">
+
+                    <div class="card-body">
+
+                        <h2 class="card-title text-white">
+                            Actividad reciente
+                        </h2>
+
+                        <ul class="timeline timeline-vertical">
+
+                            <li>
+                                <div class="timeline-start text-gray-400">
+                                    08:10
+                                </div>
+
+                                <div class="timeline-middle text-primary">
+                                    ●
+                                </div>
+
+                                <div class="timeline-end text-white">
+                                    Juan Pérez fue asignado a Ruta Norte
+                                </div>
+                            </li>
+
+                            <li>
+                                <div class="timeline-start text-gray-400">
+                                    08:22
+                                </div>
+
+                                <div class="timeline-middle text-success">
+                                    ●
+                                </div>
+
+                                <div class="timeline-end text-white">
+                                    Factura #1523 enviada
+                                </div>
+                            </li>
+
+                            <li>
+                                <div class="timeline-start text-gray-400">
+                                    08:45
+                                </div>
+
+                                <div class="timeline-middle text-warning">
+                                    ●
+                                </div>
+
+                                <div class="timeline-end text-white">
+                                    Vehículo BUS-07 registrado
+                                </div>
+                            </li>
+
+                            <li>
+                                <div class="timeline-start text-gray-400">
+                                    09:01
+                                </div>
+
+                                <div class="timeline-middle text-secondary">
+                                    ●
+                                </div>
+
+                                <div class="timeline-end text-white">
+                                    Nuevo acudiente creado
+                                </div>
+                            </li>
+
+                        </ul>
+
+                    </div>
+
+                </div>
+
+                <!-- GRAFICAS INFERIORES -->
+                <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
+                    <!-- FACTURACIÓN -->
+                    <div class="xl:col-span-2">
+                        <div class="card bg-gray-900 border border-gray-700 shadow-xl">
+                            <div class="card-body">
+
+                                <div class="flex justify-between items-center mb-4">
+                                    <h2 class="card-title text-white">
+                                        Facturación mensual
+                                    </h2>
+
+                                    <select class="select select-bordered bg-gray-800 border-gray-700 text-white"
+                                        [(ngModel)]="selectedMonth" (change)="loadFinancialChart()">
+                                        @for(month of months; track month) {
+                                        <option value="{{ month.value }}">
+                                            {{ month.label }}
+                                        </option>
+                                        }
+                                    </select>
+                                </div>
+
+                                <apx-chart [series]="financialMonthChart.series" [chart]="financialMonthChart.chart"
+                                    [plotOptions]="financialMonthChart.plotOptions" [xaxis]="financialMonthChart.xaxis"
+                                    [dataLabels]="financialMonthChart.dataLabels" [colors]="financialMonthChart.colors">
+                                </apx-chart>
+
+                            </div>
+                        </div>
+                    </div>
+                    <!-- DONUT -->
+                    <div>
+                        <div class="card bg-gray-900 border border-gray-700 shadow-xl">
+                            <div class="card-body">
+
+                                <h2 class="card-title text-white">
+                                    Estudiantes por colegio
+                                </h2>
+
+                                <apx-chart [series]="studentsChart.series" [chart]="studentsChart.chart"
+                                    [labels]="studentsChart.labels" [legend]="studentsChart.legend"
+                                    [colors]="studentsChart.colors">
+                                </apx-chart>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            } @else {
+            <router-outlet />
+            }
+
+        </div>
+    </div>
+    <!-- SIDEBAR -->
+    <div class="drawer-side">
+        <label for="drawer-toggle" class="drawer-overlay"></label>
+        <main-side-menu-options />
+    </div>
+</div>

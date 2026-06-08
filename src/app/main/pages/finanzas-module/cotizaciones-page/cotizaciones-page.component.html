@@ -1,0 +1,375 @@
+<div class="card bg-gray-800/70 border border-gray-700 shadow-xl">
+
+    <div class="card-body">
+
+        <h2 class="card-title text-white">
+            Filtros
+        </h2>
+
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+
+            <input type="text" placeholder="Buscar cotización..."
+                class="input input-bordered bg-gray-900 border-gray-700 text-white w-full">
+
+            <select class="select select-bordered bg-gray-900 border-gray-700 text-white">
+                <option>Todas las fechas</option>
+                <option>Hoy</option>
+                <option>Esta semana</option>
+                <option>Este mes</option>
+            </select>
+
+            <select class="select select-bordered bg-gray-900 border-gray-700 text-white">
+                <option>Todos los estados</option>
+                <option>Pendiente</option>
+                <option>Aprobada</option>
+                <option>Rechazada</option>
+            </select>
+
+            <button class="btn btn-primary">
+                Buscar
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+<div class="mt-6 card bg-gray-800/70 border border-gray-700 shadow-xl">
+
+    <div class="card-body">
+
+        <div class="flex justify-between items-center">
+
+            <div>
+
+                <h2 class="card-title text-white text-xl">
+                    Lista de cotizaciones
+                </h2>
+
+                <p class="text-gray-400 text-sm">
+                    Gestiona todas las cotizaciones generadas.
+                </p>
+
+            </div>
+
+            <div class="flex gap-2">
+
+                <div class="badge badge-warning">
+                    28 registros
+                </div>
+
+                <button class="btn btn-primary" onclick="nuevaCotizacion.showModal()">
+
+                    <i class="fa-solid fa-file-signature"></i>
+
+                    Nueva cotización
+
+                </button>
+
+            </div>
+
+        </div>
+
+        <div class="divider divider-neutral my-6"></div>
+
+        <div class="overflow-x-auto">
+
+            <table class="table">
+
+                <thead>
+
+                    <tr>
+
+                        <th>#</th>
+                        <th>Acudiente</th>
+                        <th>Estudiantes</th>
+                        <th>Valor unitario</th>
+                        <th>Total</th>
+                        <th>Fecha</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
+
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                    <tr>
+
+                        <td>COT-00125</td>
+
+                        <td>María Fernanda Pérez</td>
+
+                        <td>
+                            <div class="badge badge-info">
+                                2 estudiantes
+                            </div>
+                        </td>
+
+                        <td>$350.000</td>
+
+                        <td class="font-bold text-success">
+                            $700.000
+                        </td>
+
+                        <td>08/06/2026</td>
+
+                        <td>
+                            <div class="badge badge-warning">
+                                Pendiente
+                            </div>
+                        </td>
+
+                        <td>
+
+                            <div class="flex gap-2">
+
+                                <button class="btn btn-sm btn-square btn-ghost text-blue-400">
+                                    <i class="fa-solid fa-eye"></i>
+                                </button>
+
+                                <button class="btn btn-sm btn-square btn-ghost text-green-400">
+                                    <i class="fa-solid fa-file-pdf"></i>
+                                </button>
+
+                                <button class="btn btn-sm btn-square btn-ghost text-red-400">
+                                    <i class="fa-solid fa-trash"></i>
+                                </button>
+
+                            </div>
+
+                        </td>
+
+                    </tr>
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+</div>
+
+<dialog id="nuevaCotizacion" class="modal">
+
+    <div class="modal-box max-w-7xl bg-gray-800 border border-gray-700">
+
+        <h3 class="font-bold text-xl text-white mb-6">
+
+            Nueva cotización
+
+        </h3>
+
+        <div class="form-control mb-6">
+
+            <label class="label cursor-pointer justify-start gap-3">
+
+                <input type="checkbox" class="toggle toggle-primary">
+
+                <span class="label-text text-white">
+
+                    ¿Acudiente y estudiante creados?
+
+                </span>
+
+            </label>
+
+        </div>
+        <div class="grid md:grid-cols-2 gap-4">
+
+            <select class="select select-bordered bg-gray-900 text-white">
+
+                <option>Seleccionar acudiente</option>
+
+                <option>María Fernanda Pérez</option>
+
+                <option>Carlos Ruiz</option>
+
+            </select>
+
+            <select class="select select-bordered bg-gray-900 text-white">
+
+                <option>Seleccionar estudiante</option>
+
+                <option>Juan Pérez</option>
+
+                <option>Camila Pérez</option>
+
+            </select>
+
+        </div>
+        <div class="grid md:grid-cols-2 gap-4">
+
+            <input type="text" placeholder="Nombre acudiente" class="input input-bordered bg-gray-900 text-white">
+
+            <input type="text" placeholder="Nombre estudiante" class="input input-bordered bg-gray-900 text-white">
+
+        </div>
+        <div class="flex justify-end mt-5">
+
+            <button class="btn btn-info">
+
+                <i class="fa-solid fa-plus"></i>
+
+                Agregar estudiante
+
+            </button>
+
+        </div>
+        <div class="divider">
+
+            Estudiantes a cotizar
+
+        </div>
+
+        <div class="overflow-x-auto">
+
+            <table class="table">
+
+                <thead>
+
+                    <tr>
+
+                        <th>Estudiante</th>
+                        <th>Acudiente</th>
+                        <th>Valor</th>
+                        <th></th>
+
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                    <tr>
+
+                        <td>Juan David Pérez</td>
+
+                        <td>María Fernanda Pérez</td>
+
+                        <td>$350.000</td>
+
+                        <td>
+
+                            <button class="btn btn-sm btn-square btn-error">
+
+                                <i class="fa-solid fa-trash"></i>
+
+                            </button>
+
+                        </td>
+
+                    </tr>
+
+                    <tr>
+
+                        <td>María Camila Pérez</td>
+
+                        <td>María Fernanda Pérez</td>
+
+                        <td>$350.000</td>
+
+                        <td>
+
+                            <button class="btn btn-sm btn-square btn-error">
+
+                                <i class="fa-solid fa-trash"></i>
+
+                            </button>
+
+                        </td>
+
+                    </tr>
+
+                </tbody>
+
+            </table>
+
+        </div>
+        <div class="grid md:grid-cols-3 gap-4 mt-8">
+
+            <div class="stat bg-gray-900 rounded-xl">
+
+                <div class="stat-title">
+
+                    Estudiantes
+
+                </div>
+
+                <div class="stat-value text-info">
+
+                    2
+
+                </div>
+
+            </div>
+
+            <div class="stat bg-gray-900 rounded-xl">
+
+                <div class="stat-title">
+
+                    Valor unitario
+
+                </div>
+
+                <div class="stat-value text-warning">
+
+                    $350K
+
+                </div>
+
+            </div>
+
+            <div class="stat bg-gray-900 rounded-xl">
+
+                <div class="stat-title">
+
+                    Total cotización
+
+                </div>
+
+                <div class="stat-value text-success">
+
+                    $700K
+
+                </div>
+
+            </div>
+
+        </div>
+        <div class="modal-action">
+
+            <button class="btn btn-success">
+
+                <i class="fa-solid fa-file-pdf"></i>
+
+                Generar PDF
+
+            </button>
+
+            <button class="btn btn-primary">
+
+                <i class="fa-solid fa-floppy-disk"></i>
+
+                Guardar cotización
+
+            </button>
+
+            <form method="dialog">
+
+                <button class="btn btn-ghost">
+
+                    Cancelar
+
+                </button>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</dialog>

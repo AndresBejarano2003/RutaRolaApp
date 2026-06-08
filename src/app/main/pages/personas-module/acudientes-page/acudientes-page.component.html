@@ -1,0 +1,517 @@
+<div class="card bg-gray-800/70 border border-gray-700 shadow-xl">
+    <div class="card-body">
+
+        <h2 class="card-title text-white">
+            Filtros
+        </h2>
+
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+
+            <input type="text" placeholder="Buscar acudiente..."
+                class="input input-bordered bg-gray-900 border-gray-700 text-white w-full">
+
+            <select class="select select-bordered bg-gray-900 border-gray-700 text-white">
+
+                <option>Todos los colegios</option>
+
+            </select>
+
+            <select class="select select-bordered bg-gray-900 border-gray-700 text-white">
+
+                <option>Todos los estados</option>
+
+            </select>
+
+            <button class="btn btn-primary">
+                Buscar
+            </button>
+
+        </div>
+
+    </div>
+</div>
+
+<div class="mt-6 card bg-gray-800/70 border border-gray-700 shadow-xl">
+
+    <div class="card-body">
+
+        <!-- ENCABEZADO -->
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+
+            <div>
+                <h2 class="card-title text-white text-xl">
+                    Lista de acudientes
+                </h2>
+
+                <p class="text-gray-400 text-sm">
+                    Administra los acudientes registrados en el sistema.
+                </p>
+            </div>
+
+            <div class="flex gap-2">
+
+                <div class="badge badge-primary">
+                    967 registros
+                </div>
+
+                <button class="btn btn-primary" onclick="nuevoAcudiente.showModal()">
+
+                    <i class="fa-solid fa-plus"></i>
+
+                    Nuevo acudiente
+
+                </button>
+
+            </div>
+
+        </div>
+
+        <div class="divider divider-neutral my-6"></div>
+
+        <!-- TABLA -->
+        <div class="overflow-x-auto mt-10">
+
+            <table class="table">
+
+                <thead>
+
+                    <tr class="text-gray-400">
+
+                        <th>Foto</th>
+
+                        <th>Documento</th>
+
+                        <th>Nombre completo</th>
+
+                        <th>Estudiantes a cargo</th>
+
+                        <th>Colegio principal</th>
+
+                        <th>Estado</th>
+
+                        <th class="text-center">
+                            Acciones
+                        </th>
+
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                    <!-- FILA -->
+                    <tr>
+
+                        <td>
+                            <div class="avatar">
+                                <div class="w-12 rounded-full">
+                                    <img
+                                        src="https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.webp">
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            CC 1.023.456.789
+                        </td>
+
+                        <td>
+
+                            <div class="flex flex-col">
+
+                                <span class="font-semibold text-white">
+                                    María Fernanda Pérez Gómez
+                                </span>
+
+                                <span class="text-xs text-gray-500">
+                                    Acudiente principal
+                                </span>
+
+                            </div>
+
+                        </td>
+
+                        <td>
+
+                            <button class="btn btn-xs btn-info" onclick="modalEstudiantes.showModal()">
+
+                                <i class="fa-solid fa-users"></i>
+                                2 estudiantes
+
+                            </button>
+
+                        </td>
+
+                        <td>
+                            Colegio San José
+                        </td>
+
+                        <td>
+
+                            <div class="badge badge-success">
+                                Activo
+                            </div>
+
+                        </td>
+
+                        <td>
+
+                            <div class="flex justify-center gap-2">
+
+                                <!-- VER -->
+                                <button class="btn btn-square btn-sm btn-ghost text-blue-400">
+
+                                    <i class="fa-solid fa-eye"></i>
+
+                                </button>
+
+                                <!-- EDITAR -->
+                                <button class="btn btn-square btn-sm btn-ghost text-yellow-400">
+
+                                    <i class="fa-solid fa-pen"></i>
+
+                                </button>
+
+                                <!-- ELIMINAR -->
+                                <button class="btn btn-square btn-sm btn-ghost text-red-400">
+
+                                    <i class="fa-solid fa-trash"></i>
+
+                                </button>
+
+                            </div>
+
+                        </td>
+
+                    </tr>
+
+                    <!-- FILA -->
+                    <tr>
+
+                        <td>
+                            <div class="avatar">
+                                <div class="w-12 rounded-full">
+                                    <img
+                                        src="https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.webp">
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            CC 1.087.654.321
+                        </td>
+
+                        <td>
+
+                            <div class="flex flex-col">
+
+                                <span class="font-semibold text-white">
+                                    Carlos Andrés Ruiz
+                                </span>
+
+                                <span class="text-xs text-gray-500">
+                                    Acudiente principal
+                                </span>
+
+                            </div>
+
+                        </td>
+
+                        <td>
+
+                            <button class="btn btn-xs btn-info" onclick="modalEstudiantes.showModal()">
+
+                                <i class="fa-solid fa-users"></i>
+
+                                1 estudiante
+
+                            </button>
+
+                        </td>
+
+                        <td>
+                            Colegio Los Andes
+                        </td>
+
+                        <td>
+
+                            <div class="badge badge-success">
+                                Activo
+                            </div>
+
+                        </td>
+
+                        <td>
+
+                            <div class="flex justify-center gap-2">
+
+                                <button class="btn btn-square btn-sm btn-ghost text-blue-400">
+
+                                    <i class="fa-solid fa-eye"></i>
+
+                                </button>
+
+                                <button class="btn btn-square btn-sm btn-ghost text-yellow-400">
+
+                                    <i class="fa-solid fa-pen"></i>
+
+                                </button>
+
+                                <button class="btn btn-square btn-sm btn-ghost text-red-400">
+
+                                    <i class="fa-solid fa-trash"></i>
+
+                                </button>
+
+                            </div>
+
+                        </td>
+
+                    </tr>
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+</div>
+<dialog id="nuevoAcudiente" class="modal">
+
+    <div class="modal-box max-w-5xl bg-gray-800 border border-gray-700">
+
+        <div class="grid md:grid-cols-2 gap-4">
+
+            <select class="select select-bordered bg-gray-900 text-white">
+
+                <option>Tipo documento</option>
+
+            </select>
+
+            <input type="text" placeholder="Identificación" class="input input-bordered bg-gray-900 text-white">
+
+            <input type="text" placeholder="Primer nombre" class="input input-bordered bg-gray-900 text-white">
+
+            <input type="text" placeholder="Segundo nombre" class="input input-bordered bg-gray-900 text-white">
+
+            <input type="text" placeholder="Primer apellido" class="input input-bordered bg-gray-900 text-white">
+
+            <input type="text" placeholder="Segundo apellido" class="input input-bordered bg-gray-900 text-white">
+
+        </div>
+
+        <div class="divider text-gray-500">
+            Estudiantes que se pueden asociar a este acudiente
+        </div>
+
+        <!-- TABLA -->
+        <div class="overflow-x-auto">
+
+            <table class="table">
+
+                <thead>
+
+                    <tr>
+
+                        <th></th>
+                        <th>Documento</th>
+                        <th>Nombre</th>
+                        <th>Colegio</th>
+                        <th>Grado</th>
+
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                    <tr>
+
+                        <td>
+                            <input type="checkbox" class="checkbox checkbox-primary">
+                        </td>
+
+                        <td>10203040</td>
+
+                        <td>
+                            Juan Pérez
+                        </td>
+
+                        <td>
+                            San José
+                        </td>
+
+                        <td>
+                            7°
+                        </td>
+
+                    </tr>
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+        <div class="modal-action">
+
+            <form method="dialog">
+
+                <button class="btn btn-ghost">
+                    Cancelar
+                </button>
+
+                <button class="btn btn-primary">
+                    Guardar acudiente
+                </button>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</dialog>
+<dialog id="modalEstudiantes" class="modal">
+
+    <div class="modal-box max-w-4xl bg-gray-800 border border-gray-700">
+
+        <!-- HEADER -->
+        <div class="flex items-center justify-between mb-5">
+
+            <div>
+                <h3 class="font-bold text-xl text-white">
+                    Estudiantes asociados
+                </h3>
+
+                <p class="text-gray-400 text-sm">
+                    Acudiente: María Fernanda Pérez Gómez
+                </p>
+            </div>
+
+            <form method="dialog">
+                <button class="btn btn-sm btn-circle btn-ghost text-white">
+                    ✕
+                </button>
+            </form>
+
+        </div>
+
+        <!-- TABLA -->
+        <div class="overflow-x-auto">
+
+            <!-- <table class="table table-zebra"> -->
+            <table class="table">
+
+                <thead>
+                    <tr>
+                        <th>Foto</th>
+                        <th>Documento</th>
+                        <th>Nombre</th>
+                        <th>Colegio</th>
+                        <th>Grado</th>
+                        <th>Ruta</th>
+                        <th>Estado</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    <tr>
+
+                        <td>
+                            <div class="avatar">
+                                <div class="w-12 rounded-full">
+                                    <img
+                                        src="https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.webp">
+                                </div>
+                            </div>
+                        </td>
+
+                        <td>TI 10254879</td>
+
+                        <td>
+                            Juan David Pérez
+                        </td>
+
+                        <td>
+                            Colegio San José
+                        </td>
+
+                        <td>
+                            5°
+                        </td>
+
+                        <td>
+                            Ruta Norte
+                        </td>
+
+                        <td>
+                            <span class="badge badge-success">
+                                Activo
+                            </span>
+                        </td>
+
+                    </tr>
+
+                    <tr>
+
+                        <td>
+                            <div class="avatar">
+                                <div class="w-12 rounded-full">
+                                    <img
+                                        src="https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.webp">
+                                </div>
+                            </div>
+                        </td>
+
+                        <td>TI 10254880</td>
+
+                        <td>
+                            María Camila Pérez
+                        </td>
+
+                        <td>
+                            Colegio San José
+                        </td>
+
+                        <td>
+                            3°
+                        </td>
+
+                        <td>
+                            Ruta Norte
+                        </td>
+
+                        <td>
+                            <span class="badge badge-success">
+                                Activo
+                            </span>
+                        </td>
+
+                    </tr>
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+        <!-- FOOTER -->
+        <div class="modal-action">
+
+            <button class="btn btn-primary">
+                Ver perfil del acudiente
+            </button>
+
+            <form method="dialog">
+                <button class="btn btn-ghost">
+                    Cerrar
+                </button>
+            </form>
+
+        </div>
+
+    </div>
+
+</dialog>

@@ -1,0 +1,323 @@
+<div class="card bg-gray-800/70 border border-gray-700 shadow-xl">
+    <div class="card-body">
+
+        <h2 class="card-title text-white">
+            Filtros
+        </h2>
+
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+
+            <input type="text" placeholder="Buscar empleado..."
+                class="input input-bordered bg-gray-900 border-gray-700 text-white w-full">
+
+            <select class="select select-bordered bg-gray-900 border-gray-700 text-white">
+                <option>Todos los tipos</option>
+                <option>Conductores</option>
+                <option>Monitoras</option>
+            </select>
+
+            <select class="select select-bordered bg-gray-900 border-gray-700 text-white">
+                <option>Todos los estados</option>
+                <option>Activo</option>
+                <option>Inactivo</option>
+            </select>
+
+            <button class="btn btn-primary">
+                Buscar
+            </button>
+
+        </div>
+
+    </div>
+</div>
+<div class="mt-6 card bg-gray-800/70 border border-gray-700 shadow-xl">
+
+    <div class="card-body">
+
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+
+            <div>
+                <h2 class="card-title text-white text-xl">
+                    Lista de empleados
+                </h2>
+
+                <p class="text-gray-400 text-sm">
+                    Gestiona conductores y monitoras registradas en el sistema.
+                </p>
+            </div>
+
+            <div class="flex gap-2">
+
+                <div class="badge badge-primary">
+                    42 registros
+                </div>
+
+                <button class="btn btn-primary" onclick="nuevoEmpleado.showModal()">
+
+                    <i class="fa-solid fa-plus"></i>
+
+                    Nuevo empleado
+
+                </button>
+
+            </div>
+
+        </div>
+
+        <div class="divider divider-neutral my-6"></div>
+        <div class="overflow-x-auto">
+
+            <table class="table">
+
+                <thead>
+                    <tr>
+
+                        <th>Foto</th>
+                        <th>Documento</th>
+                        <th>Nombre</th>
+                        <th>Tipo</th>
+                        <th>Sueldo</th>
+                        <th>Contrato</th>
+                        <th>Estado</th>
+                        <th class="text-center">
+                            Acciones
+                        </th>
+
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    <tr>
+
+                        <td>
+                            <div class="avatar">
+                                <div class="w-12 rounded-full">
+                                    <img src="https://randomuser.me/api/portraits/men/32.jpg">
+                                </div>
+                            </div>
+                        </td>
+
+                        <td>CC 80.123.456</td>
+
+                        <td>
+                            <div class="flex flex-col">
+                                <span class="font-semibold text-white">
+                                    Carlos Andrés Gómez
+                                </span>
+                                <span class="text-xs text-gray-500">
+                                    Conductor Ruta Norte
+                                </span>
+                            </div>
+                        </td>
+
+                        <td>
+                            <div class="badge badge-info">
+                                <i class="fa-solid fa-bus"></i>
+                                Conductor
+                            </div>
+                        </td>
+
+                        <td>$2.300.000</td>
+
+                        <td>
+                            <div class="badge badge-success">
+                                Indefinido
+                            </div>
+                        </td>
+
+                        <td>
+                            <div class="badge badge-success">
+                                Activo
+                            </div>
+                        </td>
+
+                        <td>
+
+                            <div class="flex justify-center gap-2">
+
+                                <button class="btn btn-square btn-sm btn-ghost text-blue-400">
+                                    <i class="fa-solid fa-eye"></i>
+                                </button>
+
+                                <button class="btn btn-square btn-sm btn-ghost text-yellow-400">
+                                    <i class="fa-solid fa-pen"></i>
+                                </button>
+
+                                <button class="btn btn-square btn-sm btn-ghost text-red-400">
+                                    <i class="fa-solid fa-trash"></i>
+                                </button>
+
+                            </div>
+
+                        </td>
+
+                    </tr>
+
+                    <tr>
+
+                        <td>
+                            <div class="avatar">
+                                <div class="w-12 rounded-full">
+                                    <img src="https://randomuser.me/api/portraits/women/44.jpg">
+                                </div>
+                            </div>
+                        </td>
+
+                        <td>CC 52.456.789</td>
+
+                        <td>
+                            <div class="flex flex-col">
+                                <span class="font-semibold text-white">
+                                    Laura Martínez
+                                </span>
+                                <span class="text-xs text-gray-500">
+                                    Monitora Ruta Escolar
+                                </span>
+                            </div>
+                        </td>
+
+                        <td>
+                            <div class="badge badge-secondary">
+                                <i class="fa-solid fa-child-reaching"></i>
+                                Monitora
+                            </div>
+                        </td>
+
+                        <td>$1.800.000</td>
+
+                        <td>
+                            <div class="badge badge-warning">
+                                Prestación servicios
+                            </div>
+                        </td>
+
+                        <td>
+                            <div class="badge badge-success">
+                                Activo
+                            </div>
+                        </td>
+
+                        <td>
+
+                            <div class="flex justify-center gap-2">
+
+                                <button class="btn btn-square btn-sm btn-ghost text-blue-400">
+                                    <i class="fa-solid fa-eye"></i>
+                                </button>
+
+                                <button class="btn btn-square btn-sm btn-ghost text-yellow-400">
+                                    <i class="fa-solid fa-pen"></i>
+                                </button>
+
+                                <button class="btn btn-square btn-sm btn-ghost text-red-400">
+                                    <i class="fa-solid fa-trash"></i>
+                                </button>
+
+                            </div>
+
+                        </td>
+
+                    </tr>
+
+                </tbody>
+
+            </table>
+
+        </div>
+    </div>
+</div>
+<dialog id="nuevoEmpleado" class="modal">
+
+    <div class="modal-box max-w-6xl bg-gray-800 border border-gray-700">
+
+        <h3 class="font-bold text-xl text-white mb-6">
+            Nuevo empleado
+        </h3>
+
+        <div class="grid md:grid-cols-2 gap-4">
+
+            <select class="select select-bordered bg-gray-900 text-white">
+                <option>Tipo documento</option>
+                <option>CC</option>
+                <option>CE</option>
+                <option>Pasaporte</option>
+            </select>
+
+            <input type="text" placeholder="Identificación" class="input input-bordered bg-gray-900 text-white">
+
+            <input type="text" placeholder="Primer nombre" class="input input-bordered bg-gray-900 text-white">
+
+            <input type="text" placeholder="Segundo nombre" class="input input-bordered bg-gray-900 text-white">
+
+            <input type="text" placeholder="Primer apellido" class="input input-bordered bg-gray-900 text-white">
+
+            <input type="text" placeholder="Segundo apellido" class="input input-bordered bg-gray-900 text-white">
+
+            <select class="select select-bordered bg-gray-900 text-white">
+
+                <option>Tipo empleado</option>
+                <option>Conductor</option>
+                <option>Monitora</option>
+
+            </select>
+
+            <input type="number" placeholder="Sueldo" class="input input-bordered bg-gray-900 text-white">
+
+            <select class="select select-bordered bg-gray-900 text-white">
+
+                <option>Tipo contrato</option>
+                <option>Indefinido</option>
+                <option>Término fijo</option>
+                <option>Prestación de servicios</option>
+
+            </select>
+
+            <div>
+
+                <input type="file" class="file-input file-input-bordered w-full bg-gray-900">
+
+            </div>
+
+        </div>
+
+        <div class="divider text-gray-500">
+            Contrato adjunto
+        </div>
+
+        <div class="alert bg-gray-900 border border-gray-700">
+
+            <i class="fa-solid fa-file-pdf text-red-400"></i>
+
+            <div>
+
+                <h3 class="font-semibold text-white">
+                    Contrato laboral
+                </h3>
+
+                <p class="text-xs text-gray-400">
+                    Adjunte el contrato firmado del empleado.
+                </p>
+
+            </div>
+
+        </div>
+        <div class="modal-action">
+
+            <form method="dialog">
+
+                <button class="btn btn-ghost">
+                    Cancelar
+                </button>
+
+                <button class="btn btn-primary">
+                    Guardar empleado
+                </button>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</dialog>

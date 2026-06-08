@@ -1,0 +1,287 @@
+<div class="card bg-gray-800/70 border border-gray-700 shadow-xl">
+
+    <div class="card-body">
+
+        <h2 class="card-title text-white">
+            Filtros
+        </h2>
+
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+
+            <input type="text" placeholder="Buscar colegio..."
+                class="input input-bordered bg-gray-900 border-gray-700 text-white">
+
+            <input type="text" placeholder="Buscar NIT..."
+                class="input input-bordered bg-gray-900 border-gray-700 text-white">
+
+            <select class="select select-bordered bg-gray-900 border-gray-700 text-white">
+
+                <option>Todos los estados</option>
+                <option>Activo</option>
+                <option>Inactivo</option>
+
+            </select>
+
+            <button class="btn btn-primary">
+                Buscar
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+<div class="mt-6 card bg-gray-800/70 border border-gray-700 shadow-xl">
+
+    <div class="card-body">
+
+        <div class="flex justify-between items-center">
+
+            <div>
+
+                <h2 class="card-title text-white text-xl">
+                    Lista de colegios
+                </h2>
+
+                <p class="text-gray-400 text-sm">
+                    Administra los colegios asociados al sistema.
+                </p>
+
+            </div>
+
+            <div class="flex gap-2">
+
+                <div class="badge badge-primary ">
+                    12 registros
+                </div>
+
+                <button class="btn btn-primary" onclick="nuevoColegio.showModal()">
+
+                    <i class="fa-solid fa-plus"></i>
+                    Nuevo colegio
+
+                </button>
+
+            </div>
+
+        </div>
+
+        <div class="divider divider-neutral my-6"></div>
+        <div class="overflow-x-auto">
+
+            <table class="table">
+
+                <thead>
+
+                    <tr>
+
+                        <th>NIT</th>
+                        <th>Razón social</th>
+                        <th>Dirección</th>
+                        <th>Cursos</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
+
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                    <tr>
+
+                        <td>900123456</td>
+
+                        <td>
+                            Colegio San José
+                        </td>
+
+                        <td>
+                            Cra 7 # 120 - 55
+                        </td>
+
+                        <td>
+
+                            <button class="btn btn-xs btn-info" onclick="modalCursos.showModal()">
+
+                                <i class="fa-solid fa-graduation-cap"></i>
+
+                                12 cursos
+
+                            </button>
+
+                        </td>
+
+                        <td>
+
+                            <div class="badge badge-success">
+                                Activo
+                            </div>
+
+                        </td>
+
+                        <td>
+
+                            <div class="flex gap-2">
+
+                                <button class="btn btn-square btn-sm btn-ghost text-blue-400">
+                                    <i class="fa-solid fa-eye"></i>
+                                </button>
+
+                                <button class="btn btn-square btn-sm btn-ghost text-yellow-400">
+                                    <i class="fa-solid fa-pen"></i>
+                                </button>
+
+                                <button class="btn btn-square btn-sm btn-ghost text-red-400">
+                                    <i class="fa-solid fa-trash"></i>
+                                </button>
+
+                            </div>
+
+                        </td>
+
+                    </tr>
+
+                </tbody>
+
+            </table>
+
+        </div>
+    </div>
+</div>
+<dialog id="nuevoColegio" class="modal">
+
+    <div class="modal-box max-w-7xl bg-gray-800 border border-gray-700">
+
+        <h3 class="font-bold text-xl text-white mb-6">
+            Nuevo colegio
+        </h3>
+        <div class="grid md:grid-cols-3 gap-4">
+
+            <input type="text" placeholder="NIT" class="input input-bordered bg-gray-900 text-white">
+
+            <input type="text" placeholder="Razón social"
+                class="input input-bordered bg-gray-900 text-white md:col-span-2">
+
+            <input type="text" placeholder="Dirección"
+                class="input input-bordered bg-gray-900 text-white md:col-span-3">
+
+        </div>
+        <div class="divider text-gray-500">
+
+            Parametrización de cursos
+
+        </div>
+        <div class="grid md:grid-cols-4 gap-4">
+
+            <select class="select select-bordered bg-gray-900 text-white">
+
+                <option>Curso máximo</option>
+
+                <option>Jardín</option>
+                <option>Transición</option>
+                <option>Primero</option>
+                <option>Segundo</option>
+                <option>Tercero</option>
+                <option>Cuarto</option>
+                <option>Quinto</option>
+                <option>Sexto</option>
+                <option>Séptimo</option>
+                <option>Octavo</option>
+                <option>Noveno</option>
+                <option>Décimo</option>
+                <option>Once</option>
+
+            </select>
+
+            <input type="time" class="input input-bordered bg-gray-900 text-white">
+
+            <input type="time" class="input input-bordered bg-gray-900 text-white">
+
+            <button class="btn btn-success">
+
+                <i class="fa-solid fa-wand-magic-sparkles"></i>
+
+                Generar cursos
+
+            </button>
+
+        </div>
+        <div class="overflow-x-auto mt-6">
+
+            <table class="table">
+
+                <thead>
+
+                    <tr>
+
+                        <th>Curso</th>
+                        <th>Hora ingreso</th>
+                        <th>Hora salida</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
+
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                    <tr>
+
+                        <td>Jardín</td>
+
+                        <td>06:30 AM</td>
+
+                        <td>01:00 PM</td>
+
+                        <td>
+                            <div class="flex items-center gap-2">
+                                <div class="badge badge-success">
+                                    Activo
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+
+                            <div class="flex gap-2">
+
+                                <button class="btn btn-square btn-sm btn-ghost text-blue-400">
+                                    <i class="fa-solid fa-eye"></i>
+                                </button>
+
+                                <button class="btn btn-square btn-sm btn-ghost text-yellow-400">
+                                    <i class="fa-solid fa-pen"></i>
+                                </button>
+
+                                <button class="btn btn-square btn-sm btn-ghost text-red-400">
+                                    <i class="fa-solid fa-trash"></i>
+                                </button>
+
+                            </div>
+
+                        </td>
+                    </tr>
+
+                </tbody>
+
+            </table>
+
+        </div>
+        <div class="modal-action">
+
+            <form method="dialog">
+
+                <button class="btn btn-ghost">
+                    Cancelar
+                </button>
+
+                <button class="btn btn-primary">
+                    Guardar colegio
+                </button>
+
+            </form>
+
+        </div>
+    </div>
+</dialog>

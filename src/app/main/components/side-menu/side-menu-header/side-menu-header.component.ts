@@ -39,12 +39,12 @@ export class SideMenuHeaderComponent {
     {
       icon: 'fa-solid fa-user',
       label: 'Mi perfil',
-      route: '/perfil',
+      route: '/inicio/perfil',
     },
     {
       icon: 'fa-solid fa-gear',
       label: 'Configuración',
-      route: '/configuracion',
+      route: '/inicio/configuracion',
     },
     {
       icon: 'fa-solid fa-right-from-bracket',

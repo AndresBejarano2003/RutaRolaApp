@@ -1,0 +1,417 @@
+<div class="card bg-gray-800/70 border border-gray-700 shadow-xl">
+
+    <div class="card-body">
+
+        <h2 class="card-title text-white">
+            Filtros
+        </h2>
+
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+
+            <input type="text" placeholder="Buscar contratación..."
+                class="input input-bordered bg-gray-900 border-gray-700 text-white">
+
+            <select class="select select-bordered bg-gray-900 border-gray-700 text-white">
+                <option>Todos los acudientes</option>
+            </select>
+
+            <select class="select select-bordered bg-gray-900 border-gray-700 text-white">
+                <option>Todos los estados</option>
+                <option>Activo</option>
+                <option>Finalizado</option>
+                <option>Pendiente</option>
+            </select>
+
+            <button class="btn btn-primary">
+                Buscar
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+<div class="mt-6 card bg-gray-800/70 border border-gray-700 shadow-xl">
+
+    <div class="card-body">
+
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+
+            <div>
+
+                <h2 class="card-title text-white text-xl">
+                    Lista de contrataciones
+                </h2>
+
+                <p class="text-gray-400 text-sm">
+                    Gestiona los contratos activos de transporte escolar.
+                </p>
+
+            </div>
+
+            <div class="flex gap-2">
+
+                <div class="badge badge-warning">
+                    86 registros
+                </div>
+
+                <button class="btn btn-primary" onclick="nuevoContrato.showModal()">
+
+                    <i class="fa-solid fa-file-signature"></i>
+
+                    Nueva contratación
+
+                </button>
+
+            </div>
+
+        </div>
+
+        <div class="divider divider-neutral my-6"></div>
+
+        <div class="overflow-x-auto">
+
+            <table class="table">
+
+                <thead>
+
+                    <tr>
+
+                        <th># Contrato</th>
+                        <th>Acudiente</th>
+                        <th>Estudiante</th>
+                        <th>Colegio</th>
+                        <th>Valor</th>
+                        <th>Estado</th>
+                        <th class="text-center">Acciones</th>
+
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                    <tr>
+
+                        <td>CTR-000125</td>
+
+                        <td>María Fernanda Pérez</td>
+
+                        <td>Juan David Pérez</td>
+
+                        <td>Colegio San José</td>
+
+                        <td class="font-semibold text-success">
+                            $450.000
+                        </td>
+
+                        <td>
+
+                            <div class="badge badge-success">
+                                Activo
+                            </div>
+
+                        </td>
+
+                        <td>
+
+                            <div class="flex justify-center gap-2">
+
+                                <button class="btn btn-square btn-sm btn-ghost text-blue-400">
+                                    <i class="fa-solid fa-eye"></i>
+                                </button>
+
+                                <button class="btn btn-square btn-sm btn-ghost text-yellow-400">
+                                    <i class="fa-solid fa-pen"></i>
+                                </button>
+
+                                <button class="btn btn-square btn-sm btn-ghost text-red-400">
+                                    <i class="fa-solid fa-trash"></i>
+                                </button>
+
+                            </div>
+
+                        </td>
+
+                    </tr>
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+</div>
+<dialog id="nuevoContrato" class="modal">
+
+    <div class="modal-box max-w-5xl bg-gray-800 border border-gray-700">
+
+        <h3 class="font-bold text-xl text-white mb-6">
+
+            Nueva contratación
+
+        </h3>
+        <div class="grid md:grid-cols-2 gap-4">
+
+            <div>
+
+                <label class="label">
+                    <span class="label-text text-gray-400">
+                        Acudiente
+                    </span>
+                </label>
+
+                <select class="select select-bordered bg-gray-900 text-white w-full">
+
+                    <option>Seleccionar acudiente</option>
+
+                    <option>María Fernanda Pérez</option>
+
+                    <option>Carlos Ruiz</option>
+
+                </select>
+
+            </div>
+            <div>
+
+                <label class="label">
+                    <span class="label-text text-gray-400">
+                        Estudiante
+                    </span>
+                </label>
+
+                <select class="select select-bordered bg-gray-900 text-white w-full">
+
+                    <option>Seleccionar estudiante</option>
+
+                    <option>Juan David Pérez</option>
+
+                    <option>María Camila Pérez</option>
+
+                </select>
+
+            </div>
+
+        </div>
+        <div class="mt-4">
+
+            <label class="label">
+                <span class="label-text text-gray-400">
+                    Valor de la contratación
+                </span>
+            </label>
+
+            <input type="number" placeholder="450000" class="input input-bordered bg-gray-900 text-white w-full">
+
+        </div>
+        <div class="divider text-gray-500">
+
+            Documento contractual
+
+        </div>
+
+        <input type="file" class="file-input file-input-bordered w-full bg-gray-900">
+
+        <div class="flex justify-end mt-5">
+
+            <button class="btn btn-info">
+
+                <i class="fa-solid fa-plus"></i>
+
+                Agregar estudiante
+
+            </button>
+
+        </div>
+        <div class="divider text-gray-500 mt-8">
+
+            Estudiantes incluidos en la contratación
+
+        </div>
+
+        <div class="overflow-x-auto">
+
+            <table class="table">
+
+                <thead>
+
+                    <tr>
+
+                        <th>Estudiante</th>
+                        <th>Colegio</th>
+                        <th>Ruta</th>
+                        <th>Valor mensual</th>
+                        <th></th>
+
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                    <tr>
+
+                        <td>
+
+                            <div class="flex flex-col">
+
+                                <span class="font-semibold text-white">
+                                    Juan David Pérez
+                                </span>
+
+                                <span class="text-xs text-gray-500">
+                                    TI 10254879
+                                </span>
+
+                            </div>
+
+                        </td>
+
+                        <td>Colegio San José</td>
+
+                        <td>Ruta Norte</td>
+
+                        <td class="text-success font-semibold">
+                            $450.000
+                        </td>
+
+                        <td>
+
+                            <button class="btn btn-square btn-sm btn-error">
+
+                                <i class="fa-solid fa-trash"></i>
+
+                            </button>
+
+                        </td>
+
+                    </tr>
+
+                    <tr>
+
+                        <td>
+
+                            <div class="flex flex-col">
+
+                                <span class="font-semibold text-white">
+                                    María Camila Pérez
+                                </span>
+
+                                <span class="text-xs text-gray-500">
+                                    TI 10254880
+                                </span>
+
+                            </div>
+
+                        </td>
+
+                        <td>Colegio San José</td>
+
+                        <td>Ruta Norte</td>
+
+                        <td class="text-success font-semibold">
+                            $450.000
+                        </td>
+
+                        <td>
+
+                            <button class="btn btn-square btn-sm btn-error">
+
+                                <i class="fa-solid fa-trash"></i>
+
+                            </button>
+
+                        </td>
+
+                    </tr>
+
+                </tbody>
+
+            </table>
+
+        </div>
+        <div class="divider"></div>
+
+
+        <div class="grid md:grid-cols-4 gap-4 ">
+
+            <div class="stat bg-gray-900 rounded-xl border border-gray-700">
+
+                
+                <div class="text-gray-400 text-sm uppercase tracking-wider mb-2">
+                    Acudiente
+                </div>
+
+                <div class="text-5xl font-bold text-sky-400">
+                    1
+                </div>
+            </div>
+
+
+            <div class="stat bg-gray-900 rounded-xl border border-gray-700">
+                <div class="text-gray-400 text-sm uppercase tracking-wider mb-2">
+                    Estudiantes
+                </div>
+
+                <div class="text-5xl font-bold text-yellow-400">
+                    2
+                </div>
+            </div>
+
+            <div class="stat bg-gray-900 rounded-xl border border-gray-700">
+                <div class="text-gray-400 text-sm uppercase tracking-wider mb-2">
+                    Valor promedio
+                </div>
+
+                <div class="text-5xl font-bold text-amber-400">
+                    $450K
+                </div>
+            </div>
+
+            <div class="stat bg-gray-900 rounded-xl border border-gray-700">
+                <div class="text-gray-400 text-sm uppercase tracking-wider mb-2">
+                    Total contratación
+                </div>
+
+                <div class="text-5xl font-bold text-emerald-400">
+                    $900K
+                </div>
+            </div>
+
+
+        </div>
+        <div class="modal-action">
+
+            <button class="btn btn-success">
+
+                <i class="fa-solid fa-file-pdf"></i>
+
+                Generar contrato
+
+            </button>
+
+            <button class="btn btn-primary">
+
+                <i class="fa-solid fa-floppy-disk"></i>
+
+                Guardar contratación
+
+            </button>
+
+            <form method="dialog">
+
+                <button class="btn btn-ghost">
+
+                    Cancelar
+
+                </button>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</dialog>

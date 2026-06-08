@@ -1,0 +1,196 @@
+<div class="card bg-gray-800/70 border border-gray-700 shadow-xl">
+    <div class="card-body">
+
+        <h2 class="card-title text-white">
+            Filtros
+        </h2>
+
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+
+            <input type="text" placeholder="Buscar estudiante..."
+                class="input input-bordered bg-gray-900 border-gray-700 text-white w-full">
+
+            <select class="select select-bordered bg-gray-900 border-gray-700 text-white">
+
+                <option>Todos los colegios</option>
+
+            </select>
+
+            <select class="select select-bordered bg-gray-900 border-gray-700 text-white">
+
+                <option>Todos los grados</option>
+
+            </select>
+
+            <button class="btn btn-primary">
+                Buscar
+            </button>
+
+        </div>
+
+    </div>
+</div>
+<div class="mt-6 card bg-gray-800/70 border border-gray-700 shadow-xl">
+
+    <div class="card-body">
+
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+
+            <div>
+                <h2 class="card-title text-white text-xl">
+                    Lista de estudiantes
+                </h2>
+
+                <p class="text-gray-400 text-sm">
+                    Administra los estudiantes registrados en el sistema.
+                </p>
+            </div>
+
+            <div class="flex gap-2">
+
+                <div class="badge badge-primary">
+                    1245 registros
+                </div>
+
+                <button class="btn btn-primary" onclick="nuevoEstudiante.showModal()">
+                    <i class="fa-solid fa-plus"></i>
+                    Nuevo estudiante
+                </button>
+
+            </div>
+        </div>
+
+        <div class="divider divider-neutral my-6"></div>
+
+        <div class="overflow-x-auto">
+
+            <table class="table">
+
+                <thead>
+
+                    <tr class="text-gray-400">
+
+                        <th>Documento</th>
+                        <th>Nombre</th>
+                        <th>Acudiente</th>
+                        <th>Colegio</th>
+                        <th>Grado</th>
+                        <th>Estado</th>
+                        <th></th>
+
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                    <tr>
+
+                        <td>10203040</td>
+
+                        <td>
+                            Juan Sebastián Pérez
+                        </td>
+
+                        <td>
+                            María Pérez
+                        </td>
+
+                        <td>
+                            Colegio San José
+                        </td>
+
+                        <td>
+                            7°
+                        </td>
+
+                        <td>
+                            <div class="badge badge-success">
+                                Activo
+                            </div>
+                        </td>
+
+                        <td>
+
+                            <button class="btn btn-sm btn-ghost">
+                                <i class="fa-solid fa-pen"></i>
+                            </button>
+
+                            <button class="btn btn-sm btn-ghost text-red-400">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+
+                        </td>
+
+                    </tr>
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+</div>
+<dialog id="nuevoEstudiante" class="modal">
+
+    <div class="modal-box max-w-5xl bg-gray-800 border border-gray-700">
+
+        <h3 class="font-bold text-2xl text-white mb-6">
+            Nuevo estudiante
+        </h3>
+
+        <div class="grid md:grid-cols-2 gap-4">
+
+            <select class="select select-bordered bg-gray-900 text-white">
+                <option>Tipo documento</option>
+            </select>
+
+            <input type="text" placeholder="Identificación" class="input input-bordered bg-gray-900 text-white">
+
+            <input type="text" placeholder="Primer nombre" class="input input-bordered bg-gray-900 text-white">
+
+            <input type="text" placeholder="Segundo nombre" class="input input-bordered bg-gray-900 text-white">
+
+            <input type="text" placeholder="Primer apellido" class="input input-bordered bg-gray-900 text-white">
+
+            <input type="text" placeholder="Segundo apellido" class="input input-bordered bg-gray-900 text-white">
+
+            <input type="date" class="input input-bordered bg-gray-900 text-white">
+
+            <input type="text" placeholder="Dirección" class="input input-bordered bg-gray-900 text-white">
+
+            <select class="select select-bordered bg-gray-900 text-white">
+                <option>Seleccionar acudiente</option>
+            </select>
+
+            <select class="select select-bordered bg-gray-900 text-white">
+                <option>Seleccionar colegio</option>
+            </select>
+
+            <select class="select select-bordered bg-gray-900 text-white">
+                <option>Seleccionar grado</option>
+            </select>
+
+        </div>
+
+        <div class="modal-action">
+
+            <form method="dialog">
+
+                <button class="btn btn-ghost">
+                    Cancelar
+                </button>
+
+                <button class="btn btn-primary">
+                    Guardar estudiante
+                </button>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</dialog>

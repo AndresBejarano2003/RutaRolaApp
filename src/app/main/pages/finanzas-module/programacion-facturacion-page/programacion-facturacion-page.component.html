@@ -1,0 +1,414 @@
+<div class="card bg-gray-800/70 border border-gray-700 shadow-xl">
+    <div class="card-body">
+
+        <h2 class="card-title text-white">
+            Filtros
+        </h2>
+
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+
+            <input type="text" placeholder="Buscar programación..."
+                class="input input-bordered bg-gray-900 border-gray-700 text-white w-full">
+
+            <select class="select select-bordered bg-gray-900 border-gray-700 text-white">
+                <option>Todas las programaciones</option>
+                <option>Mensualidades</option>
+                <option>Transporte Escolar</option>
+                <option>Servicios adicionales</option>
+            </select>
+
+            <select class="select select-bordered bg-gray-900 border-gray-700 text-white">
+                <option>Todos los estados</option>
+                <option>Activo</option>
+                <option>Inactivo</option>
+            </select>
+
+            <button class="btn btn-primary">
+                Buscar
+            </button>
+
+        </div>
+
+    </div>
+</div>
+<div class="mt-6 card bg-gray-800/70 border border-gray-700 shadow-xl">
+
+    <div class="card-body">
+
+        <div class="flex justify-between items-center">
+
+            <div>
+                <h2 class="card-title text-white text-xl">
+                    Programación de facturación
+                </h2>
+
+                <p class="text-gray-400">
+                    Automatiza el envío de facturas por WhatsApp y correo electrónico.
+                </p>
+            </div>
+
+            <div class="flex gap-2">
+
+                <div class="badge badge-warning">
+                    15 programaciones
+                </div>
+
+                <button class="btn btn-primary" onclick="nuevaProgramacion.showModal()">
+                    <i class="fa-solid fa-plus"></i>
+                    Nueva programación
+                </button>
+
+            </div>
+
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="overflow-x-auto">
+
+            <table class="table">
+
+                <thead>
+                    <tr>
+
+                        <th>Programación</th>
+                        <th>No. Factura</th>
+                        <th>Día límite</th>
+                        <th>Envío previo</th>
+                        <th>Historial</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
+
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    <tr>
+
+                        <td>Mensualidad Transporte</td>
+                        <td>FAC-2026-001</td>
+                        <td>5</td>
+                        <td>3 días antes</td>
+
+                        <td>
+                            <button class="btn btn-info btn-sm">
+                                24 envíos
+                            </button>
+                        </td>
+
+                        <td>
+                            <div class="badge badge-success">
+                                Activo
+                            </div>
+                        </td>
+
+                        <td>
+
+                            <div class="flex gap-2">
+
+                                <button class="btn btn-ghost btn-sm text-blue-400">
+                                    <i class="fa-solid fa-eye"></i>
+                                </button>
+
+                                <button class="btn btn-ghost btn-sm text-yellow-400">
+                                    <i class="fa-solid fa-pen"></i>
+                                </button>
+
+                            </div>
+
+                        </td>
+
+                    </tr>
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+</div>
+<dialog id="nuevaProgramacion" class="modal">
+
+    <div class="modal-box max-w-7xl bg-gray-800 border border-gray-700">
+
+        <h3 class="font-bold text-xl text-white mb-6">
+            Nueva programación de facturación
+        </h3>
+        <div class="grid md:grid-cols-2 gap-4">
+
+            <input type="text" placeholder="Nombre de la programación"
+                class="input input-bordered bg-gray-900 text-white">
+
+            <select class="select select-bordered bg-gray-900 text-white">
+                <option>Seleccionar contratación</option>
+                <option>Contrato Ruta Norte</option>
+                <option>Contrato Ruta Sur</option>
+            </select>
+
+            <select class="select select-bordered bg-gray-900 text-white">
+                <option>Día límite de pago</option>
+
+                <option>1</option>
+                <option>2</option>
+                ...
+                <option>31</option>
+
+            </select>
+
+            <select class="select select-bordered bg-gray-900 text-white">
+
+                <option>Días previos para envío</option>
+
+                <option>1 día</option>
+                <option>2 días</option>
+                <option>3 días</option>
+                <option>4 días</option>
+                <option>5 días</option>
+                <option>6 días</option>
+                <option>7 días</option>
+                <option>8 días</option>
+                <option>9 días</option>
+                <option>10 días</option>
+
+            </select>
+
+        </div>
+        <div class="divider text-success mt-8">
+            Configuración WhatsApp
+        </div>
+
+        <label class="label cursor-pointer justify-start gap-4">
+
+            <input type="checkbox" class="toggle toggle-success" [checked]="whatsappActivo()"
+                (change)="activarWhatsapp()">
+
+            <span class="label-text text-white">
+                Habilitar envío por WhatsApp
+            </span>
+
+        </label>
+        @if(whatsappActivo()){
+        <button class="btn btn-success mt-4">
+
+            <i class="fa-brands fa-whatsapp"></i>
+
+            Parametrizar mensaje
+
+        </button>
+        <div class="overflow-x-auto mt-4">
+
+            <table class="table">
+
+                <thead>
+
+                    <tr>
+
+                        <th>Mensaje</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
+
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                    <tr>
+
+                        <td>
+                            Hola {{nombreAcudiente}},
+                            adjuntamos la factura...
+                        </td>
+
+                        <td>
+
+                            <div class="badge badge-success">
+                                En uso
+                            </div>
+
+                        </td>
+
+                        <td>
+
+                            <button class="btn btn-ghost btn-sm">
+                                <i class="fa-solid fa-eye"></i>
+                            </button>
+
+                        </td>
+
+                    </tr>
+
+                </tbody>
+
+            </table>
+
+        </div>
+        <div class="mt-5">
+
+            <textarea rows="5" class="textarea textarea-bordered bg-gray-900 text-white w-full"
+                placeholder="Mensaje WhatsApp"></textarea>
+
+            <select class="select select-bordered bg-gray-900 text-white mt-3">
+
+                <option>Estado</option>
+                <option>En uso</option>
+                <option>Activo</option>
+                <option>Inactivo</option>
+
+            </select>
+
+        </div>
+        }
+
+        <div class="divider text-info mt-8">
+            Configuración Email
+        </div>
+
+        <label class="label cursor-pointer justify-start gap-4">
+
+            <input type="checkbox" class="toggle toggle-info" [checked]="emailActivo()" (change)="activarEmail()">
+
+            <span class="label-text text-white">
+                Habilitar envío por correo
+            </span>
+
+        </label>
+        @if(emailActivo()){
+        <button class="btn btn-info mt-4">
+
+            <i class="fa-solid fa-envelope"></i>
+
+            Parametrizar correo
+
+        </button>
+        <div class="overflow-x-auto mt-4">
+
+            <table class="table">
+
+                <thead>
+
+                    <tr>
+
+                        <th>Asunto</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
+
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                    <tr>
+
+                        <td>
+                            Factura mensual RutaRola
+                        </td>
+
+                        <td>
+
+                            <div class="badge badge-success">
+                                En uso
+                            </div>
+
+                        </td>
+
+                        <td>
+
+                            <button class="btn btn-ghost btn-sm">
+                                <i class="fa-solid fa-eye"></i>
+                            </button>
+
+                        </td>
+
+                    </tr>
+
+                </tbody>
+
+            </table>
+
+        </div>
+        <div class="grid gap-4 mt-5">
+
+            <input type="text" placeholder="Asunto" class="input input-bordered bg-gray-900 text-white">
+
+            <textarea rows="6" class="textarea textarea-bordered bg-gray-900 text-white"
+                placeholder="Cuerpo del correo"></textarea>
+
+            <input type="file" class="file-input file-input-bordered w-full">
+
+            <select class="select select-bordered bg-gray-900 text-white">
+
+                <option>Estado</option>
+                <option>En uso</option>
+                <option>Activo</option>
+                <option>Inactivo</option>
+
+            </select>
+
+        </div>
+        }
+        <div class="divider"></div>
+
+        <div class="stats shadow bg-gray-900 w-full">
+
+            <div class="stat">
+
+                <div class="stat-title text-gray-400">
+                    Contratación
+                </div>
+
+                <div class="stat-value text-primary">
+                    124
+                </div>
+
+            </div>
+
+            <div class="stat">
+
+                <div class="stat-title text-gray-400">
+                    Día límite
+                </div>
+
+                <div class="stat-value text-warning">
+                    5
+                </div>
+
+            </div>
+
+            <div class="stat">
+
+                <div class="stat-title text-gray-400">
+                    Canales activos
+                </div>
+
+                <div class="stat-value text-success">
+                    2
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="modal-action">
+
+            <form method="dialog">
+
+                <button class="btn btn-ghost">
+                    Cancelar
+                </button>
+
+                <button class="btn btn-primary">
+                    Guardar programación
+                </button>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</dialog>
