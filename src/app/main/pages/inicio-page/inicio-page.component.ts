@@ -268,7 +268,7 @@ export default class InicioPageComponent {
       // '/personas/acudientes',
       // '/personas/empleados',
       '/sistema/documentacion',
-      '/sistema/soporte',
+      // '/sistema/soporte',
       // '/finanzas/cotizaciones',
       // '/finanzas/contrataciones',
       '/finanzas/recibos',

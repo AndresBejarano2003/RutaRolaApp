@@ -228,18 +228,9 @@ export const routes: Routes = [
     children: [
 
       {
-        path: 'documentacion',
-        loadComponent: () =>
-          import('./main/pages/inicio-page/inicio-page.component'),
-        data: {
-          breadcrumb: ['Sistema', 'Documentación']
-        }
-      },
-
-      {
         path: 'soporte',
         loadComponent: () =>
-          import('./main/pages/inicio-page/inicio-page.component'),
+          import('./main/pages/system-module/soporte-page/soporte-page.component'),
         data: {
           breadcrumb: ['Sistema', 'Soporte']
         }

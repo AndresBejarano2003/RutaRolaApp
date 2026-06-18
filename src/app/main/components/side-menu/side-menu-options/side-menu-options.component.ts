@@ -134,13 +134,10 @@ export class SideMenuOptionsComponent {
   ];
   menuOptsSystem: MenuOption[] = [
     {
-      icon: 'fa-solid fa-book',
-      label: 'Documentación',
-      route: '/sistema/documentacion',
-    },
-    {
       icon: 'fa-solid fa-headset',
-      label: 'Soporte',
+      // icon: 'fa-solid fa-circle-question',
+      // icon: 'fa-solid fa-book-open',
+      label: 'Centro de Ayuda',
       route: '/sistema/soporte',
     },
     {

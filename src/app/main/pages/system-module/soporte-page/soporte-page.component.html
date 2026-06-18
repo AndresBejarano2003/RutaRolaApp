@@ -1,0 +1,568 @@
+<div class="space-y-6">
+
+    <!-- HEADER -->
+    <div class="card bg-gray-800 border border-gray-700 shadow-xl">
+
+        <div class="card-body">
+
+            <h1 class="text-3xl font-bold text-white">
+
+                <i class="fa-solid fa-headset text-blue-400 mr-3"></i>
+
+                Centro de Ayuda y Soporte
+
+            </h1>
+
+            <p class="text-gray-400">
+
+                Encuentra respuestas rápidas, consulta tutoriales y comunícate con nuestro equipo de soporte.
+
+            </p>
+
+        </div>
+
+    </div>
+
+    <!-- ACCIONES RÁPIDAS -->
+    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+
+        <div class="card bg-gray-800 border border-gray-700 hover:border-blue-500 transition">
+
+            <div class="card-body items-center text-center">
+
+                <i class="fa-solid fa-book text-4xl text-blue-400"></i>
+
+                <h2 class="card-title text-white">
+                    Documentación
+                </h2>
+
+                <p class="text-gray-400 text-sm">
+                    Consulta manuales y guías del sistema.
+                </p>
+
+                <button class="btn btn-warning mt-4" onclick="modalManuales.showModal()">
+
+                    <i class="fa-solid fa-book-open"></i>
+                    Ver documentación
+
+                </button>
+
+            </div>
+
+        </div>
+
+        <div class="card bg-gray-800 border border-gray-700 hover:border-red-500 transition">
+
+            <div class="card-body items-center text-center">
+
+                <i class="fa-brands fa-youtube text-4xl text-red-400"></i>
+
+                <h2 class="card-title text-white">
+                    Tutoriales
+                </h2>
+
+                <p class="text-gray-400 text-sm">
+                    Aprende a usar cada módulo.
+                </p>
+
+                <button class="btn btn-error btn-sm" (click)="abrirTutorial('iIgsCYgo5P4')">
+                    <i class="fa-brands fa-youtube mr-2"></i>
+                    Ver videos
+                </button>
+
+            </div>
+
+        </div>
+
+        <div class="card bg-gray-800 border border-gray-700 hover:border-green-500 transition">
+
+            <div class="card-body items-center text-center">
+
+                <i class="fa-brands fa-whatsapp text-4xl text-green-400"></i>
+
+                <h2 class="card-title text-white">
+                    WhatsApp
+                </h2>
+
+                <p class="text-gray-400 text-sm">
+                    Contacta soporte inmediatamente.
+                </p>
+
+                <button class="btn btn-success btn-sm" (click)="abrirWhatsApp()">
+
+                    <i class="fa-brands fa-whatsapp mr-2"></i>
+                    Abrir chat
+
+                </button>
+
+            </div>
+
+        </div>
+
+        <div class="card bg-gray-800 border border-gray-700 hover:border-yellow-500 transition">
+
+            <div class="card-body items-center text-center">
+
+                <i class="fa-solid fa-ticket text-4xl text-yellow-400"></i>
+
+                <h2 class="card-title text-white">
+                    Ticket
+                </h2>
+
+                <p class="text-gray-400 text-sm">
+                    Reporta errores o solicitudes.
+                </p>
+
+                <button class="btn btn-warning btn-sm">
+                    Crear ticket
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- FAQ -->
+    <div class="card bg-gray-800 border border-gray-700 shadow-xl">
+
+        <div class="card-body">
+
+            <h2 class="card-title text-white">
+
+                <i class="fa-solid fa-circle-question text-yellow-400"></i>
+
+                Preguntas frecuentes
+
+            </h2>
+
+            <div class="space-y-3">
+
+                <div class="collapse collapse-arrow bg-gray-900 border border-gray-700">
+
+                    <input type="radio" name="faq">
+
+                    <div class="collapse-title text-white">
+
+                        ¿Cómo registrar un estudiante?
+
+                    </div>
+
+                    <div class="collapse-content text-gray-400">
+
+                        Ingresa al módulo Personas → Estudiantes y presiona el botón "Nuevo estudiante".
+
+                    </div>
+
+                </div>
+
+                <div class="collapse collapse-arrow bg-gray-900 border border-gray-700">
+
+                    <input type="radio" name="faq">
+
+                    <div class="collapse-title text-white">
+
+                        ¿Cómo crear una contratación?
+
+                    </div>
+
+                    <div class="collapse-content text-gray-400">
+
+                        Desde Finanzas → Contrataciones puedes asociar acudientes y estudiantes.
+
+                    </div>
+
+                </div>
+
+                <div class="collapse collapse-arrow bg-gray-900 border border-gray-700">
+
+                    <input type="radio" name="faq">
+
+                    <div class="collapse-title text-white">
+
+                        ¿Cómo generar una factura?
+
+                    </div>
+
+                    <div class="collapse-content text-gray-400">
+
+                        Desde el módulo Facturación podrás generar facturas automáticamente.
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- TUTORIALES -->
+    <div class="card bg-gray-800 border border-gray-700 shadow-xl">
+
+        <div class="card-body">
+
+            <h2 class="card-title text-white">
+
+                <i class="fa-solid fa-video text-red-400"></i>
+
+                Tutoriales destacados
+
+            </h2>
+
+            <div class="grid md:grid-cols-2 gap-3">
+                <button class="btn btn-outline" (click)="abrirTutorial('lAoj2JTQtbQ')">
+                    Primeros pasos
+                </button>
+
+                <button class="btn btn-outline" (click)="abrirTutorial('Jd5BdGRMzk8')">
+                    Registrar estudiantes
+                </button>
+                <button class="btn btn-outline" (click)="abrirTutorial('Ls1cOqGf7oI')">
+                    Crear contrataciones
+                </button>
+                <button class="btn btn-outline" (click)="abrirTutorial('PEVztafebuk')">
+                    Facturación automática
+                </button>
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- TICKETS -->
+    <div class="grid xl:grid-cols-3 gap-6">
+
+        <!-- FORMULARIO -->
+        <div class="xl:col-span-2">
+
+            <div class="card bg-gray-800 border border-gray-700 shadow-xl">
+
+                <div class="card-body">
+
+                    <h2 class="card-title text-white">
+
+                        <i class="fa-solid fa-envelope text-blue-400"></i>
+
+                        Crear solicitud de soporte
+
+                    </h2>
+
+                    <div class="grid md:grid-cols-2 gap-4">
+
+                        <select [(ngModel)]="tipoSolicitud"
+                            class="select select-bordered bg-gray-900 border-gray-700 text-white">
+
+                            <option value="">
+                                Tipo de solicitud
+                            </option>
+
+                            <option>
+                                Error
+                            </option>
+
+                            <option>
+                                Consulta
+                            </option>
+
+                            <option>
+                                Mejora
+                            </option>
+
+                            <option>
+                                Capacitación
+                            </option>
+
+                        </select>
+
+                        <input [(ngModel)]="asunto" type="text" placeholder="Asunto"
+                            class="input input-bordered bg-gray-900 border-gray-700 text-white">
+
+                    </div>
+
+                    <textarea [(ngModel)]="descripcion" rows="6" placeholder="Describe detalladamente tu solicitud..."
+                        class="textarea textarea-bordered bg-gray-900 border-gray-700 text-white mt-4">
+                    </textarea>
+
+                    <input type="file" class="file-input file-input-bordered bg-gray-900 border-gray-700 mt-4">
+
+                    <div class="mt-4">
+
+                        <button class="btn btn-primary" (click)="enviarTicket()">
+
+                            <i class="fa-solid fa-paper-plane"></i>
+
+                            Enviar solicitud
+
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- ESTADÍSTICAS -->
+        <div>
+
+            <div class="stats stats-vertical bg-gray-800 border border-gray-700 shadow-xl w-full">
+
+                <div class="stat">
+
+                    <div class="stat-title text-gray-400">
+                        Tickets abiertos
+                    </div>
+
+                    <div class="stat-value text-warning">
+                        {{ ticketsAbiertos() }}
+                    </div>
+
+                </div>
+
+                <div class="stat">
+
+                    <div class="stat-title text-gray-400">
+                        Tickets resueltos
+                    </div>
+
+                    <div class="stat-value text-success">
+                        {{ ticketsResueltos() }}
+                    </div>
+
+                </div>
+
+                <div class="stat">
+
+                    <div class="stat-title text-gray-400">
+                        Tiempo promedio
+                    </div>
+
+                    <div class="stat-value text-info">
+                        {{ tiempoRespuesta() }}
+                    </div>
+
+                </div>
+
+            </div>
+
+            <!-- CONTACTO -->
+            <div class="card bg-gray-800 border border-gray-700 shadow-xl mt-4">
+
+                <div class="card-body">
+
+                    <h2 class="card-title text-white">
+
+                        Contacto directo
+
+                    </h2>
+
+                    <div class="space-y-3">
+
+                        <button class="btn btn-success w-full">
+
+                            <i class="fa-brands fa-whatsapp"></i>
+
+                            WhatsApp
+
+                        </button>
+
+                        <button class="btn btn-primary w-full">
+
+                            <i class="fa-solid fa-envelope"></i>
+
+                            soporte@rutarola.com
+
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<dialog id="modalTutorial" class="modal">
+
+    <div class="modal-box max-w-5xl bg-gray-800 border border-gray-700">
+
+        <!-- HEADER -->
+        <div class="flex justify-between items-center mb-5">
+
+            <h3 class="text-2xl font-bold text-white">
+
+                <i class="fa-brands fa-youtube text-red-500 mr-2"></i>
+
+                Tutorial RutaRola
+
+            </h3>
+
+            <form method="dialog">
+                <button class="btn btn-circle btn-sm btn-ghost" (click)="cerrarTutorial()">
+                    ✕
+                </button>
+            </form>
+
+        </div>
+
+        <!-- VIDEO -->
+        <div class="rounded-xl overflow-hidden border border-gray-700">
+            @if(videoUrl()){
+            <iframe width="100%" height="500" [src]="videoUrl()" title="Tutorial RutaRola" frameborder="0"
+                allowfullscreen>
+            </iframe>
+
+            }
+        </div>
+
+        <!-- DESCRIPCIÓN -->
+        <div class="mt-4">
+
+            <h4 class="text-lg font-semibold text-white">
+
+                Primeros pasos en RutaRola
+
+            </h4>
+
+            <p class="text-gray-400 mt-2">
+
+                Aprende a registrar estudiantes, acudientes,
+                contrataciones y programaciones de facturación.
+
+            </p>
+
+        </div>
+
+        <!-- FOOTER -->
+        <div class="modal-action">
+
+            <a [href]="youtubeLink()" target="_blank" class="btn btn-error">
+                <i class="fa-brands fa-youtube mr-2"></i>
+                Ver en YouTube
+            </a>
+
+            <form method="dialog">
+                <button class="btn btn-outline border-gray-600 text-gray-300" (click)="cerrarTutorial()">
+                    Cerrar
+                </button>
+            </form>
+
+        </div>
+
+    </div>
+
+</dialog>
+
+<dialog id="modalManuales" class="modal">
+
+    <div class="modal-box max-w-4xl bg-gray-800 border border-gray-700">
+
+        <h3 class="font-bold text-3xl text-white mb-6">
+
+            <i class="fa-solid fa-book-open text-yellow-400 mr-3"></i>
+
+            Centro de documentación
+
+        </h3>
+
+        <div class="grid md:grid-cols-2 gap-4">
+
+            @for(manual of manuales; track manual.nombre){
+
+            <button class="btn btn-outline h-20 border-gray-600 text-white hover:border-blue-500 hover:bg-blue-500/10"
+                (click)="abrirManual(manual)">
+
+                <i [class]="manual.icono"></i>
+
+                {{ manual.nombre }}
+
+            </button>
+
+            }
+
+        </div>
+
+        <div class="modal-action">
+
+            <form method="dialog">
+
+                <button class="btn">
+
+                    Cerrar
+
+                </button>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</dialog>
+
+<dialog id="modalDocumentacion" class="modal">
+
+    <div class="modal-box max-w-7xl w-11/12 h-[90vh] bg-gray-800 border border-gray-700">
+
+        <!-- HEADER -->
+        <div class="flex justify-between items-center mb-4">
+
+            <h3 class="text-2xl font-bold text-white">
+
+                <i class="fa-solid fa-book-open text-yellow-400 mr-2">
+                </i>
+
+                {{ manualSeleccionado() }}
+
+            </h3>
+
+            <button class="btn btn-circle btn-sm btn-ghost" (click)="cerrarManual()">
+
+                ✕
+
+            </button>
+
+        </div>
+
+        <!-- PDF -->
+        <div class="h-[75vh] rounded-xl overflow-hidden border border-gray-700">
+
+            @if(pdfUrl()){
+
+            <iframe [src]="pdfUrl()" width="100%" height="100%" class="bg-white">
+
+            </iframe>
+
+            }
+
+        </div>
+
+        <!-- FOOTER -->
+        <div class="modal-action">
+
+            <a [href]="pdfDownloadUrl()" download class="btn btn-warning">
+
+                <i class="fa-solid fa-download"></i>
+
+                Descargar PDF
+
+            </a>
+
+            <button class="btn btn-outline" (click)="cerrarManual()">
+
+                Cerrar
+
+            </button>
+
+        </div>
+
+    </div>
+
+</dialog>

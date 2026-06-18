@@ -187,7 +187,7 @@ By installing ApexCharts (e.g., via `npm install apexcharts`), you are agreeing 
 Thank you for supporting ApexCharts! Your licensing helps keep it free and open for individuals and small teams.
 
 --------------------------------------------------------------------------------
-Package: @angular/platform-browser
+Package: @angular/router
 License: "MIT"
 
 The MIT License
@@ -213,7 +213,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 --------------------------------------------------------------------------------
-Package: @angular/router
+Package: @angular/platform-browser
 License: "MIT"
 
 The MIT License
