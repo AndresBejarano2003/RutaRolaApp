@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { filter, map } from 'rxjs';
-import { AuthService } from 'src/app/core/auth';
+import { AuthService, USUARIO_DEMO } from 'src/app/core/auth';
 import { CampanaNotificaciones } from '../campana-notificaciones/campana-notificaciones';
 
 interface OpcionUsuario {
@@ -32,13 +32,7 @@ export class BarraSuperior {
   );
 
   // TODO: reemplazar por los datos del usuario autenticado.
-  protected readonly usuario = {
-    nombre: 'Andrés Bejarano',
-    correo: 'andres@rutarola.com',
-    imagen: 'https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.webp',
-    enLinea: true,
-    rol: 'Administrador',
-  };
+  protected readonly usuario = USUARIO_DEMO;
 
   protected readonly opcionesUsuario: OpcionUsuario[] = [
     { icono: 'fa-solid fa-user', etiqueta: 'Mi perfil', ruta: '/inicio/perfil' },

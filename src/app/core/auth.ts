@@ -5,6 +5,23 @@ export interface Credenciales {
   contrasena: string;
 }
 
+export interface UsuarioSesion {
+  nombre: string;
+  correo: string;
+  imagen: string;
+  enLinea: boolean;
+  rol: string;
+}
+
+/** Usuario de ejemplo (barra superior, saludo del inicio) hasta que exista el login real. */
+export const USUARIO_DEMO: UsuarioSesion = {
+  nombre: 'Andrés Bejarano',
+  correo: 'andres@rutarola.com',
+  imagen: 'https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.webp',
+  enLinea: true,
+  rol: 'Administrador',
+};
+
 /**
  * Autenticación PROVISIONAL.
  *

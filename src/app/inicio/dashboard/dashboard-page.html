@@ -1,327 +1,382 @@
+@let t = tablero();
+@let inicial = cargando() && !t.periodo;
+
 <div class="space-y-6">
 
-    <!-- HEADER DASHBOARD -->
-    <div class="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4">
-
-        <div>
-            <h1 class="text-2xl sm:text-3xl font-bold">
-                Dashboard General
-            </h1>
-
-            <p class="text-gray-400">
-                Resumen financiero y operativo del sistema.
-            </p>
+  <!-- ENCABEZADO -->
+  <section class="card bg-base-200 border border-base-300 shadow-xl">
+    <div class="card-body gap-4 lg:flex-row lg:items-center lg:justify-between">
+      <div class="min-w-0">
+        <p class="text-sm text-base-content/70 first-letter:uppercase">{{ fechaHoy }}</p>
+        <h1 class="text-2xl sm:text-3xl font-bold text-base-content mt-1">{{ saludo }}</h1>
+        <div class="flex flex-wrap items-center gap-2 mt-2">
+          <span class="text-base-content/70">Resumen de {{ t.periodo ? nombrePeriodo(t.periodo, true) : 'este mes' }}</span>
+          @if (modoLocal) {
+            <div class="tooltip tooltip-bottom" data-tip="Calculado con los datos guardados en este navegador hasta conectar el API">
+              <span class="badge badge-warning badge-soft badge-sm gap-1">
+                <i class="fa-solid fa-database text-xs"></i>
+                Modo local
+              </span>
+            </div>
+          }
+          <button type="button" class="btn btn-ghost btn-xs btn-square" aria-label="Actualizar" [disabled]="cargando()" (click)="cargar()">
+            @if (cargando()) {
+              <span class="loading loading-spinner loading-xs"></span>
+            } @else {
+              <i class="fa-solid fa-rotate-right text-base-content/70"></i>
+            }
+          </button>
         </div>
+      </div>
 
+      <nav aria-label="Accesos rápidos" class="flex flex-wrap gap-2 lg:justify-end">
+        @for (a of accesos; track a.ruta) {
+          <a [routerLink]="a.ruta" [queryParams]="{ accion: 'nuevo' }"
+            class="btn btn-sm sm:btn-md" [class]="a.principal ? 'btn-primary' : 'bg-base-300 border-neutral hover:bg-neutral'">
+            <i [class]="a.icono"></i>
+            {{ a.texto }}
+          </a>
+        }
+      </nav>
     </div>
+  </section>
 
-
-    <!-- KPI -->
-    <div class="grid grid-cols-1 min-[360px]:grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4">
-
-        <!-- ESTUDIANTES -->
-        <div class="stat bg-base-200 border border-base-300 rounded-2xl shadow-xl px-3 py-3 sm:px-6 sm:py-4">
-            <div class="stat-figure text-blue-400">
-                <i class="fa-solid fa-user-graduate text-xl sm:text-3xl"></i>
-            </div>
-
-            <div class="stat-title text-base-content/70 text-xs sm:text-sm whitespace-normal">
-                Estudiantes activos
-            </div>
-
-            <div class="stat-value text-2xl sm:text-4xl">
-                1.245
-            </div>
-
-            <div class="stat-desc text-success">
-                ▲ +12%
-            </div>
-        </div>
-
-        <!-- ACUDIENTES -->
-        <div class="stat bg-base-200 border border-base-300 rounded-2xl shadow-xl px-3 py-3 sm:px-6 sm:py-4">
-            <div class="stat-figure text-green-400">
-                <i class="fa-solid fa-people-roof text-xl sm:text-3xl"></i>
-            </div>
-
-            <div class="stat-title text-base-content/70 text-xs sm:text-sm whitespace-normal">
-                Acudientes
-            </div>
-
-            <div class="stat-value text-2xl sm:text-4xl">
-                967
-            </div>
-
-            <div class="stat-desc text-success">
-                ▲ +8%
-            </div>
-        </div>
-
-        <!-- VEHICULOS -->
-        <div class="stat bg-base-200 border border-base-300 rounded-2xl shadow-xl px-3 py-3 sm:px-6 sm:py-4">
-            <div class="stat-figure text-yellow-400">
-                <i class="fa-solid fa-bus text-xl sm:text-3xl"></i>
-            </div>
-
-            <div class="stat-title text-base-content/70 text-xs sm:text-sm whitespace-normal">
-                Vehículos
-            </div>
-
-            <div class="stat-value text-2xl sm:text-4xl">
-                38
-            </div>
-
-            <div class="stat-desc text-success">
-                Operativos
-            </div>
-        </div>
-
-        <!-- FACTURAS -->
-        <div class="stat bg-base-200 border border-base-300 rounded-2xl shadow-xl px-3 py-3 sm:px-6 sm:py-4">
-            <div class="stat-figure text-red-400">
-                <i class="fa-solid fa-file-invoice-dollar text-xl sm:text-3xl"></i>
-            </div>
-
-            <div class="stat-title text-base-content/70 text-xs sm:text-sm whitespace-normal">
-                Pendientes
-            </div>
-
-            <div class="stat-value text-2xl sm:text-4xl">
-                14
-            </div>
-
-            <div class="stat-desc text-error">
-                Requieren atención
-            </div>
-        </div>
-
+  @if (error(); as mensaje) {
+    <div role="alert" class="alert alert-error">
+      <i class="fa-solid fa-circle-exclamation"></i>
+      <span>{{ mensaje }}</span>
+      <button type="button" class="btn btn-sm" (click)="cargar()">Reintentar</button>
     </div>
+  }
 
-
-    <!-- CENTRO -->
-    <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
-
-        <!-- FINANCIERO -->
-        <div class="xl:col-span-2 card bg-gray-800 border border-gray-700 shadow-xl">
-
-            <div class="card-body">
-
-                <div class="flex justify-between items-center">
-
-                    <h2 class="card-title text-white">
-                        Estado financiero
-                    </h2>
-
-                    <div class="badge badge-primary">
-                        Últimos 12 meses
-                    </div>
-
-                </div>
-
-                <!-- GRAFICA -->
-                <div class="rounded-xl bg-gray-900 border border-gray-700 p-4">
-
-                    <apx-chart [series]="graficoFinanciero.series" [chart]="graficoFinanciero.chart"
-                        [xaxis]="graficoFinanciero.xaxis" [stroke]="graficoFinanciero.stroke"
-                        [dataLabels]="graficoFinanciero.dataLabels" [legend]="graficoFinanciero.legend"
-                        [tooltip]="graficoFinanciero.tooltip">
-                    </apx-chart>
-
-                </div>
-
-                <!-- RESUMEN -->
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mt-4">
-
-                    <div class="stat bg-gray-900 rounded-xl">
-                        <div class="stat-title">
-                            Ingresos
-                        </div>
-                        <div class="stat-value text-success text-2xl">
-                            $18.5M
-                        </div>
-                    </div>
-
-                    <div class="stat bg-gray-900 rounded-xl">
-                        <div class="stat-title">
-                            Facturado
-                        </div>
-                        <div class="stat-value text-info text-2xl">
-                            $22M
-                        </div>
-                    </div>
-
-                    <div class="stat bg-gray-900 rounded-xl">
-                        <div class="stat-title">
-                            Pendiente
-                        </div>
-                        <div class="stat-value text-error text-2xl">
-                            $3.5M
-                        </div>
-                    </div>
-
-                </div>
-
+  <!-- INDICADORES -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+    @if (inicial) {
+      @for (i of [1, 2, 3, 4]; track i) {
+        <div class="skeleton bg-base-200 h-40"></div>
+      }
+    } @else {
+      <!-- Recaudo del mes -->
+      <a routerLink="/finanzas/recibos" class="card bg-base-200 border border-base-300 hover:border-success transition-colors">
+        <div class="card-body p-5 gap-2">
+          <div class="flex items-center justify-between gap-2">
+            <span class="text-sm font-medium text-base-content/80">Recaudo de {{ nombrePeriodo(t.periodo, true) }}</span>
+            <span class="grid place-items-center size-9 rounded-full bg-success/15 text-success"><i class="fa-solid fa-sack-dollar"></i></span>
+          </div>
+          <div class="text-2xl font-bold text-base-content">{{ t.recaudo.recaudado | currency: 'COP' : 'symbol-narrow' : '1.0-0' }}</div>
+          <div class="text-sm text-base-content/70">
+            de {{ t.recaudo.esperado | currency: 'COP' : 'symbol-narrow' : '1.0-0' }} esperado · {{ t.recaudo.pagos }} {{ t.recaudo.pagos === 1 ? 'pago' : 'pagos' }}
+          </div>
+          @if (porcentajeRecaudo() !== null) {
+            <div class="flex items-center gap-2">
+              <progress class="progress progress-success flex-1" [value]="porcentajeRecaudo()" max="100"
+                [attr.aria-label]="'Recaudado ' + porcentajeRecaudo() + '%'"></progress>
+              <span class="text-sm font-semibold text-base-content">{{ porcentajeRecaudo() }}%</span>
             </div>
-
+          }
+          <span class="text-xs text-base-content/70">
+            Mes anterior: {{ t.recaudo.anterior | currency: 'COP' : 'symbol-narrow' : '1.0-0' }}
+            @if (variacionRecaudo(); as v) {
+              @if (v > 0) {
+                <span class="text-success"><i class="fa-solid fa-arrow-trend-up"></i> +{{ v }}%</span>
+              }
+            }
+          </span>
         </div>
+      </a>
 
+      <!-- Cartera -->
+      <a routerLink="/finanzas/reportes-financieros/morosos" class="card bg-base-200 border border-base-300 transition-colors"
+        [class]="t.cartera.vencida ? 'hover:border-error' : 'hover:border-success'">
+        <div class="card-body p-5 gap-2">
+          <div class="flex items-center justify-between gap-2">
+            <span class="text-sm font-medium text-base-content/80">Cartera vencida</span>
+            <span class="grid place-items-center size-9 rounded-full" [class]="t.cartera.vencida ? 'bg-error/15 text-error' : 'bg-success/15 text-success'">
+              <i class="fa-solid fa-hand-holding-dollar"></i>
+            </span>
+          </div>
+          <div class="text-2xl font-bold" [class]="t.cartera.vencida ? 'text-error' : 'text-base-content'">
+            {{ t.cartera.vencida | currency: 'COP' : 'symbol-narrow' : '1.0-0' }}
+          </div>
+          <div class="text-sm text-base-content/70">
+            @if (t.cartera.vencida) {
+              {{ t.cartera.acudientesEnMora }} {{ t.cartera.acudientesEnMora === 1 ? 'acudiente' : 'acudientes' }} en mora ·
+              {{ t.cartera.cuotasVencidas }} {{ t.cartera.cuotasVencidas === 1 ? 'cuota' : 'cuotas' }}
+            } @else {
+              Nadie está en mora
+            }
+          </div>
+          <span class="text-xs text-base-content/70">
+            Por cobrar este mes (en plazo): {{ t.cartera.porVencer | currency: 'COP' : 'symbol-narrow' : '1.0-0' }}
+          </span>
+        </div>
+      </a>
 
+      <!-- Estudiantes -->
+      <a routerLink="/personas/estudiantes" class="card bg-base-200 border border-base-300 hover:border-info transition-colors">
+        <div class="card-body p-5 gap-2">
+          <div class="flex items-center justify-between gap-2">
+            <span class="text-sm font-medium text-base-content/80">Estudiantes activos</span>
+            <span class="grid place-items-center size-9 rounded-full bg-info/15 text-info"><i class="fa-solid fa-user-graduate"></i></span>
+          </div>
+          <div class="text-2xl font-bold text-base-content">{{ t.estudiantes.activos }}</div>
+          <div class="text-sm text-base-content/70">
+            En {{ t.estudiantes.colegios }} {{ t.estudiantes.colegios === 1 ? 'colegio' : 'colegios' }}
+            @if (t.estudiantes.nuevosMes) { · +{{ t.estudiantes.nuevosMes }} este mes }
+          </div>
+          @if (t.estudiantes.sinRuta) {
+            <span class="text-xs text-warning"><i class="fa-solid fa-triangle-exclamation"></i> {{ t.estudiantes.sinRuta }} sin ruta asignada</span>
+          } @else {
+            <span class="text-xs text-success"><i class="fa-solid fa-check"></i> Todos tienen ruta</span>
+          }
+        </div>
+      </a>
 
-        <!-- ALERTAS -->
-        <div class="card bg-gray-800 border border-gray-700 shadow-xl">
-
-            <div class="card-body">
-
-                <h2 class="card-title text-warning">
-                    Alertas
-                </h2>
-
-                <div class="space-y-3">
-
-                    <div class="alert bg-yellow-500/10 border border-yellow-500/20">
-                        ⚠ 5 estudiantes sin ruta asignada
-                    </div>
-
-                    <div class="alert bg-orange-500/10 border border-orange-500/20">
-                        ⚠ 2 vehículos próximos a mantenimiento
-                    </div>
-
-                    <div class="alert bg-red-500/10 border border-red-500/20">
-                        ⚠ 14 facturas pendientes
-                    </div>
-
-                    <div class="alert bg-purple-500/10 border border-purple-500/20">
-                        ⚠ 3 contratos por vencer
-                    </div>
-
-                </div>
-
+      <!-- Operación -->
+      <a routerLink="/operacion/rutas" class="card bg-base-200 border border-base-300 hover:border-primary transition-colors">
+        <div class="card-body p-5 gap-2">
+          <div class="flex items-center justify-between gap-2">
+            <span class="text-sm font-medium text-base-content/80">Operación</span>
+            <span class="grid place-items-center size-9 rounded-full bg-primary/15 text-primary"><i class="fa-solid fa-van-shuttle"></i></span>
+          </div>
+          <div class="text-2xl font-bold text-base-content">{{ t.operacion.rutasActivas }} <span class="text-base font-medium text-base-content/70">rutas activas</span></div>
+          <div class="text-sm text-base-content/70">
+            {{ t.operacion.vehiculosActivos }} vehículos · {{ t.operacion.conductoresActivos }} conductores
+          </div>
+          @if (t.operacion.ocupacion !== null) {
+            <div class="flex items-center gap-2">
+              <progress class="progress progress-primary flex-1" [value]="t.operacion.ocupacion" max="100"
+                [attr.aria-label]="'Ocupación ' + t.operacion.ocupacion + '%'"></progress>
+              <span class="text-xs text-base-content/80 whitespace-nowrap">{{ t.operacion.ocupacion }}% de cupos</span>
             </div>
-
+          }
         </div>
+      </a>
+    }
+  </div>
 
+  <!-- REQUIERE ATENCIÓN -->
+  <section class="card bg-base-200 border border-base-300 shadow-xl">
+    <div class="card-body">
+      <div class="flex items-center justify-between gap-2">
+        <h2 class="card-title text-base-content">
+          <i class="fa-solid fa-list-check text-warning"></i>
+          Requiere atención
+        </h2>
+        @if (criticos()) {
+          <span class="badge badge-error badge-soft badge-sm">{{ criticos() }} {{ criticos() === 1 ? 'crítico' : 'críticos' }}</span>
+        }
+      </div>
+
+      @if (inicial) {
+        <div class="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-3 gap-2 mt-2">
+          @for (i of [1, 2, 3, 4]; track i) { <div class="skeleton bg-base-300 h-14"></div> }
+        </div>
+      } @else if (t.pendientes.length) {
+        <ul class="mt-2 grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-3 gap-2">
+          @for (p of t.pendientes; track p.id) {
+            @let niv = nivel(p.nivel);
+            <li>
+              <a [routerLink]="p.enlace"
+                class="flex h-full items-center gap-3 rounded-box border border-base-300 bg-base-100 p-3 hover:bg-base-300/50 transition-colors">
+                <span class="grid place-items-center size-9 shrink-0 rounded-full {{ niv.fondo }} {{ niv.texto }}"><i [class]="p.icono"></i></span>
+                <span class="min-w-0 flex-1">
+                  <span class="block font-medium text-base-content text-sm">{{ p.titulo }}</span>
+                  <span class="block text-xs text-base-content/70">{{ p.detalle }}</span>
+                </span>
+                <span class="badge badge-soft font-semibold {{ niv.badge }}">{{ p.cantidad }}</span>
+                <i class="fa-solid fa-chevron-right text-xs text-base-content/60"></i>
+              </a>
+            </li>
+          }
+        </ul>
+      } @else {
+        <div class="flex items-center gap-4 py-2">
+          <span class="grid place-items-center size-12 shrink-0 rounded-full bg-success/15 text-success text-2xl"><i class="fa-solid fa-check"></i></span>
+          <div><p class="font-medium text-base-content">Todo en orden</p>
+          <p class="text-sm text-base-content/70">No hay pendientes por resolver.</p></div>
+        </div>
+      }
     </div>
+  </section>
 
-
-    <!-- ACTIVIDAD -->
-    <div class="card bg-gray-800 border border-gray-700 shadow-xl">
-
-        <div class="card-body">
-
-            <h2 class="card-title text-white">
-                Actividad reciente
+  <!-- FACTURADO VS RECAUDADO + COLEGIOS -->
+  <div class="grid grid-cols-1 xl:grid-cols-3 gap-6 items-start">
+    <section class="xl:col-span-2 card bg-base-200 border border-base-300 shadow-xl">
+      <div class="card-body">
+        <div class="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <h2 class="card-title text-base-content">
+              <i class="fa-solid fa-chart-column text-info"></i>
+              Facturado vs recaudado
             </h2>
-
-            <ul class="timeline timeline-vertical">
-
-                <li>
-                    <div class="timeline-start text-gray-400">
-                        08:10
-                    </div>
-
-                    <div class="timeline-middle text-primary">
-                        ●
-                    </div>
-
-                    <div class="timeline-end text-white">
-                        Juan Pérez fue asignado a Ruta Norte
-                    </div>
-                </li>
-
-                <li>
-                    <div class="timeline-start text-gray-400">
-                        08:22
-                    </div>
-
-                    <div class="timeline-middle text-success">
-                        ●
-                    </div>
-
-                    <div class="timeline-end text-white">
-                        Factura #1523 enviada
-                    </div>
-                </li>
-
-                <li>
-                    <div class="timeline-start text-gray-400">
-                        08:45
-                    </div>
-
-                    <div class="timeline-middle text-warning">
-                        ●
-                    </div>
-
-                    <div class="timeline-end text-white">
-                        Vehículo BUS-07 registrado
-                    </div>
-                </li>
-
-                <li>
-                    <div class="timeline-start text-gray-400">
-                        09:01
-                    </div>
-
-                    <div class="timeline-middle text-secondary">
-                        ●
-                    </div>
-
-                    <div class="timeline-end text-white">
-                        Nuevo acudiente creado
-                    </div>
-                </li>
-
-            </ul>
-
+            <p class="text-sm text-base-content/70">Valor mensual de las facturas vigentes frente a los pagos recibidos por cada mes.</p>
+          </div>
+          <div class="join" role="group" aria-label="Meses a mostrar">
+            @for (n of [6, 12]; track n) {
+              <button type="button" class="join-item btn btn-sm" [attr.aria-pressed]="mesesGrafico() === n"
+                [class]="mesesGrafico() === n ? 'bg-base-300 border-neutral text-base-content' : 'btn-ghost text-base-content/70'"
+                (click)="mesesGrafico.set(n === 6 ? 6 : 12)">{{ n }} meses</button>
+            }
+          </div>
         </div>
+        @if (inicial) {
+          <div class="skeleton bg-base-300 h-80 mt-2"></div>
+        } @else {
+          @let g = graficoRecaudo();
+          <div class="-mx-2 mt-2">
+            <apx-chart [series]="g.series" [chart]="g.chart" [plotOptions]="g.plotOptions" [dataLabels]="g.dataLabels"
+              [stroke]="g.stroke" [xaxis]="g.xaxis" [yaxis]="g.yaxis" [grid]="g.grid" [legend]="g.legend"
+              [tooltip]="g.tooltip" [colors]="g.colors" />
+          </div>
+          <a routerLink="/finanzas/reportes-financieros/ingresos" class="link link-hover text-info text-sm self-end">
+            Ver reporte de ingresos <i class="fa-solid fa-arrow-right text-xs"></i>
+          </a>
+        }
+      </div>
+    </section>
 
-    </div>
+    <section class="card bg-base-200 border border-base-300 shadow-xl">
+      <div class="card-body">
+        <h2 class="card-title text-base-content">
+          <i class="fa-solid fa-school text-info"></i>
+          Estudiantes por colegio
+        </h2>
+        @if (inicial) {
+          <div class="skeleton bg-base-300 h-72 mt-2"></div>
+        } @else if (t.estudiantesPorColegio.length) {
+          @let d = graficoColegios();
+          <apx-chart [series]="d.series" [labels]="d.labels" [chart]="d.chart" [plotOptions]="d.plotOptions"
+            [dataLabels]="d.dataLabels" [stroke]="d.stroke" [legend]="d.legend" [tooltip]="d.tooltip" [colors]="d.colors" />
+        } @else {
+          <p class="text-sm text-base-content/70 text-center py-8">No hay estudiantes activos.</p>
+        }
+      </div>
+    </section>
+  </div>
 
-    <!-- GRAFICAS INFERIORES -->
-    <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
-        <!-- FACTURACIÓN -->
-        <div class="xl:col-span-2">
-            <div class="card bg-gray-900 border border-gray-700 shadow-xl">
-                <div class="card-body">
+  <!-- AGENDA + ÚLTIMOS PAGOS -->
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+    <section class="card bg-base-200 border border-base-300 shadow-xl">
+      <div class="card-body">
+        <h2 class="card-title text-base-content">
+          <i class="fa-solid fa-calendar-days text-info"></i>
+          Próximos {{ diasAgenda }} días
+        </h2>
+        <p class="text-sm text-base-content/70">Vencimientos de documentos y licencias, fechas límite de pago y fin de contratos.</p>
+        @if (inicial) {
+          <div class="space-y-2 mt-2">@for (i of [1, 2, 3]; track i) { <div class="skeleton bg-base-300 h-14"></div> }</div>
+        } @else if (agenda().length) {
+          <ul class="mt-2 divide-y divide-base-300">
+            @for (e of agenda(); track $index) {
+              <li>
+                <a [routerLink]="e.enlace" class="flex items-center gap-3 py-3 hover:bg-base-300/30 rounded-box -mx-2 px-2 transition-colors">
+                  <span class="flex flex-col items-center justify-center size-12 shrink-0 rounded-box bg-base-100 border border-base-300 leading-none">
+                    <span class="text-lg font-bold text-base-content">{{ dia(e.fecha) }}</span>
+                    <span class="text-[0.7rem] uppercase text-base-content/70">{{ mes(e.fecha) }}</span>
+                  </span>
+                  <span class="min-w-0 flex-1">
+                    <span class="block text-sm font-medium text-base-content truncate">
+                      <i class="text-info mr-1" [class]="iconosAgenda[e.tipo]"></i>{{ e.titulo }}
+                    </span>
+                    <span class="block text-xs text-base-content/70 truncate">{{ e.detalle }}</span>
+                  </span>
+                  <span class="text-xs font-medium whitespace-nowrap" [class]="faltan(e.fecha) === 'Hoy' || faltan(e.fecha) === 'Mañana' ? 'text-warning' : 'text-base-content/70'">
+                    {{ faltan(e.fecha) }}
+                  </span>
+                </a>
+              </li>
+            }
+          </ul>
+          @if (t.agenda.length > agenda().length) {
+            <p class="text-xs text-base-content/70 mt-2">y {{ t.agenda.length - agenda().length }} más en este periodo.</p>
+          }
+        } @else {
+          <p class="text-sm text-base-content/70 text-center py-8"><i class="fa-regular fa-calendar-check text-2xl text-base-content/50 block mb-2"></i>Nada programado en los próximos {{ diasAgenda }} días.</p>
+        }
+      </div>
+    </section>
 
-                    <div class="flex justify-between items-center mb-4">
-                        <h2 class="card-title text-white">
-                            Facturación mensual
-                        </h2>
-
-                        <select class="select select-bordered bg-gray-800 border-gray-700 text-white"
-                            [(ngModel)]="mesSeleccionado" (change)="cargarFacturacionMensual()">
-                            @for (mes of meses; track mes.valor) {
-                            <option value="{{ mes.valor }}">
-                                {{ mes.etiqueta }}
-                            </option>
-                            }
-                        </select>
-                    </div>
-
-                    <apx-chart [series]="graficoFacturacionMensual.series" [chart]="graficoFacturacionMensual.chart"
-                        [plotOptions]="graficoFacturacionMensual.plotOptions" [xaxis]="graficoFacturacionMensual.xaxis"
-                        [dataLabels]="graficoFacturacionMensual.dataLabels" [colors]="graficoFacturacionMensual.colors">
-                    </apx-chart>
-
-                </div>
-            </div>
+    <section class="card bg-base-200 border border-base-300 shadow-xl">
+      <div class="card-body">
+        <div class="flex items-center justify-between gap-2">
+          <h2 class="card-title text-base-content">
+            <i class="fa-solid fa-receipt text-success"></i>
+            Últimos pagos
+          </h2>
+          <a routerLink="/finanzas/recibos" class="link link-hover text-info text-sm">Ver recibos</a>
         </div>
-        <!-- DONUT -->
+        @if (inicial) {
+          <div class="space-y-2 mt-2">@for (i of [1, 2, 3]; track i) { <div class="skeleton bg-base-300 h-14"></div> }</div>
+        } @else if (t.ultimosPagos.length) {
+          <ul class="mt-2 divide-y divide-base-300">
+            @for (p of t.ultimosPagos; track p.id) {
+              <li class="flex items-center gap-3 py-3">
+                <span class="grid place-items-center size-10 shrink-0 rounded-full bg-success/15 text-success"><i class="fa-solid fa-money-bill-wave"></i></span>
+                <span class="min-w-0 flex-1">
+                  <span class="block text-sm font-medium text-base-content truncate">{{ p.nombreAcudiente }}</span>
+                  <span class="block text-xs text-base-content/70 truncate">
+                    {{ p.numero }} · {{ nombrePeriodo(p.periodo) }} · {{ p.nombreEstudiante }}
+                  </span>
+                </span>
+                <span class="text-right shrink-0">
+                  <span class="block text-sm font-semibold text-success">{{ p.valor | currency: 'COP' : 'symbol-narrow' : '1.0-0' }}</span>
+                  <span class="hidden sm:block text-xs text-base-content/70">{{ fechaCorta(p.fechaPago) }} · {{ nombreMedio(p.medioPago) }}</span>
+                </span>
+              </li>
+            }
+          </ul>
+        } @else {
+          <p class="text-sm text-base-content/70 text-center py-8">Aún no hay pagos registrados.</p>
+        }
+      </div>
+    </section>
+  </div>
+
+  <!-- OCUPACIÓN DE RUTAS -->
+  <section class="card bg-base-200 border border-base-300 shadow-xl">
+    <div class="card-body">
+      <div class="flex flex-wrap items-center justify-between gap-2">
         <div>
-            <div class="card bg-gray-900 border border-gray-700 shadow-xl">
-                <div class="card-body">
-
-                    <h2 class="card-title text-white">
-                        Estudiantes por colegio
-                    </h2>
-
-                    <apx-chart [series]="graficoEstudiantes.series" [chart]="graficoEstudiantes.chart"
-                        [labels]="graficoEstudiantes.labels" [legend]="graficoEstudiantes.legend"
-                        [colors]="graficoEstudiantes.colors">
-                    </apx-chart>
-
-                </div>
-            </div>
+          <h2 class="card-title text-base-content">
+            <i class="fa-solid fa-route text-primary"></i>
+            Ocupación de rutas
+          </h2>
+          <p class="text-sm text-base-content/70">Estudiantes de cada ruta activa frente a la capacidad del vehículo asignado.</p>
         </div>
+        <a routerLink="/operacion/asignaciones" class="link link-hover text-info text-sm">Ver asignaciones</a>
+      </div>
+
+      @if (inicial) {
+        <div class="skeleton bg-base-300 h-24 mt-2"></div>
+      } @else if (t.ocupacionRutas.length) {
+        <ul class="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-3 gap-x-8 gap-y-4 mt-2">
+          @for (r of rutasConVehiculo(); track r.ruta) {
+            @let pct = ocupacion(r);
+            <li>
+              <div class="flex items-center justify-between gap-2 text-sm">
+                <span class="font-medium text-base-content truncate">{{ r.ruta }}</span>
+                <span class="whitespace-nowrap" [class]="pct >= 90 ? 'text-warning' : 'text-base-content/80'">
+                  {{ r.estudiantes }}/{{ r.capacidad }} · {{ pct }}%
+                </span>
+              </div>
+              <progress class="progress w-full mt-1" [class]="pct >= 90 ? 'progress-warning' : 'progress-success'" [value]="pct" max="100"
+                [attr.aria-label]="r.ruta + ': ' + pct + '% de ocupación'"></progress>
+            </li>
+          }
+          @for (r of rutasSinVehiculo(); track r.ruta) {
+            <li>
+              <div class="flex items-center justify-between gap-2 text-sm">
+                <span class="font-medium text-base-content truncate">{{ r.ruta }}</span>
+                <span class="badge badge-warning badge-soft badge-sm whitespace-nowrap">Sin vehículo · {{ r.estudiantes }} est.</span>
+              </div>
+              <progress class="progress w-full mt-1" value="0" max="100" [attr.aria-label]="r.ruta + ': sin vehículo asignado'"></progress>
+            </li>
+          }
+        </ul>
+      } @else {
+        <p class="text-sm text-base-content/70 text-center py-6">No hay rutas activas.</p>
+      }
     </div>
+  </section>
 </div>

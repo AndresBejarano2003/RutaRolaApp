@@ -1,4 +1,6 @@
 import { Provider } from '@angular/core';
+import { TableroLocal } from '../inicio/dashboard/tablero-local';
+import { TableroRepositorio } from '../inicio/dashboard/tablero-repositorio';
 import { CentroNotificaciones } from '../inicio/notificaciones/centro-notificaciones';
 import { NotificacionesLocal } from '../inicio/notificaciones/notificaciones-local';
 import { NotificacionesRepositorio } from '../inicio/notificaciones/notificaciones-repositorio';
@@ -58,6 +60,8 @@ export function proveerRepositorios(): Provider[] {
     { provide: RecibosRepositorio, useClass: RecibosLocal },
     { provide: ProgramacionesRepositorio, useClass: ProgramacionesLocal },
     { provide: ReportesRepositorio, useClass: ReportesLocal },
+    // Inicio (resumen de todos los módulos)
+    { provide: TableroRepositorio, useClass: TableroLocal },
     // Notificaciones (leen datos de todos los módulos). `CentroNotificaciones` es el estado
     // compartido de la campana y la página; va aquí porque necesita estos repositorios.
     { provide: NotificacionesRepositorio, useClass: NotificacionesLocal },

@@ -1,4 +1,5 @@
-import { Directive, OnInit, computed, signal } from '@angular/core';
+import { Directive, OnInit, computed, inject, signal } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
 import { DatosRegistro, Entidad, ModoFormulario } from './crud';
 import { CrudStore } from './crud-store';
 
@@ -17,6 +18,8 @@ import { CrudStore } from './crud-store';
  * `tituloModal`, `subtituloModal`, `confirmacionAbierta`, `mensajeEliminar`,
  * `puedeEliminar`, `verificandoEliminar` y los métodos `nuevo`, `abrir`,
  * `guardar`, `pedirEliminar`, `confirmarEliminar`.
+ *
+ * Con `?accion=nuevo` en la URL (p. ej. desde los accesos rápidos del inicio) abre el formulario de creación.
  */
 @Directive()
 export abstract class PaginaCrud<T extends Entidad, F extends object> implements OnInit {
@@ -52,8 +55,13 @@ export abstract class PaginaCrud<T extends Entidad, F extends object> implements
     return `Se eliminará ${this.describir(registro)}. Esta acción no se puede deshacer.`;
   });
 
+  private readonly ruta = inject(ActivatedRoute, { optional: true });
+
   ngOnInit(): void {
     this.store.recargar();
+    if (this.ruta?.snapshot.queryParamMap.get('accion') === 'nuevo') {
+      this.nuevo();
+    }
   }
 
   protected nuevo(): void {
