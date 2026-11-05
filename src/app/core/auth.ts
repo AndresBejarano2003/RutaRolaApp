@@ -11,13 +11,15 @@ export interface Credenciales {
  * Tipos de usuario. Cada uno entra a SU sistema:
  * - `ADMINISTRADOR` → sistema administrativo (`/inicio`, todos los módulos).
  * - `CONDUCTOR` / `MONITORA` → app de la ruta del día (`/ruta-del-dia`).
+ * - `ACUDIENTE` → portal del acudiente (`/portal`): sus estudiantes, facturas, pagos y cotizaciones.
  */
-export type RolUsuario = 'ADMINISTRADOR' | 'CONDUCTOR' | 'MONITORA';
+export type RolUsuario = 'ADMINISTRADOR' | 'CONDUCTOR' | 'MONITORA' | 'ACUDIENTE';
 
 export const ROLES_USUARIO: { id: RolUsuario; nombre: string; inicio: string }[] = [
   { id: 'ADMINISTRADOR', nombre: 'Administrador', inicio: '/inicio' },
   { id: 'CONDUCTOR', nombre: 'Conductor', inicio: '/ruta-del-dia' },
   { id: 'MONITORA', nombre: 'Monitora', inicio: '/ruta-del-dia' },
+  { id: 'ACUDIENTE', nombre: 'Acudiente', inicio: '/portal' },
 ];
 
 /** Roles que usan la app de la ruta del día. */
@@ -30,8 +32,10 @@ export interface Sesion {
   nombre: string;
   correo: string;
   rol: RolUsuario;
-  /** Empleado vinculado (conductor/monitora); `null` para administradores. */
+  /** Empleado vinculado (conductor/monitora); `null` para los demás roles. */
   empleadoId: string | null;
+  /** Acudiente vinculado (rol ACUDIENTE). */
+  acudienteId?: string | null;
   /** Foto de perfil; vacía = iniciales. */
   imagen: string;
   /** ISO de inicio de sesión. */

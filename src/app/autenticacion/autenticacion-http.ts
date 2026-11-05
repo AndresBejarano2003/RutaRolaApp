@@ -10,7 +10,9 @@ import { AutenticacionRepositorio } from './autenticacion-repositorio';
  * esquema de autorización). El SERVIDOR decide el rol:
  * - usuario y contraseña de un empleado activo (definidos en Personas › Empleados) → `rol` igual a su
  *   tipo (CONDUCTOR/MONITORA) y `empleadoId`;
+ * - usuario y contraseña de un acudiente activo (Personas › Acudientes) → `ACUDIENTE` y `acudienteId`;
  * - usuario administrativo → `ADMINISTRADOR`, `empleadoId: null`.
+ * El usuario es único en todo el sistema (empleados, acudientes y administradores).
  * Credenciales inválidas o usuario inactivo → 401/422 con `{mensaje}`.
  */
 @Injectable()

@@ -2,6 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { Router, provideRouter } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { AutenticacionRepositorio } from '../autenticacion/autenticacion-repositorio';
+import { AcudientesRepositorio } from '../personas/acudientes/acudientes-repositorio';
 import { EmpleadosRepositorio } from '../personas/empleados/empleados-repositorio';
 import { repositoriosDePrueba } from '../shared/pruebas/pruebas';
 import { AuthService, CLAVE_SESION, Sesion, rutaInicio } from './auth';
@@ -28,6 +29,26 @@ describe('Sesión y tipos de usuario', () => {
 
     const monitora = await firstValueFrom(repo.iniciarSesion({ usuario: 'ycharry', contrasena: 'rutarola' }));
     expect(monitora).toMatchObject({ rol: 'MONITORA', empleadoId: 'emp-6' });
+
+    const acudiente = await firstValueFrom(repo.iniciarSesion({ usuario: 'mperez', contrasena: 'rutarola' }));
+    expect(acudiente).toMatchObject({ rol: 'ACUDIENTE', acudienteId: 'acu-1', empleadoId: null, nombre: 'María Pérez López' });
+    await expect(firstValueFrom(repo.iniciarSesion({ usuario: 'hquintero', contrasena: 'rutarola' }))).rejects.toThrow('inactivo');
+  });
+
+  it('el usuario es único entre empleados y acudientes', async () => {
+    const acudientes = TestBed.inject(AcudientesRepositorio);
+    const base = await firstValueFrom(acudientes.obtener('acu-2'));
+    const { id, fechaCreacion: _c, fechaActualizacion: _a, ...datos } = base;
+    await expect(firstValueFrom(acudientes.actualizar(id, { ...datos, usuario: 'JCardenas' }))).rejects.toThrow('ya está en uso');
+    await firstValueFrom(acudientes.actualizar(id, { ...datos, usuario: 'carlos.r', contrasena: '' }));
+
+    const empleados = TestBed.inject(EmpleadosRepositorio);
+    const emp = await firstValueFrom(empleados.obtener('emp-7'));
+    const { id: idEmp, fechaCreacion: _c2, fechaActualizacion: _a2, ...datosEmp } = emp;
+    await expect(firstValueFrom(empleados.actualizar(idEmp, { ...datosEmp, usuario: 'carlos.r' }))).rejects.toThrow('ya está en uso');
+    // Cambiar el usuario conserva la contraseña de ejemplo.
+    const repo = TestBed.inject(AutenticacionRepositorio);
+    expect((await firstValueFrom(repo.iniciarSesion({ usuario: 'carlos.r', contrasena: 'rutarola' }))).acudienteId).toBe('acu-2');
   });
 
   it('rechaza credenciales vacías, usuario o contraseña incorrectos y empleados inactivos', async () => {

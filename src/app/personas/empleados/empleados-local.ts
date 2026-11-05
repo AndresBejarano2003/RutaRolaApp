@@ -1,13 +1,14 @@
 import { Injectable, Injector, inject } from '@angular/core';
-import { Observable, map } from 'rxjs';
-import { ADMIN_LOCAL, CONTRASENA_DEMO, guardarCredencial, normalizarUsuario } from 'src/app/autenticacion/credenciales-local';
-import { DatosRegistro, ErrorCrud } from 'src/app/shared/crud/crud';
-import { RepositorioLocal } from 'src/app/shared/crud/repositorio-local';
-import { normalizar } from 'src/app/shared/formularios/formularios';
+import { Observable, map, tap } from 'rxjs';
+import { CONTRASENA_DEMO, borrarCredencial, guardarCredencial, prepararAcceso, usuarioDemo, validarAcceso, validarUsuarioLibre } from 'src/app/autenticacion/credenciales-local';
+import { FILTROS_ACUDIENTE_VACIOS } from '../acudientes/acudiente';
+import { AcudientesRepositorio } from '../acudientes/acudientes-repositorio';
+import { DatosRegistro } from 'src/app/shared/crud/crud';
+import { RepositorioLocal, SIN_PAGINAR } from 'src/app/shared/crud/repositorio-local';
 import { coincideTexto, compararPorApellido, nombreCompleto, validarDocumentoUnico } from '../compartido/persona';
 import { FILTROS_ASIGNACION_VACIOS } from 'src/app/operacion/asignaciones/asignacion';
 import { AsignacionesRepositorio } from 'src/app/operacion/asignaciones/asignaciones-repositorio';
-import { Empleado, FILTROS_EMPLEADO_VACIOS, FiltrosEmpleado, LONGITUD_MINIMA_CONTRASENA, PATRON_USUARIO, TipoContrato, TipoEmpleado } from './empleado';
+import { Empleado, FILTROS_EMPLEADO_VACIOS, FiltrosEmpleado, TipoContrato, TipoEmpleado } from './empleado';
 import { EmpleadosRepositorio } from './empleados-repositorio';
 
 /** Almacenamiento TEMPORAL en `localStorage` mientras se construye el API. */
@@ -52,24 +53,26 @@ export class EmpleadosLocal
 
   protected override validar(datos: DatosRegistro<Empleado>, idActual: string | null, registros: Empleado[]): void {
     validarDocumentoUnico(datos, idActual, registros, 'un empleado');
-    const usuario = normalizarUsuario(datos.usuario);
-    if (!PATRON_USUARIO.test(usuario)) {
-      throw new ErrorCrud('El usuario debe tener entre 4 y 40 caracteres, sin espacios.', 'VALIDACION');
-    }
-    if (usuario === ADMIN_LOCAL.usuario || registros.some((e) => e.id !== idActual && normalizarUsuario(e.usuario ?? '') === usuario)) {
-      throw new ErrorCrud(`El usuario "${datos.usuario.trim()}" ya está en uso. Elige otro.`, 'DUPLICADO');
-    }
-    if ((!idActual || datos.contrasena) && datos.contrasena.length < LONGITUD_MINIMA_CONTRASENA) {
-      throw new ErrorCrud(`La contraseña debe tener al menos ${LONGITUD_MINIMA_CONTRASENA} caracteres.`, 'VALIDACION');
-    }
+    validarAcceso(datos, idActual, registros, 'EMPLEADO');
   }
 
-  /** La contraseña se guarda aparte (`credenciales-local.ts`) y el registro nunca la lleva. */
+  /** El usuario tampoco puede estar en uso por un acudiente. */
+  protected override validarRelaciones(datos: DatosRegistro<Empleado>): Observable<unknown> {
+    return this.injector
+      .get(AcudientesRepositorio)
+      .listar(FILTROS_ACUDIENTE_VACIOS, SIN_PAGINAR)
+      .pipe(map(({ items }) => validarUsuarioLibre(datos.usuario, items)));
+  }
+
+  /** La contraseña se guarda aparte (`credenciales-local.ts`); el registro nunca la lleva. */
   protected override preparar(datos: DatosRegistro<Empleado>, idActual: string | null, registros: Empleado[]): DatosRegistro<Empleado> {
-    const anterior = idActual ? (registros.find((e) => e.id === idActual)?.usuario ?? '') : '';
-    const usuario = normalizarUsuario(datos.usuario);
-    guardarCredencial(usuario, datos.contrasena, anterior);
-    return { ...datos, usuario, contrasena: '' };
+    return prepararAcceso(datos, idActual, registros, 'EMPLEADO');
+  }
+
+  /** Al eliminar se libera su usuario. */
+  override eliminar(id: string): Observable<void> {
+    const usuario = this.leer().find((e) => e.id === id)?.usuario;
+    return super.eliminar(id).pipe(tap(() => usuario && borrarCredencial(usuario)));
   }
 
   protected datosIniciales(): Empleado[] {
@@ -78,8 +81,7 @@ export class EmpleadosLocal
       d.setDate(d.getDate() + diasDesdeHoy);
       return d.toISOString().slice(0, 10);
     };
-    // Usuario de ejemplo: inicial del nombre + primer apellido (p. ej. `jcardenas`), contraseña `CONTRASENA_DEMO`.
-    const usuarioDemo = (nombre: string, apellido: string) => normalizar(`${nombre[0]}${apellido}`).replace(/\s/g, '');
+    // Usuario de ejemplo: inicial del nombre + primer apellido (`jcardenas`), contraseña `CONTRASENA_DEMO`.
     const empleado = (
       id: string,
       numeroDocumento: string,
@@ -131,7 +133,7 @@ export class EmpleadosLocal
       empleado('emp-7', '36301234', ['Sandra', 'Milena', 'Tovar', 'Ruiz'], 'MONITORA', 1600000, 'TERMINO_INDEFINIDO', '3167778899', null),
       empleado('emp-8', '1077865432', ['Karen', '', 'Méndez', 'Calderón'], 'MONITORA', 1500000, 'PRESTACION_SERVICIOS', '3178889900', null),
     ];
-    for (const e of empleados) guardarCredencial(e.usuario, CONTRASENA_DEMO);
+    for (const e of empleados) guardarCredencial(e.usuario, CONTRASENA_DEMO, 'EMPLEADO');
     return empleados;
   }
 }

@@ -1,39 +1,27 @@
 import { CurrencyPipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, computed, effect, inject, input, output, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, input, output } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
-import { AbstractControl, NonNullableFormBuilder, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
+import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { startWith } from 'rxjs';
 import { ArchivoAdjunto, ArchivoAdjuntoCampo } from 'src/app/shared/archivo-adjunto/archivo-adjunto';
 import { CatalogosService } from 'src/app/shared/catalogos/catalogos';
 import { DatosRegistro, ESTADOS_REGISTRO, EstadoRegistro, ModoFormulario } from 'src/app/shared/crud/crud';
 import { fechaNoFutura, mensajeError, telefono } from 'src/app/shared/formularios/formularios';
 import { SelectorBusqueda } from 'src/app/shared/selector-busqueda/selector-busqueda';
+import { ajustarContrasena, contrasenasIguales, controlesAcceso } from '../../compartido/acceso';
+import { CamposAcceso } from '../../compartido/campos-acceso/campos-acceso';
 import { CamposPersona } from '../../compartido/campos-persona/campos-persona';
 import { controlesPersona, limpiarPersona } from '../../compartido/persona';
 import {
   CATEGORIAS_LICENCIA,
   DIAS_ALERTA_LICENCIA,
   Empleado,
-  LONGITUD_MINIMA_CONTRASENA,
-  PATRON_USUARIO,
   TIPOS_CONTRATO,
   TIPOS_EMPLEADO,
   TipoContrato,
   TipoEmpleado,
   estadoLicencia,
 } from '../empleado';
-
-/** "Confirmar contraseña" debe coincidir con la contraseña. */
-function contrasenasIguales(grupo: AbstractControl): ValidationErrors | null {
-  const contrasena = grupo.get('contrasena');
-  const confirmar = grupo.get('confirmarContrasena');
-  if (!contrasena || !confirmar) return null;
-  const distintas = !!contrasena.value && contrasena.value !== confirmar.value;
-  const errores = { ...confirmar.errors };
-  delete errores['noCoincide'];
-  confirmar.setErrors(distintas ? { ...errores, noCoincide: true } : Object.keys(errores).length ? errores : null);
-  return null;
-}
 
 /** Los empleados son mayores de edad: sin registro civil ni tarjeta de identidad. */
 const DOCUMENTOS_ADULTO = ['CC', 'CE', 'PPT', 'PA'];
@@ -49,7 +37,7 @@ export const TAMANO_MAXIMO_CONTRATO_MB = 2;
 @Component({
   selector: 'app-empleado-formulario',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ReactiveFormsModule, SelectorBusqueda, CamposPersona, ArchivoAdjuntoCampo, CurrencyPipe],
+  imports: [ReactiveFormsModule, SelectorBusqueda, CamposPersona, CamposAcceso, ArchivoAdjuntoCampo, CurrencyPipe],
   templateUrl: './empleado-formulario.html',
 })
 export class EmpleadoFormulario {
@@ -85,14 +73,10 @@ export class EmpleadoFormulario {
     telefono: ['', [Validators.required, telefono]],
     correo: ['', [Validators.email, Validators.maxLength(100)]],
     direccion: ['', Validators.maxLength(120)],
-    usuario: ['', [Validators.required, Validators.pattern(PATRON_USUARIO)]],
-    contrasena: [''],
-    confirmarContrasena: [''],
+    ...controlesAcceso(this.fb),
     estado: this.fb.control<EstadoRegistro>('ACTIVO', Validators.required),
   }, { validators: contrasenasIguales });
 
-  protected readonly minimoContrasena = LONGITUD_MINIMA_CONTRASENA;
-  protected readonly mostrarContrasena = signal(false);
 
   protected readonly tipoSeleccionado = toSignal(
     this.form.controls.tipoEmpleado.valueChanges.pipe(startWith(this.form.controls.tipoEmpleado.value)),
@@ -115,10 +99,7 @@ export class EmpleadoFormulario {
       } else {
         this.form.reset();
       }
-      // Contraseña obligatoria al crear; al editar, vacía = conservar la actual.
-      const longitud = [Validators.minLength(LONGITUD_MINIMA_CONTRASENA), Validators.maxLength(64)];
-      this.form.controls.contrasena.setValidators(this.modo() === 'crear' ? [Validators.required, ...longitud] : longitud);
-      this.form.controls.contrasena.updateValueAndValidity({ emitEvent: false });
+      ajustarContrasena(this.form, this.modo() === 'crear');
       if (this.soloLectura()) {
         this.form.disable();
       } else {
@@ -128,12 +109,7 @@ export class EmpleadoFormulario {
   }
 
   protected error(campo: keyof typeof this.form.controls): string | null {
-    const control = this.form.controls[campo];
-    if (control.hasError('noCoincide') && (control.touched || control.dirty)) return 'Las contraseñas no coinciden.';
-    if (campo === 'usuario' && control.hasError('pattern') && (control.touched || control.dirty)) {
-      return 'Entre 4 y 40 caracteres, sin espacios.';
-    }
-    return mensajeError(control);
+    return mensajeError(this.form.controls[campo]);
   }
 
   protected enviar(): void {

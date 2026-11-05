@@ -1,12 +1,14 @@
 import { OpcionCatalogo } from 'src/app/shared/catalogos/catalogos';
 import { ArchivoAdjunto } from 'src/app/shared/archivo-adjunto/archivo-adjunto';
 import { Entidad, EstadoRegistro } from 'src/app/shared/crud/crud';
+import { DatosAcceso } from '../compartido/acceso';
 import { DatosPersona } from '../compartido/persona';
 
 export type TipoEmpleado = 'CONDUCTOR' | 'MONITORA';
 export type TipoContrato = 'TERMINO_INDEFINIDO' | 'TERMINO_FIJO' | 'OBRA_LABOR' | 'PRESTACION_SERVICIOS';
 
-export interface Empleado extends Entidad, DatosPersona {
+/** `usuario`/`contrasena` (ver `DatosAcceso`): acceso a la Ruta del día. */
+export interface Empleado extends Entidad, DatosPersona, DatosAcceso {
   tipoEmpleado: TipoEmpleado;
   telefono: string;
   correo: string;
@@ -22,13 +24,6 @@ export interface Empleado extends Entidad, DatosPersona {
   categoriaLicencia: string;
   /** `YYYY-MM-DD` */
   vencimientoLicencia: string;
-  /** Usuario para ingresar a la app (ruta del día). Único; sin espacios. */
-  usuario: string;
-  /**
-   * SOLO ESCRITURA: se envía al crear (obligatoria) o al cambiarla; vacía al editar = conservar.
-   * El API nunca la devuelve (siempre llega vacía).
-   */
-  contrasena: string;
   estado: EstadoRegistro;
 }
 
@@ -58,10 +53,6 @@ export const CATEGORIAS_LICENCIA: OpcionCatalogo[] = ['B1', 'B2', 'B3', 'C1', 'C
   id: c,
   nombre: c,
 }));
-
-/** Usuario de acceso: 4 a 40 caracteres sin espacios (correo, documento u otro texto). */
-export const PATRON_USUARIO = /^\S{4,40}$/;
-export const LONGITUD_MINIMA_CONTRASENA = 6;
 
 /** Días antes del vencimiento en los que se alerta que la licencia está por vencer. */
 export const DIAS_ALERTA_LICENCIA = 30;

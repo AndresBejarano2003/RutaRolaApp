@@ -3,6 +3,8 @@ import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angula
 import { DatosRegistro, ESTADOS_REGISTRO, EstadoRegistro, ModoFormulario } from 'src/app/shared/crud/crud';
 import { mensajeError, telefono } from 'src/app/shared/formularios/formularios';
 import { SelectorBusqueda } from 'src/app/shared/selector-busqueda/selector-busqueda';
+import { ajustarContrasena, contrasenasIguales, controlesAcceso } from '../../compartido/acceso';
+import { CamposAcceso } from '../../compartido/campos-acceso/campos-acceso';
 import { CamposPersona } from '../../compartido/campos-persona/campos-persona';
 import { controlesPersona, limpiarPersona } from '../../compartido/persona';
 import { Acudiente } from '../acudiente';
@@ -14,7 +16,7 @@ import { Acudiente } from '../acudiente';
 @Component({
   selector: 'app-acudiente-formulario',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ReactiveFormsModule, SelectorBusqueda, CamposPersona],
+  imports: [ReactiveFormsModule, SelectorBusqueda, CamposPersona, CamposAcceso],
   templateUrl: './acudiente-formulario.html',
 })
 export class AcudienteFormulario {
@@ -34,18 +36,20 @@ export class AcudienteFormulario {
     telefonoAlterno: ['', telefono],
     correo: ['', [Validators.email, Validators.maxLength(100)]],
     direccion: ['', Validators.maxLength(120)],
+    ...controlesAcceso(this.fb),
     estado: this.fb.control<EstadoRegistro>('ACTIVO', Validators.required),
-  });
+  }, { validators: contrasenasIguales });
 
   constructor() {
     effect(() => {
       const acudiente = this.acudiente();
       if (acudiente) {
         const { id: _id, fechaCreacion: _c, fechaActualizacion: _a, ...datos } = acudiente;
-        this.form.reset(datos);
+        this.form.reset({ ...datos, usuario: datos.usuario ?? '', contrasena: '', confirmarContrasena: '' });
       } else {
         this.form.reset();
       }
+      ajustarContrasena(this.form, this.modo() === 'crear');
       if (this.soloLectura()) {
         this.form.disable();
       } else {
@@ -63,9 +67,10 @@ export class AcudienteFormulario {
       this.form.markAllAsTouched();
       return;
     }
-    const valores = limpiarPersona(this.form.getRawValue());
+    const { confirmarContrasena: _confirmar, ...valores } = limpiarPersona(this.form.getRawValue());
     this.guardar.emit({
       ...valores,
+      usuario: valores.usuario.trim().toLowerCase(),
       telefono: valores.telefono.trim(),
       telefonoAlterno: valores.telefonoAlterno.trim(),
       correo: valores.correo.trim().toLowerCase(),

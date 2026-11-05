@@ -77,6 +77,9 @@ describe('AcudientesPage', () => {
     expect(el.textContent).toContain('Ingresa un teléfono válido');
 
     ui.escribir('telefono', '300 555 1234');
+    ui.escribir('usuario', 'aarias');
+    ui.escribir('contrasena', 'clave123');
+    ui.escribir('confirmarContrasena', 'clave123');
     ui.boton('Registrar acudiente').click();
     await estabilizar(fixture, 3);
     expect(el.textContent).toContain('9 registros');

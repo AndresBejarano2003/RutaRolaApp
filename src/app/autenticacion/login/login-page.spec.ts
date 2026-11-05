@@ -73,6 +73,6 @@ describe('LoginPage', () => {
     await harness.navigateByUrl('/login', LoginPage);
     await estabilizar(harness.fixture, 3);
     const texto = (harness.routeNativeElement as HTMLElement).textContent ?? '';
-    for (const rol of ['Administrador', 'Conductor', 'Monitora']) expect(texto).toContain(rol);
+    for (const rol of ['Administrador', 'Conductor', 'Monitora', 'Acudiente']) expect(texto).toContain(rol);
   });
 });

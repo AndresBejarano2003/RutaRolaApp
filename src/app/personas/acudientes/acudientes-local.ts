@@ -1,9 +1,12 @@
 import { Injectable, Injector, inject } from '@angular/core';
-import { Observable, forkJoin, map } from 'rxjs';
+import { Observable, forkJoin, map, tap } from 'rxjs';
+import { CONTRASENA_DEMO, borrarCredencial, guardarCredencial, prepararAcceso, usuarioDemo, validarAcceso, validarUsuarioLibre } from 'src/app/autenticacion/credenciales-local';
+import { FILTROS_EMPLEADO_VACIOS } from '../empleados/empleado';
+import { EmpleadosRepositorio } from '../empleados/empleados-repositorio';
 import { FILTROS_FACTURA_VACIOS } from 'src/app/finanzas/facturas/factura';
 import { FacturasRepositorio } from 'src/app/finanzas/facturas/facturas-repositorio';
 import { DatosRegistro } from 'src/app/shared/crud/crud';
-import { RepositorioLocal } from 'src/app/shared/crud/repositorio-local';
+import { RepositorioLocal, SIN_PAGINAR } from 'src/app/shared/crud/repositorio-local';
 import { coincideTexto, compararPorApellido, nombreCompleto, validarDocumentoUnico } from '../compartido/persona';
 import { FILTROS_ESTUDIANTE_VACIOS } from '../estudiantes/estudiante';
 import { EstudiantesRepositorio } from '../estudiantes/estudiantes-repositorio';
@@ -34,6 +37,26 @@ export class AcudientesLocal
 
   protected override validar(datos: DatosRegistro<Acudiente>, idActual: string | null, registros: Acudiente[]): void {
     validarDocumentoUnico(datos, idActual, registros, 'un acudiente');
+    validarAcceso(datos, idActual, registros, 'ACUDIENTE');
+  }
+
+  /** El usuario tampoco puede estar en uso por un empleado. */
+  protected override validarRelaciones(datos: DatosRegistro<Acudiente>): Observable<unknown> {
+    return this.injector
+      .get(EmpleadosRepositorio)
+      .listar(FILTROS_EMPLEADO_VACIOS, SIN_PAGINAR)
+      .pipe(map(({ items }) => validarUsuarioLibre(datos.usuario, items)));
+  }
+
+  /** La contraseña se guarda aparte (`credenciales-local.ts`); el registro nunca la lleva. */
+  protected override preparar(datos: DatosRegistro<Acudiente>, idActual: string | null, registros: Acudiente[]): DatosRegistro<Acudiente> {
+    return prepararAcceso(datos, idActual, registros, 'ACUDIENTE');
+  }
+
+  /** Al eliminar se libera su usuario. */
+  override eliminar(id: string): Observable<void> {
+    const usuario = this.leer().find((a) => a.id === id)?.usuario;
+    return super.eliminar(id).pipe(tap(() => usuario && borrarCredencial(usuario)));
   }
 
   /** Regla de negocio: no se elimina un acudiente con estudiantes a cargo o facturas. */
@@ -75,13 +98,16 @@ export class AcudientesLocal
       telefonoAlterno: '',
       correo,
       direccion: 'Calle 10 # 5-23, Neiva',
+      // Usuario de ejemplo: inicial del nombre + primer apellido (`mperez`), contraseña `CONTRASENA_DEMO`.
+      usuario: usuarioDemo(primerNombre, primerApellido),
+      contrasena: '',
       estado,
       fechaCreacion: '2026-01-10T08:00:00.000Z',
       fechaActualizacion: '2026-01-10T08:00:00.000Z',
     });
 
     // Los ids coinciden con los `acudienteId` de los estudiantes de ejemplo.
-    return [
+    const acudientes = [
       acudiente('acu-1', 'CC', '36181234', ['María', '', 'Pérez', 'López'], '3001234567', 'maria.perez@correo.com'),
       acudiente('acu-2', 'CC', '7712345', ['Carlos', 'Andrés', 'Rodríguez', 'Mejía'], '3109876543', 'carlos.rodriguez@correo.com'),
       acudiente('acu-3', 'CC', '55123456', ['Luz', 'Marina', 'Gómez', 'Vargas'], '3157654321', ''),
@@ -91,5 +117,7 @@ export class AcudientesLocal
       acudiente('acu-7', 'CC', '1075345678', ['Paola', 'Andrea', 'Silva', 'Torres'], '3165432109', 'paola.silva@correo.com'),
       acudiente('acu-8', 'CC', '4567890', ['Hernán', '', 'Quintero', 'Díaz'], '3176543210', '', 'INACTIVO'),
     ];
+    for (const a of acudientes) guardarCredencial(a.usuario, CONTRASENA_DEMO, 'ACUDIENTE');
+    return acudientes;
   }
 }

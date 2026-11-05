@@ -7,6 +7,10 @@ import { AuthService, RolUsuario, nombreRol, rutaInicio } from 'src/app/core/aut
 import { rutaInternaSegura } from 'src/app/core/guardias';
 import { FILTROS_ASIGNACION_VACIOS } from 'src/app/operacion/asignaciones/asignacion';
 import { AsignacionesRepositorio } from 'src/app/operacion/asignaciones/asignaciones-repositorio';
+import { FILTROS_FACTURA_VACIOS } from 'src/app/finanzas/facturas/factura';
+import { FacturasRepositorio } from 'src/app/finanzas/facturas/facturas-repositorio';
+import { FILTROS_ACUDIENTE_VACIOS } from 'src/app/personas/acudientes/acudiente';
+import { AcudientesRepositorio } from 'src/app/personas/acudientes/acudientes-repositorio';
 import { nombreCompleto } from 'src/app/personas/compartido/persona';
 import { FILTROS_EMPLEADO_VACIOS } from 'src/app/personas/empleados/empleado';
 import { EmpleadosRepositorio } from 'src/app/personas/empleados/empleados-repositorio';
@@ -48,6 +52,8 @@ export default class LoginPage {
   private readonly ruta = inject(ActivatedRoute);
   private readonly empleados = inject(EmpleadosRepositorio);
   private readonly asignaciones = inject(AsignacionesRepositorio);
+  private readonly acudientes = inject(AcudientesRepositorio);
+  private readonly facturas = inject(FacturasRepositorio);
 
   protected readonly caracteristicas = CARACTERISTICAS;
   protected readonly anioActual = new Date().getFullYear();
@@ -63,14 +69,16 @@ export default class LoginPage {
     recordar: [false],
   });
 
-  /** Modo local: un usuario de cada tipo, tomado de los datos actuales (empleados con ruta asignada). */
+  /** Modo local: un usuario de cada tipo, tomado de los datos actuales (empleados con ruta, acudiente con facturas). */
   protected readonly accesosDemo = toSignal(
     this.modoLocal
       ? forkJoin([
           this.empleados.listar({ ...FILTROS_EMPLEADO_VACIOS, estado: 'ACTIVO' }, SIN_PAGINAR),
           this.asignaciones.listar({ ...FILTROS_ASIGNACION_VACIOS, estado: 'ACTIVO' }, SIN_PAGINAR),
+          this.acudientes.listar({ ...FILTROS_ACUDIENTE_VACIOS, estado: 'ACTIVO' }, SIN_PAGINAR),
+          this.facturas.listar({ ...FILTROS_FACTURA_VACIOS, estado: 'ACTIVO' }, SIN_PAGINAR),
         ]).pipe(
-          map(([empleados, asignaciones]) => {
+          map(([empleados, asignaciones, acudientes, facturas]) => {
             const conRuta = new Set(asignaciones.items.flatMap((a) => [a.conductorId, a.monitoraId]));
             const conUsuario = empleados.items.filter((e) => e.usuario);
             const elegir = (tipo: RolUsuario) =>
@@ -82,6 +90,11 @@ export default class LoginPage {
               const e = elegir(rol);
               // Contraseña de los datos de ejemplo: si el administrador la cambió, el acceso falla como cualquier login.
               if (e) accesos.push({ rol, nombre: nombreCompleto(e), usuario: e.usuario, contrasena: CONTRASENA_DEMO, icono });
+            }
+            const facturasDe = (id: string) => facturas.items.filter((f) => f.acudienteId === id).length;
+            const acudiente = acudientes.items.filter((a) => a.usuario).sort((a, b) => facturasDe(b.id) - facturasDe(a.id))[0];
+            if (acudiente) {
+              accesos.push({ rol: 'ACUDIENTE', nombre: nombreCompleto(acudiente), usuario: acudiente.usuario, contrasena: CONTRASENA_DEMO, icono: 'fa-solid fa-people-roof' });
             }
             return accesos;
           }),

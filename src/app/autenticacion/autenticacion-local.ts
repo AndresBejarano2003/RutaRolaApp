@@ -1,6 +1,8 @@
 import { Injectable, inject } from '@angular/core';
-import { Observable, map, throwError } from 'rxjs';
-import { Credenciales, RolUsuario, Sesion, USUARIO_DEMO } from 'src/app/core/auth';
+import { Observable, forkJoin, map, throwError } from 'rxjs';
+import { Credenciales, Sesion, USUARIO_DEMO } from 'src/app/core/auth';
+import { FILTROS_ACUDIENTE_VACIOS } from 'src/app/personas/acudientes/acudiente';
+import { AcudientesRepositorio } from 'src/app/personas/acudientes/acudientes-repositorio';
 import { nombreCompleto } from 'src/app/personas/compartido/persona';
 import { FILTROS_EMPLEADO_VACIOS } from 'src/app/personas/empleados/empleado';
 import { EmpleadosRepositorio } from 'src/app/personas/empleados/empleados-repositorio';
@@ -12,46 +14,50 @@ import { ADMIN_LOCAL, contrasenaDe, normalizarUsuario } from './credenciales-loc
 export const MENSAJE_CREDENCIALES_INVALIDAS = 'Usuario o contraseña incorrectos.';
 
 /**
- * Login TEMPORAL mientras no existe el API:
- * - Usuario y contraseña de un empleado (Personas › Empleados) → CONDUCTOR o MONITORA según su tipo.
- *   Si el empleado está inactivo no puede entrar.
+ * Login TEMPORAL mientras no existe el API. El usuario es único en todo el sistema y define el rol:
+ * - empleado (Personas › Empleados) → CONDUCTOR o MONITORA según su tipo;
+ * - acudiente (Personas › Acudientes) → ACUDIENTE;
  * - `ADMIN_LOCAL` → ADMINISTRADOR con el perfil de ejemplo `USUARIO_DEMO`.
- * El mensaje de error no revela si lo que falló fue el usuario o la contraseña.
+ * Inactivos no entran. El mensaje de error no revela si falló el usuario o la contraseña.
  */
 @Injectable()
 export class AutenticacionLocal extends AutenticacionRepositorio implements FuenteLocal {
   readonly modoLocal = true as const;
   private readonly empleados = inject(EmpleadosRepositorio);
+  private readonly acudientes = inject(AcudientesRepositorio);
 
   iniciarSesion({ usuario, contrasena }: Credenciales): Observable<Sesion> {
     const limpio = normalizarUsuario(usuario);
     if (!limpio || !contrasena) {
       return throwError(() => new ErrorCrud('Ingresa tu usuario y tu contraseña.', 'VALIDACION'));
     }
-    const sesion = (rol: RolUsuario, nombre: string, correo: string, empleadoId: string | null, imagen = ''): Sesion => ({
-      usuario: limpio,
-      nombre,
-      correo,
-      rol,
-      empleadoId,
-      imagen,
-      inicio: new Date().toISOString(),
-    });
+    const base = { usuario: limpio, imagen: '', inicio: new Date().toISOString(), empleadoId: null, acudienteId: null };
+    const invalidas = () => new ErrorCrud(MENSAJE_CREDENCIALES_INVALIDAS, 'VALIDACION');
+    const inactivo = () => new ErrorCrud('Tu usuario está inactivo. Comunícate con el administrador.', 'VALIDACION');
 
-    return this.empleados.listar(FILTROS_EMPLEADO_VACIOS, SIN_PAGINAR).pipe(
-      map(({ items }) => {
+    return forkJoin([
+      this.empleados.listar(FILTROS_EMPLEADO_VACIOS, SIN_PAGINAR),
+      this.acudientes.listar(FILTROS_ACUDIENTE_VACIOS, SIN_PAGINAR),
+    ]).pipe(
+      map(([empleados, acudientes]): Sesion => {
         if (limpio === ADMIN_LOCAL.usuario) {
-          if (contrasena !== ADMIN_LOCAL.contrasena) throw new ErrorCrud(MENSAJE_CREDENCIALES_INVALIDAS, 'VALIDACION');
-          return sesion('ADMINISTRADOR', USUARIO_DEMO.nombre, USUARIO_DEMO.correo, null, USUARIO_DEMO.imagen);
+          if (contrasena !== ADMIN_LOCAL.contrasena) throw invalidas();
+          return { ...base, rol: 'ADMINISTRADOR', nombre: USUARIO_DEMO.nombre, correo: USUARIO_DEMO.correo, imagen: USUARIO_DEMO.imagen };
         }
-        const empleado = items.find((e) => normalizarUsuario(e.usuario ?? '') === limpio);
-        if (!empleado || contrasenaDe(limpio) !== contrasena) {
-          throw new ErrorCrud(MENSAJE_CREDENCIALES_INVALIDAS, 'VALIDACION');
+        const mismo = (u: string | undefined) => normalizarUsuario(u ?? '') === limpio;
+        const empleado = empleados.items.find((e) => mismo(e.usuario));
+        if (empleado) {
+          if (contrasenaDe(limpio, 'EMPLEADO') !== contrasena) throw invalidas();
+          if (empleado.estado !== 'ACTIVO') throw inactivo();
+          return { ...base, rol: empleado.tipoEmpleado, nombre: nombreCompleto(empleado), correo: empleado.correo, empleadoId: empleado.id };
         }
-        if (empleado.estado !== 'ACTIVO') {
-          throw new ErrorCrud('Tu usuario está inactivo. Comunícate con el administrador.', 'VALIDACION');
+        const acudiente = acudientes.items.find((a) => mismo(a.usuario));
+        if (acudiente) {
+          if (contrasenaDe(limpio, 'ACUDIENTE') !== contrasena) throw invalidas();
+          if (acudiente.estado !== 'ACTIVO') throw inactivo();
+          return { ...base, rol: 'ACUDIENTE', nombre: nombreCompleto(acudiente), correo: acudiente.correo, acudienteId: acudiente.id };
         }
-        return sesion(empleado.tipoEmpleado, nombreCompleto(empleado), empleado.correo, empleado.id);
+        throw invalidas();
       }),
     );
   }
