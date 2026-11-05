@@ -1,0 +1,47 @@
+<form [id]="idFormulario()" [formGroup]="form" (ngSubmit)="enviar()" novalidate>
+  <div class="grid md:grid-cols-2 gap-x-4 gap-y-3">
+    <app-titulo-seccion>Factura</app-titulo-seccion>
+    <div app-campo class="md:col-span-2" etiqueta="Factura" requerido [error]="error('facturaId')">
+      <app-selector-busqueda formControlName="facturaId" [opciones]="facturas()" etiqueta="Factura"
+        placeholder="Número de factura o estudiante..." [invalido]="!!error('facturaId')" />
+    </div>
+    @if (factura(); as f) {
+      <div class="md:col-span-2 rounded-box border border-base-300 bg-base-100/40 px-4 py-3 grid sm:grid-cols-4 gap-3 text-sm">
+        <div><div class="text-base-content/70">Acudiente</div><div class="font-medium">{{ f.nombreAcudiente }}</div></div>
+        <div><div class="text-base-content/70">Estudiante</div><div class="font-medium">{{ f.nombreEstudiante }}</div></div>
+        <div><div class="text-base-content/70">Valor mensual</div>
+          <div class="font-medium">{{ f.valorContratacion | currency: 'COP' : 'symbol-narrow' : '1.0-0' }}</div></div>
+        <div><div class="text-base-content/70">Meses pagados</div><div class="font-medium">{{ pagados() }}</div></div>
+      </div>
+    }
+
+    <app-titulo-seccion>Pago</app-titulo-seccion>
+    <div app-campo etiqueta="Mes que se paga" requerido [error]="error('periodo')"
+      [ayuda]="factura() && !periodos().length ? 'Todos los meses de la factura ya están pagados.' : ''">
+      <app-selector-busqueda formControlName="periodo" [opciones]="periodos()" etiqueta="Mes que se paga" [invalido]="!!error('periodo')" />
+    </div>
+    <div app-campo etiqueta="Valor pagado" requerido [error]="error('valor')">
+      <label class="input input-bordered bg-base-100 border-neutral w-full flex items-center gap-2" [class.input-error]="error('valor')">
+        <span class="text-base-content/70">$</span>
+        <input type="number" formControlName="valor" min="1" step="1000" class="grow" aria-label="Valor pagado" />
+      </label>
+    </div>
+    <label app-campo etiqueta="Fecha de pago" requerido [error]="error('fechaPago')">
+      <input type="date" formControlName="fechaPago" [max]="hoy" class="input input-bordered bg-base-100 border-neutral w-full"
+        [class.input-error]="error('fechaPago')" />
+    </label>
+    <div app-campo etiqueta="Medio de pago" requerido [error]="error('medioPago')">
+      <app-selector-busqueda formControlName="medioPago" [opciones]="medios" etiqueta="Medio de pago" [invalido]="!!error('medioPago')" />
+    </div>
+    <label app-campo etiqueta="Referencia / comprobante" [error]="error('referencia')">
+      <input type="text" formControlName="referencia" class="input input-bordered bg-base-100 border-neutral w-full"
+        placeholder="Número de transacción" />
+    </label>
+    <div app-campo etiqueta="Estado" requerido [error]="error('estado')">
+      <app-selector-busqueda formControlName="estado" [opciones]="estados" etiqueta="Estado" [invalido]="!!error('estado')" />
+    </div>
+    <label app-campo class="md:col-span-2" etiqueta="Observaciones" [error]="error('observaciones')">
+      <textarea formControlName="observaciones" rows="2" class="textarea textarea-bordered bg-base-100 border-neutral w-full"></textarea>
+    </label>
+  </div>
+</form>

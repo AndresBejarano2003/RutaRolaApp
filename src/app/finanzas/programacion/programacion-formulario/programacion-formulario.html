@@ -1,0 +1,81 @@
+<form [id]="idFormulario()" [formGroup]="form" (ngSubmit)="enviar()" novalidate>
+  <div class="grid md:grid-cols-2 gap-x-4 gap-y-3">
+    <app-titulo-seccion>Programación</app-titulo-seccion>
+    <label app-campo etiqueta="Nombre de la programación" requerido [error]="error('nombre')">
+      <input type="text" formControlName="nombre" class="input input-bordered bg-base-100 border-neutral w-full"
+        [class.input-error]="error('nombre')" placeholder="Ej. Mensualidad Juan Sebastián" />
+    </label>
+    <div app-campo etiqueta="Factura a parametrizar" requerido [error]="error('facturaId')">
+      <app-selector-busqueda formControlName="facturaId" [opciones]="facturas()" etiqueta="Factura a parametrizar"
+        placeholder="Número de factura o estudiante..." [invalido]="!!error('facturaId')" />
+    </div>
+    <div app-campo etiqueta="Día límite de pago en cada mes" requerido [error]="error('diaLimitePago')"
+      ayuda="Si el mes tiene menos días, se toma el último día del mes.">
+      <app-selector-busqueda formControlName="diaLimitePago" [opciones]="dias" etiqueta="Día límite de pago" [invalido]="!!error('diaLimitePago')" />
+    </div>
+    <div app-campo etiqueta="Días previos para el envío de la factura" requerido [error]="error('diasPrevios')">
+      <app-selector-busqueda formControlName="diasPrevios" [opciones]="diasPrevios" etiqueta="Días previos para envío"
+        [invalido]="!!error('diasPrevios')" />
+    </div>
+
+    <app-titulo-seccion>Canales de envío</app-titulo-seccion>
+    <!-- WhatsApp -->
+    <div class="md:col-span-2 rounded-box border border-base-300 p-4" [class.border-error]="errorCanal('whatsapp')">
+      <div class="flex flex-wrap items-center justify-between gap-3">
+        <label class="flex items-center gap-3 cursor-pointer">
+          <input type="checkbox" formControlName="whatsapp" class="checkbox checkbox-success" />
+          <span><i class="fa-brands fa-whatsapp text-success text-lg"></i> <b>Enviar por WhatsApp</b></span>
+        </label>
+        @if (whatsapp()) {
+          <div class="flex items-center gap-3">
+            <span class="text-xs text-base-content/70">{{ resumenWhatsapp() }}</span>
+            <button type="button" class="btn btn-sm bg-base-300 border-neutral hover:bg-neutral" [attr.aria-expanded]="panelWhatsapp()"
+              (click)="panelWhatsapp.set(!panelWhatsapp())">
+              <i class="fa-solid fa-sliders"></i>
+              {{ soloLectura() ? 'Ver mensajes' : 'Parametrizar mensaje de WhatsApp' }}
+              <i class="fa-solid fa-chevron-down text-xs transition-transform" [class.rotate-180]="panelWhatsapp()"></i>
+            </button>
+          </div>
+        }
+      </div>
+      @if (errorCanal('whatsapp'); as mensaje) {
+        <p class="text-xs text-error mt-2">{{ mensaje }}</p>
+      }
+      @if (whatsapp() && panelWhatsapp()) {
+        <div class="mt-4"><app-plantillas-mensaje formControlName="mensajesWhatsapp" canal="WHATSAPP" /></div>
+      }
+    </div>
+
+    <!-- Correo -->
+    <div class="md:col-span-2 rounded-box border border-base-300 p-4" [class.border-error]="errorCanal('email')">
+      <div class="flex flex-wrap items-center justify-between gap-3">
+        <label class="flex items-center gap-3 cursor-pointer">
+          <input type="checkbox" formControlName="email" class="checkbox checkbox-info" />
+          <span><i class="fa-solid fa-envelope text-info text-lg"></i> <b>Enviar por correo electrónico</b></span>
+        </label>
+        @if (email()) {
+          <div class="flex items-center gap-3">
+            <span class="text-xs text-base-content/70">{{ resumenCorreo() }}</span>
+            <button type="button" class="btn btn-sm bg-base-300 border-neutral hover:bg-neutral" [attr.aria-expanded]="panelCorreo()"
+              (click)="panelCorreo.set(!panelCorreo())">
+              <i class="fa-solid fa-sliders"></i>
+              {{ soloLectura() ? 'Ver correos' : 'Parametrizar cuerpo del correo' }}
+              <i class="fa-solid fa-chevron-down text-xs transition-transform" [class.rotate-180]="panelCorreo()"></i>
+            </button>
+          </div>
+        }
+      </div>
+      @if (errorCanal('email'); as mensaje) {
+        <p class="text-xs text-error mt-2">{{ mensaje }}</p>
+      }
+      @if (email() && panelCorreo()) {
+        <div class="mt-4"><app-plantillas-mensaje formControlName="correos" canal="EMAIL" /></div>
+      }
+    </div>
+
+    <app-titulo-seccion>Estado</app-titulo-seccion>
+    <div app-campo etiqueta="Estado" requerido [error]="error('estado')">
+      <app-selector-busqueda formControlName="estado" [opciones]="estados" etiqueta="Estado" [invalido]="!!error('estado')" />
+    </div>
+  </div>
+</form>

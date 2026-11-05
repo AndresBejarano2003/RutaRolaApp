@@ -1,196 +1,141 @@
-<div class="card bg-gray-800/70 border border-gray-700 shadow-xl">
-    <div class="card-body">
-
-        <h2 class="card-title text-white">
-            Filtros
-        </h2>
-
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-
-            <input type="text" placeholder="Buscar estudiante..."
-                class="input input-bordered bg-gray-900 border-gray-700 text-white w-full">
-
-            <select class="select select-bordered bg-gray-900 border-gray-700 text-white">
-
-                <option>Todos los colegios</option>
-
-            </select>
-
-            <select class="select select-bordered bg-gray-900 border-gray-700 text-white">
-
-                <option>Todos los grados</option>
-
-            </select>
-
-            <button class="btn btn-primary">
-                Buscar
-            </button>
-
-        </div>
-
+<form [formGroup]="form" class="card bg-base-200 border border-base-300 shadow-xl">
+  <div class="card-body">
+    <div class="flex items-center justify-between">
+      <h2 class="card-title text-base-content text-base"><i class="fa-solid fa-filter text-base-content/70"></i> Filtros</h2>
+      <button type="button" class="btn btn-ghost btn-sm text-base-content/70" (click)="form.reset()">
+        <i class="fa-solid fa-eraser"></i> Restablecer
+      </button>
     </div>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <label class="input input-bordered bg-base-100 border-neutral w-full">
+        <span class="label text-base-content/90">Desde</span>
+        <input type="month" formControlName="desde" aria-label="Mes desde" />
+      </label>
+      <label class="input input-bordered bg-base-100 border-neutral w-full">
+        <span class="label text-base-content/90">Hasta</span>
+        <input type="month" formControlName="hasta" aria-label="Mes hasta" />
+      </label>
+      <app-selector-busqueda formControlName="medioPago" [opciones]="medios" textoTodos="Todos los medios de pago" etiqueta="Medio de pago" />
+    </div>
+    @if (rangoInvalido()) {
+      <p class="text-sm text-error"><i class="fa-solid fa-triangle-exclamation"></i> El mes "desde" es posterior al mes "hasta".</p>
+    }
+  </div>
+</form>
+
+@if (reporte().error; as error) {
+  <div role="alert" class="alert alert-error alert-soft mt-6">
+    <i class="fa-solid fa-circle-exclamation"></i> {{ error }}
+    <button type="button" class="btn btn-sm" (click)="reintentar()">Reintentar</button>
+  </div>
+}
+
+<!-- Indicadores -->
+<div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-6">
+  <div class="stat card bg-base-200 border border-base-300 shadow-xl">
+    <div class="stat-figure text-success text-2xl"><i class="fa-solid fa-sack-dollar"></i></div>
+    <div class="stat-title text-base-content/70">Total recaudado</div>
+    <div class="stat-value text-2xl" [class.opacity-50]="reporte().cargando">{{ reporte().datos.total | currency: 'COP' : 'symbol-narrow' : '1.0-0' }}</div>
+  </div>
+  <div class="stat card bg-base-200 border border-base-300 shadow-xl">
+    <div class="stat-figure text-info text-2xl"><i class="fa-solid fa-receipt"></i></div>
+    <div class="stat-title text-base-content/70">Recibos válidos</div>
+    <div class="stat-value text-2xl" [class.opacity-50]="reporte().cargando">{{ reporte().datos.cantidad }}</div>
+  </div>
+  <div class="stat card bg-base-200 border border-base-300 shadow-xl">
+    <div class="stat-figure text-primary text-2xl"><i class="fa-solid fa-scale-balanced"></i></div>
+    <div class="stat-title text-base-content/70">Promedio por recibo</div>
+    <div class="stat-value text-2xl" [class.opacity-50]="reporte().cargando">{{ reporte().datos.promedio | currency: 'COP' : 'symbol-narrow' : '1.0-0' }}</div>
+  </div>
 </div>
-<div class="mt-6 card bg-gray-800/70 border border-gray-700 shadow-xl">
 
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
+  <section class="card bg-base-200 border border-base-300 shadow-xl lg:col-span-2">
     <div class="card-body">
-
-        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-
-            <div>
-                <h2 class="card-title text-white text-xl">
-                    Lista de estudiantes
-                </h2>
-
-                <p class="text-gray-400 text-sm">
-                    Administra los estudiantes registrados en el sistema.
-                </p>
-            </div>
-
-            <div class="flex gap-2">
-
-                <div class="badge badge-primary">
-                    1245 registros
-                </div>
-
-                <button class="btn btn-primary" onclick="nuevoEstudiante.showModal()">
-                    <i class="fa-solid fa-plus"></i>
-                    Nuevo estudiante
-                </button>
-
-            </div>
-        </div>
-
-        <div class="divider divider-neutral my-6"></div>
-
-        <div class="overflow-x-auto">
-
-            <table class="table">
-
-                <thead>
-
-                    <tr class="text-gray-400">
-
-                        <th>Documento</th>
-                        <th>Nombre</th>
-                        <th>Acudiente</th>
-                        <th>Colegio</th>
-                        <th>Grado</th>
-                        <th>Estado</th>
-                        <th></th>
-
-                    </tr>
-
-                </thead>
-
-                <tbody>
-
-                    <tr>
-
-                        <td>10203040</td>
-
-                        <td>
-                            Juan Sebastián Pérez
-                        </td>
-
-                        <td>
-                            María Pérez
-                        </td>
-
-                        <td>
-                            Colegio San José
-                        </td>
-
-                        <td>
-                            7°
-                        </td>
-
-                        <td>
-                            <div class="badge badge-success">
-                                Activo
-                            </div>
-                        </td>
-
-                        <td>
-
-                            <button class="btn btn-sm btn-ghost">
-                                <i class="fa-solid fa-pen"></i>
-                            </button>
-
-                            <button class="btn btn-sm btn-ghost text-red-400">
-                                <i class="fa-solid fa-trash"></i>
-                            </button>
-
-                        </td>
-
-                    </tr>
-
-                </tbody>
-
-            </table>
-
-        </div>
-
+      <h2 class="card-title text-base"><i class="fa-solid fa-chart-column text-primary"></i> Recaudo por mes</h2>
+      @if (reporte().cargando) {
+        <div class="skeleton bg-base-300 h-72 w-full"></div>
+      } @else if (reporte().datos.porMes.length) {
+        @let g = grafico();
+        <apx-chart [series]="g.series" [chart]="g.chart" [plotOptions]="g.plotOptions" [dataLabels]="g.dataLabels"
+          [xaxis]="g.xaxis" [yaxis]="g.yaxis" [tooltip]="g.tooltip" [colors]="g.colors" />
+      } @else {
+        <p class="text-base-content/70 py-12 text-center">No hay ingresos en el rango seleccionado.</p>
+      }
     </div>
+  </section>
 
+  <section class="card bg-base-200 border border-base-300 shadow-xl">
+    <div class="card-body">
+      <h2 class="card-title text-base"><i class="fa-solid fa-wallet text-info"></i> Por medio de pago</h2>
+      <ul class="flex flex-col gap-4 mt-2">
+        @for (m of mediosConDatos(); track m.medioPago) {
+          <li>
+            <div class="flex justify-between text-sm">
+              <span><i [class]="m.icono + ' text-base-content/60 w-5'"></i> {{ m.nombre }}</span>
+              <span class="font-semibold">{{ m.total | currency: 'COP' : 'symbol-narrow' : '1.0-0' }}</span>
+            </div>
+            <progress class="progress progress-primary w-full" [value]="m.porcentaje" max="100" [attr.aria-label]="m.nombre"></progress>
+            <div class="text-xs text-base-content/70">{{ m.cantidad }} recibo(s) · {{ m.porcentaje }} %</div>
+          </li>
+        } @empty {
+          <li class="text-base-content/70 text-sm">Sin datos.</li>
+        }
+      </ul>
+    </div>
+  </section>
 </div>
-<dialog id="nuevoEstudiante" class="modal">
 
-    <div class="modal-box max-w-5xl bg-gray-800 border border-gray-700">
-
-        <h3 class="font-bold text-2xl text-white mb-6">
-            Nuevo estudiante
-        </h3>
-
-        <div class="grid md:grid-cols-2 gap-4">
-
-            <select class="select select-bordered bg-gray-900 text-white">
-                <option>Tipo documento</option>
-            </select>
-
-            <input type="text" placeholder="Identificación" class="input input-bordered bg-gray-900 text-white">
-
-            <input type="text" placeholder="Primer nombre" class="input input-bordered bg-gray-900 text-white">
-
-            <input type="text" placeholder="Segundo nombre" class="input input-bordered bg-gray-900 text-white">
-
-            <input type="text" placeholder="Primer apellido" class="input input-bordered bg-gray-900 text-white">
-
-            <input type="text" placeholder="Segundo apellido" class="input input-bordered bg-gray-900 text-white">
-
-            <input type="date" class="input input-bordered bg-gray-900 text-white">
-
-            <input type="text" placeholder="Dirección" class="input input-bordered bg-gray-900 text-white">
-
-            <select class="select select-bordered bg-gray-900 text-white">
-                <option>Seleccionar acudiente</option>
-            </select>
-
-            <select class="select select-bordered bg-gray-900 text-white">
-                <option>Seleccionar colegio</option>
-            </select>
-
-            <select class="select select-bordered bg-gray-900 text-white">
-                <option>Seleccionar grado</option>
-            </select>
-
-        </div>
-
-        <div class="modal-action">
-
-            <form method="dialog">
-
-                <button class="btn btn-ghost">
-                    Cancelar
-                </button>
-
-                <button class="btn btn-primary">
-                    Guardar estudiante
-                </button>
-
-            </form>
-
-        </div>
-
+<section class="mt-6 card bg-base-200 border border-base-300 shadow-xl">
+  <div class="card-body">
+    <div class="flex flex-wrap items-center justify-between gap-3">
+      <div>
+        <h2 class="card-title text-base-content">Recibos del periodo</h2>
+        <p class="text-sm text-base-content/70">Pagos válidos según la fecha de pago (los anulados no suman).</p>
+      </div>
+      <button type="button" class="btn bg-base-300 border-neutral hover:bg-neutral" [disabled]="!reporte().datos.recibos.length" (click)="exportar()">
+        <i class="fa-solid fa-file-csv"></i> Exportar CSV
+      </button>
     </div>
-
-</dialog>
+    <div class="overflow-x-auto rounded-box border border-base-300 mt-2">
+      <table class="table">
+        <thead>
+          <tr class="bg-base-300 text-base-content/80 text-xs uppercase tracking-wide">
+            <th>Recibo</th>
+            <th>Fecha de pago</th>
+            <th class="hidden md:table-cell">Acudiente</th>
+            <th>Estudiante</th>
+            <th class="hidden lg:table-cell">Mes pagado</th>
+            <th class="hidden md:table-cell">Medio</th>
+            <th class="text-right">Valor</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (r of paginacion.visibles(); track r.id) {
+            <tr class="border-base-300 hover:bg-base-300/50">
+              <td class="font-mono font-semibold whitespace-nowrap">{{ r.numero }}<div class="text-xs text-base-content/70">{{ r.numeroFactura }}</div></td>
+              <td class="whitespace-nowrap">{{ fechaCorta(r.fechaPago) }}</td>
+              <td class="hidden md:table-cell">{{ r.nombreAcudiente }}</td>
+              <td>{{ r.nombreEstudiante }}</td>
+              <td class="hidden lg:table-cell whitespace-nowrap">{{ nombrePeriodo(r.periodo) }}</td>
+              <td class="hidden md:table-cell">{{ nombreMedio(r.medioPago) }}</td>
+              <td class="text-right font-semibold whitespace-nowrap">{{ r.valor | currency: 'COP' : 'symbol-narrow' : '1.0-0' }}</td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="7" class="text-center py-10 text-base-content/70">
+                @if (reporte().cargando) {
+                  <span class="loading loading-spinner text-primary"></span>
+                } @else {
+                  No hay recibos en el rango seleccionado.
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+    <app-paginacion [pagina]="paginacion.pagina()" [tamano]="paginacion.tamano()" [total]="paginacion.total()"
+      [totalPaginas]="paginacion.totalPaginas()" (cambiarPagina)="paginacion.irA($event)" (cambiarTamano)="paginacion.cambiarTamano($event)" />
+  </div>
+</section>

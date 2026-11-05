@@ -1,0 +1,107 @@
+<app-programaciones-filtros [facturas]="facturas()" (cambiar)="store.buscar($event)" />
+
+<section class="mt-6 card bg-base-200 border border-base-300 shadow-xl">
+  <div class="card-body">
+    <app-encabezado-listado titulo="Programación de facturación"
+      descripcion="Envío automático del cobro mensual por WhatsApp o correo, unos días antes del día límite de pago."
+      [cargando]="store.cargando()" [total]="store.total()" [modoLocal]="store.modoLocal" [error]="store.error()"
+      textoNuevo="Nueva programación" (nuevo)="nuevo()" (reintentar)="store.recargar()" />
+
+    <app-programaciones-tabla [programaciones]="store.items()" [conteo]="conteo()" [cargando]="store.cargando()"
+      [hayFiltros]="store.hayFiltros()" (consultar)="abrir('consultar', $event)" (editar)="abrir('editar', $event)"
+      (eliminar)="pedirEliminar($event)" (historial)="verHistorial($event)" (crear)="nuevo()" />
+
+    <app-paginacion [pagina]="store.paginacion().pagina" [tamano]="store.paginacion().tamano" [total]="store.total()"
+      [totalPaginas]="store.totalPaginas()" (cambiarPagina)="store.irAPagina($event)" (cambiarTamano)="store.cambiarTamano($event)" />
+  </div>
+</section>
+
+<app-modal [(abierto)]="modalAbierto" [titulo]="tituloModal()" [subtitulo]="subtituloModal()" ancho="max-w-5xl">
+  @if (modalAbierto()) {
+    <div class="relative">
+      @if (cargandoDetalle()) {
+        <div class="absolute inset-0 z-10 grid place-items-center bg-base-200/80 rounded-xl">
+          <span class="loading loading-spinner loading-lg text-primary"></span>
+        </div>
+      }
+      <app-programacion-formulario idFormulario="form-programacion" [modo]="modo()" [programacion]="seleccionado()"
+        [facturas]="facturas()" (guardar)="guardar($event)" />
+    </div>
+  }
+  @if (modalAbierto()) {
+    <app-acciones-formulario pie formulario="form-programacion" [modo]="modo()" [guardando]="store.guardando()"
+      [bloqueado]="cargandoDetalle()" textoCrear="Registrar programación" (cancelar)="modalAbierto.set(false)" (editar)="modo.set('editar')" />
+  }
+</app-modal>
+
+<!-- Historial de envíos -->
+<app-modal [(abierto)]="historialAbierto" titulo="Historial de envíos"
+  [subtitulo]="(programacionHistorial()?.nombre ?? '') + ' · ' + (programacionHistorial()?.numeroFactura ?? '')" ancho="max-w-3xl">
+  @if (historialAbierto()) {
+    <div>
+      @if (historial().cargando) {
+        <div class="grid place-items-center py-12"><span class="loading loading-spinner loading-lg text-primary"></span></div>
+      } @else if (historial().error) {
+        <div role="alert" class="alert alert-error alert-soft">No fue posible cargar el historial. Intenta de nuevo.</div>
+      } @else {
+        <div class="flex flex-wrap gap-2 mb-4">
+          <span class="badge badge-soft badge-success">{{ resumenHistorial().enviados }} enviados</span>
+          <span class="badge badge-soft badge-error">{{ resumenHistorial().fallidos }} fallidos</span>
+        </div>
+        <div class="overflow-x-auto rounded-box border border-base-300">
+          <table class="table table-sm">
+            <thead>
+              <tr class="bg-base-300 text-base-content/80 text-xs uppercase tracking-wide">
+                <th>Fecha</th>
+                <th>Canal</th>
+                <th>Destinatario</th>
+                <th>Mes cobrado</th>
+                <th>Resultado</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (e of historial().envios; track e.id) {
+                <tr class="border-base-300">
+                  <td class="whitespace-nowrap">{{ e.fecha | date: 'd MMM y, h:mm a' }}</td>
+                  <td class="whitespace-nowrap">
+                    @if (e.canal === 'WHATSAPP') {
+                      <i class="fa-brands fa-whatsapp text-success"></i> WhatsApp
+                    } @else {
+                      <i class="fa-solid fa-envelope text-info"></i> Correo
+                    }
+                  </td>
+                  <td class="font-mono text-sm">{{ e.destinatario }}</td>
+                  <td class="whitespace-nowrap">{{ nombrePeriodo(e.periodo) }}</td>
+                  <td>
+                    <span class="badge badge-sm badge-soft" [class.badge-success]="e.estado === 'ENVIADO'" [class.badge-error]="e.estado === 'FALLIDO'">
+                      {{ e.estado === 'ENVIADO' ? 'Enviado' : 'Fallido' }}
+                    </span>
+                    @if (e.detalle) {
+                      <div class="text-xs text-base-content/70 mt-1">{{ e.detalle }}</div>
+                    }
+                  </td>
+                </tr>
+              } @empty {
+                <tr>
+                  <td colspan="5" class="text-center py-10 text-base-content/70">
+                    <i class="fa-solid fa-paper-plane text-2xl text-base-content/60 block mb-2"></i>
+                    Aún no se han realizado envíos para esta programación.
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+        <p class="text-xs text-base-content/70 mt-3">Los envíos los realiza el proceso automático del servidor según el día límite y los días previos.</p>
+      }
+    </div>
+  }
+  @if (historialAbierto()) {
+    <div pie class="flex justify-end w-full">
+      <button type="button" class="btn bg-base-300 border-neutral hover:bg-neutral" (click)="historialAbierto.set(false)">Cerrar</button>
+    </div>
+  }
+</app-modal>
+
+<app-dialogo-confirmacion [(abierto)]="confirmacionAbierta" titulo="Eliminar programación" [mensaje]="mensajeEliminar()"
+  [permitirConfirmar]="puedeEliminar()" [procesando]="store.guardando() || verificandoEliminar()" (confirmar)="confirmarEliminar()" />

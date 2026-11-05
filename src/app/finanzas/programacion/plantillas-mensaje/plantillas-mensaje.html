@@ -1,0 +1,130 @@
+<div class="overflow-x-auto rounded-box border border-base-300">
+  <table class="table table-sm">
+    <thead>
+      <tr class="bg-base-300 text-base-content/80 text-xs uppercase tracking-wide">
+        <th>{{ esCorreo() ? 'Correo predefinido' : 'Mensaje predefinido' }}</th>
+        <th>Estado</th>
+        @if (!deshabilitado()) {
+          <th class="text-right">Acciones</th>
+        }
+      </tr>
+    </thead>
+    <tbody>
+      @for (p of plantillas(); track p.id) {
+        <tr class="border-base-300 hover:bg-base-300/50" [class.bg-primary/5]="p.estado === 'EN_USO'">
+          <td class="max-w-md">
+            @if (esCorreo()) {
+              <div class="font-medium truncate">{{ p.asunto }}</div>
+            }
+            <div class="text-sm text-base-content/80 line-clamp-2 whitespace-pre-line">{{ p.cuerpo }}</div>
+            @if (p.adjuntos.length) {
+              <div class="text-xs text-base-content/70 mt-1"><i class="fa-solid fa-paperclip"></i> {{ p.adjuntos.length }} adjunto(s)</div>
+            }
+          </td>
+          <td class="whitespace-nowrap">
+            @switch (p.estado) {
+              @case ('EN_USO') {
+                <span class="badge badge-primary badge-sm gap-1"><i class="fa-solid fa-paper-plane text-[10px]"></i> En uso</span>
+              }
+              @case ('ACTIVO') {
+                <span class="badge badge-success badge-soft badge-sm">Activo</span>
+              }
+              @default {
+                <span class="badge badge-sm bg-base-300 border-neutral text-base-content/70">Inactivo</span>
+              }
+            }
+          </td>
+          @if (!deshabilitado()) {
+            <td class="text-right whitespace-nowrap">
+              @if (p.estado !== 'EN_USO') {
+                <div class="tooltip" data-tip="Usar para enviar">
+                  <button type="button" class="btn btn-sm btn-ghost btn-square text-success hover:bg-success/15"
+                    [attr.aria-label]="'Usar este ' + nombre()" (click)="usar(p)"><i class="fa-solid fa-paper-plane"></i></button>
+                </div>
+              }
+              <div class="tooltip" data-tip="Modificar">
+                <button type="button" class="btn btn-sm btn-ghost btn-square text-primary hover:bg-primary/15"
+                  [attr.aria-label]="'Modificar ' + nombre()" (click)="modificar(p)"><i class="fa-solid fa-pen"></i></button>
+              </div>
+              <div class="tooltip tooltip-left" data-tip="Quitar">
+                <button type="button" class="btn btn-sm btn-ghost btn-square text-error hover:bg-error/15"
+                  [attr.aria-label]="'Quitar ' + nombre()" (click)="quitar(p)"><i class="fa-solid fa-trash"></i></button>
+              </div>
+            </td>
+          }
+        </tr>
+      } @empty {
+        <tr>
+          <td [attr.colspan]="deshabilitado() ? 2 : 3" class="text-center text-base-content/70 py-5">
+            <i class="fa-solid fa-circle-info text-info"></i> Aún no hay {{ esCorreo() ? 'correos' : 'mensajes' }} predefinidos.
+          </td>
+        </tr>
+      }
+    </tbody>
+  </table>
+</div>
+<p class="text-xs text-base-content/70 mt-2">
+  <i class="fa-solid fa-circle-info text-info"></i>
+  Solo un {{ nombre() }} puede estar <b class="text-base-content">En uso</b>: es el que se envía. Los demás quedan disponibles.
+</p>
+
+@if (!deshabilitado()) {
+  @if (editando() === null) {
+    <button type="button" class="btn btn-sm btn-secondary mt-3" (click)="nueva()">
+      <i class="fa-solid fa-plus"></i> Nuevo {{ nombre() }}
+    </button>
+  } @else {
+    <div class="mt-3 rounded-box border border-base-300 bg-base-100/40 p-4 space-y-3" [formGroup]="editor">
+      <h5 class="font-semibold">{{ editando() ? 'Modificar ' + nombre() : 'Nuevo ' + nombre() }}</h5>
+      @if (esCorreo()) {
+        <label class="flex flex-col">
+          <span class="label-text text-base-content/90 mb-1">Asunto <span class="text-error">*</span></span>
+          <input type="text" formControlName="asunto" class="input input-bordered bg-base-100 border-neutral w-full"
+            [class.input-error]="error('asunto')" placeholder="Ej. Recordatorio de pago {mes} - {factura}" />
+          @if (error('asunto'); as mensaje) {
+            <span class="text-xs text-error mt-1">{{ mensaje }}</span>
+          }
+        </label>
+      }
+      <label class="flex flex-col">
+        <span class="label-text text-base-content/90 mb-1">
+          {{ esCorreo() ? 'Cuerpo del correo' : 'Mensaje de WhatsApp' }} <span class="text-error">*</span>
+        </span>
+        <textarea #campo formControlName="cuerpo" rows="5" class="textarea textarea-bordered bg-base-100 border-neutral w-full"
+          [class.textarea-error]="error('cuerpo')" placeholder="Escribe el mensaje. Usa las variables para personalizarlo."></textarea>
+        @if (error('cuerpo'); as mensaje) {
+          <span class="text-xs text-error mt-1">{{ mensaje }}</span>
+        }
+      </label>
+      <div class="flex flex-wrap gap-1" aria-label="Insertar variable">
+        @for (v of variables; track v.clave) {
+          <button type="button" class="btn btn-xs bg-base-300 border-neutral hover:bg-neutral font-mono" [title]="v.descripcion"
+            (click)="insertarVariable(v.clave, campo)">{{ v.clave }}</button>
+        }
+      </div>
+      @if (vistaPrevia()) {
+        <div class="rounded-box border border-base-300 px-3 py-2 text-sm whitespace-pre-line"
+          [class]="esCorreo() ? 'bg-base-200' : 'bg-success/10 border-success/30'">
+          <div class="text-xs uppercase tracking-wide text-base-content/70 mb-1">Vista previa con datos de ejemplo</div>
+          {{ vistaPrevia() }}
+        </div>
+      }
+      @if (esCorreo()) {
+        <div class="flex flex-col">
+          <span class="label-text text-base-content/90 mb-1">Adjuntos adicionales</span>
+          <app-archivos-adjuntos formControlName="adjuntos" [tamanoMaximoMb]="tamanoMaximoAdjunto" [maximo]="3" />
+        </div>
+      }
+      <div class="flex flex-col sm:max-w-xs">
+        <span class="label-text text-base-content/90 mb-1">Estado <span class="text-error">*</span></span>
+        <app-selector-busqueda formControlName="estado" [opciones]="estados" etiqueta="Estado del mensaje" />
+      </div>
+      <div class="flex justify-end gap-2">
+        <button type="button" class="btn btn-ghost btn-sm" (click)="editando.set(null)">Cancelar</button>
+        <button type="button" class="btn btn-secondary btn-sm" (click)="guardarPlantilla()">
+          <i class="fa-solid fa-check"></i> {{ editando() ? 'Guardar cambios' : 'Agregar ' + nombre() }}
+        </button>
+      </div>
+    </div>
+  }
+}

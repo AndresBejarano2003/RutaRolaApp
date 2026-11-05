@@ -1,196 +1,121 @@
-<div class="card bg-gray-800/70 border border-gray-700 shadow-xl">
-    <div class="card-body">
-
-        <h2 class="card-title text-white">
-            Filtros
-        </h2>
-
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-
-            <input type="text" placeholder="Buscar estudiante..."
-                class="input input-bordered bg-gray-900 border-gray-700 text-white w-full">
-
-            <select class="select select-bordered bg-gray-900 border-gray-700 text-white">
-
-                <option>Todos los colegios</option>
-
-            </select>
-
-            <select class="select select-bordered bg-gray-900 border-gray-700 text-white">
-
-                <option>Todos los grados</option>
-
-            </select>
-
-            <button class="btn btn-primary">
-                Buscar
-            </button>
-
-        </div>
-
+<form [formGroup]="form" class="card bg-base-200 border border-base-300 shadow-xl">
+  <div class="card-body">
+    <div class="flex items-center justify-between">
+      <h2 class="card-title text-base-content text-base"><i class="fa-solid fa-filter text-base-content/70"></i> Filtros</h2>
+      <button type="button" class="btn btn-ghost btn-sm text-base-content/70" (click)="form.reset()">
+        <i class="fa-solid fa-eraser"></i> Limpiar
+      </button>
     </div>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <label class="input input-bordered bg-base-100 border-neutral w-full flex items-center gap-2">
+        <i class="fa-solid fa-magnifying-glass text-base-content/60"></i>
+        <input type="search" formControlName="texto" class="grow" placeholder="Acudiente o estudiante..." aria-label="Buscar moroso" />
+      </label>
+      <app-selector-busqueda formControlName="diasMinimos" [opciones]="rangos" etiqueta="Días de mora" />
+    </div>
+  </div>
+</form>
+
+@if (reporte().error; as error) {
+  <div role="alert" class="alert alert-error alert-soft mt-6">
+    <i class="fa-solid fa-circle-exclamation"></i> {{ error }}
+    <button type="button" class="btn btn-sm" (click)="reintentar()">Reintentar</button>
+  </div>
+}
+
+<div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-6" [class.opacity-50]="reporte().cargando">
+  <div class="stat card bg-base-200 border border-base-300 shadow-xl">
+    <div class="stat-figure text-error text-2xl"><i class="fa-solid fa-user-clock"></i></div>
+    <div class="stat-title text-base-content/70">Acudientes en mora</div>
+    <div class="stat-value text-2xl">{{ resumen().cantidad }}</div>
+    <div class="stat-desc text-base-content/70">{{ resumen().masDe90 }} con más de 90 días</div>
+  </div>
+  <div class="stat card bg-base-200 border border-base-300 shadow-xl">
+    <div class="stat-figure text-error text-2xl"><i class="fa-solid fa-money-bill-trend-up"></i></div>
+    <div class="stat-title text-base-content/70">Valor adeudado</div>
+    <div class="stat-value text-2xl text-error">{{ resumen().adeudado | currency: 'COP' : 'symbol-narrow' : '1.0-0' }}</div>
+  </div>
+  <div class="stat card bg-base-200 border border-base-300 shadow-xl">
+    <div class="stat-figure text-warning text-2xl"><i class="fa-solid fa-file-invoice"></i></div>
+    <div class="stat-title text-base-content/70">Cuotas vencidas</div>
+    <div class="stat-value text-2xl">{{ resumen().cuotas }}</div>
+  </div>
 </div>
-<div class="mt-6 card bg-gray-800/70 border border-gray-700 shadow-xl">
 
-    <div class="card-body">
-
-        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-
-            <div>
-                <h2 class="card-title text-white text-xl">
-                    Lista de estudiantes
-                </h2>
-
-                <p class="text-gray-400 text-sm">
-                    Administra los estudiantes registrados en el sistema.
-                </p>
-            </div>
-
-            <div class="flex gap-2">
-
-                <div class="badge badge-primary">
-                    1245 registros
+<section class="mt-6 card bg-base-200 border border-base-300 shadow-xl">
+  <div class="card-body">
+    <div class="flex flex-wrap items-center justify-between gap-3">
+      <div>
+        <h2 class="card-title text-base-content">Morosos</h2>
+        <p class="text-sm text-base-content/70">Acudientes con al menos una mensualidad vencida, ordenados por mora.</p>
+      </div>
+      <button type="button" class="btn bg-base-300 border-neutral hover:bg-neutral" [disabled]="!reporte().datos.length" (click)="exportar()">
+        <i class="fa-solid fa-file-csv"></i> Exportar CSV
+      </button>
+    </div>
+    <div class="overflow-x-auto rounded-box border border-base-300 mt-2">
+      <table class="table">
+        <thead>
+          <tr class="bg-base-300 text-base-content/80 text-xs uppercase tracking-wide">
+            <th>Acudiente</th>
+            <th class="hidden md:table-cell">Estudiantes</th>
+            <th class="hidden lg:table-cell">Meses vencidos</th>
+            <th>Mora</th>
+            <th class="text-right">Adeudado</th>
+            <th class="text-right">Contactar</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (m of paginacion.visibles(); track m.acudienteId) {
+            <tr class="border-base-300 hover:bg-base-300/50">
+              <td>
+                <div class="font-medium">{{ m.nombreAcudiente }}</div>
+                <div class="text-xs text-base-content/70">{{ m.telefono || 'Sin teléfono' }} · {{ m.facturas.join(', ') }}</div>
+              </td>
+              <td class="hidden md:table-cell text-sm">{{ m.estudiantes.join(', ') }}</td>
+              <td class="hidden lg:table-cell text-sm">
+                @for (p of m.periodos; track p) {
+                  <span class="badge badge-sm bg-base-300 border-neutral mr-1 mb-1">{{ nombrePeriodo(p) }}</span>
+                }
+              </td>
+              <td>
+                <span class="badge badge-sm badge-soft whitespace-nowrap" [class.badge-error]="m.diasMoraMaxima > 60" [class.badge-warning]="m.diasMoraMaxima > 30 && m.diasMoraMaxima <= 60" [class.badge-info]="m.diasMoraMaxima <= 30">{{ m.diasMoraMaxima }} días</span>
+                <div class="text-xs text-base-content/70">{{ m.cuotas }} cuota(s)</div>
+              </td>
+              <td class="text-right font-semibold whitespace-nowrap">{{ m.valorAdeudado | currency: 'COP' : 'symbol-narrow' : '1.0-0' }}</td>
+              <td class="text-right whitespace-nowrap">
+                <div class="inline-flex gap-1">
+                  @if (enlaceWhatsapp(m); as enlace) {
+                    <div class="tooltip" data-tip="Recordar por WhatsApp">
+                      <a [href]="enlace" target="_blank" rel="noopener" class="btn btn-sm btn-ghost btn-square text-success hover:bg-success/15"
+                        [attr.aria-label]="'Recordar por WhatsApp a ' + m.nombreAcudiente"><i class="fa-brands fa-whatsapp text-lg"></i></a>
+                    </div>
+                  }
+                  @if (enlaceCorreo(m); as enlace) {
+                    <div class="tooltip tooltip-left" data-tip="Recordar por correo">
+                      <a [href]="enlace" class="btn btn-sm btn-ghost btn-square text-info hover:bg-info/15"
+                        [attr.aria-label]="'Recordar por correo a ' + m.nombreAcudiente"><i class="fa-solid fa-envelope"></i></a>
+                    </div>
+                  }
                 </div>
-
-                <button class="btn btn-primary" onclick="nuevoEstudiante.showModal()">
-                    <i class="fa-solid fa-plus"></i>
-                    Nuevo estudiante
-                </button>
-
-            </div>
-        </div>
-
-        <div class="divider divider-neutral my-6"></div>
-
-        <div class="overflow-x-auto">
-
-            <table class="table">
-
-                <thead>
-
-                    <tr class="text-gray-400">
-
-                        <th>Documento</th>
-                        <th>Nombre</th>
-                        <th>Acudiente</th>
-                        <th>Colegio</th>
-                        <th>Grado</th>
-                        <th>Estado</th>
-                        <th></th>
-
-                    </tr>
-
-                </thead>
-
-                <tbody>
-
-                    <tr>
-
-                        <td>10203040</td>
-
-                        <td>
-                            Juan Sebastián Pérez
-                        </td>
-
-                        <td>
-                            María Pérez
-                        </td>
-
-                        <td>
-                            Colegio San José
-                        </td>
-
-                        <td>
-                            7°
-                        </td>
-
-                        <td>
-                            <div class="badge badge-success">
-                                Activo
-                            </div>
-                        </td>
-
-                        <td>
-
-                            <button class="btn btn-sm btn-ghost">
-                                <i class="fa-solid fa-pen"></i>
-                            </button>
-
-                            <button class="btn btn-sm btn-ghost text-red-400">
-                                <i class="fa-solid fa-trash"></i>
-                            </button>
-
-                        </td>
-
-                    </tr>
-
-                </tbody>
-
-            </table>
-
-        </div>
-
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="6" class="text-center py-10 text-base-content/70">
+                @if (reporte().cargando) {
+                  <span class="loading loading-spinner text-primary"></span>
+                } @else {
+                  <i class="fa-solid fa-circle-check text-success text-2xl block mb-2"></i>
+                  No hay acudientes en mora con estos filtros.
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
     </div>
-
-</div>
-<dialog id="nuevoEstudiante" class="modal">
-
-    <div class="modal-box max-w-5xl bg-gray-800 border border-gray-700">
-
-        <h3 class="font-bold text-2xl text-white mb-6">
-            Nuevo estudiante
-        </h3>
-
-        <div class="grid md:grid-cols-2 gap-4">
-
-            <select class="select select-bordered bg-gray-900 text-white">
-                <option>Tipo documento</option>
-            </select>
-
-            <input type="text" placeholder="Identificación" class="input input-bordered bg-gray-900 text-white">
-
-            <input type="text" placeholder="Primer nombre" class="input input-bordered bg-gray-900 text-white">
-
-            <input type="text" placeholder="Segundo nombre" class="input input-bordered bg-gray-900 text-white">
-
-            <input type="text" placeholder="Primer apellido" class="input input-bordered bg-gray-900 text-white">
-
-            <input type="text" placeholder="Segundo apellido" class="input input-bordered bg-gray-900 text-white">
-
-            <input type="date" class="input input-bordered bg-gray-900 text-white">
-
-            <input type="text" placeholder="Dirección" class="input input-bordered bg-gray-900 text-white">
-
-            <select class="select select-bordered bg-gray-900 text-white">
-                <option>Seleccionar acudiente</option>
-            </select>
-
-            <select class="select select-bordered bg-gray-900 text-white">
-                <option>Seleccionar colegio</option>
-            </select>
-
-            <select class="select select-bordered bg-gray-900 text-white">
-                <option>Seleccionar grado</option>
-            </select>
-
-        </div>
-
-        <div class="modal-action">
-
-            <form method="dialog">
-
-                <button class="btn btn-ghost">
-                    Cancelar
-                </button>
-
-                <button class="btn btn-primary">
-                    Guardar estudiante
-                </button>
-
-            </form>
-
-        </div>
-
-    </div>
-
-</dialog>
+    <app-paginacion [pagina]="paginacion.pagina()" [tamano]="paginacion.tamano()" [total]="paginacion.total()"
+      [totalPaginas]="paginacion.totalPaginas()" (cambiarPagina)="paginacion.irA($event)" (cambiarTamano)="paginacion.cambiarTamano($event)" />
+  </div>
+</section>

@@ -1,0 +1,54 @@
+<form [id]="idFormulario()" [formGroup]="form" (ngSubmit)="enviar()" novalidate>
+  <div class="grid md:grid-cols-2 gap-x-4 gap-y-3">
+    <app-titulo-seccion>Contratante</app-titulo-seccion>
+    <div app-campo etiqueta="Acudiente" requerido [error]="error('acudienteId')">
+      <app-selector-busqueda formControlName="acudienteId" [opciones]="acudientes()" etiqueta="Acudiente" [invalido]="!!error('acudienteId')" />
+    </div>
+    <div app-campo etiqueta="Estudiante" requerido [error]="error('estudianteId')"
+      [ayuda]="form.controls.acudienteId.value ? '' : 'Elige primero el acudiente.'">
+      <app-selector-busqueda formControlName="estudianteId" [opciones]="estudiantesAcudiente()" etiqueta="Estudiante"
+        [invalido]="!!error('estudianteId')" />
+    </div>
+
+    <app-titulo-seccion>Contratación</app-titulo-seccion>
+    <div app-campo etiqueta="Valor de la contratación (mensual)" requerido [error]="error('valorContratacion')">
+      <label class="input input-bordered bg-base-100 border-neutral w-full flex items-center gap-2"
+        [class.input-error]="error('valorContratacion')">
+        <span class="text-base-content/70">$</span>
+        <input type="number" formControlName="valorContratacion" min="1" step="1000" class="grow" placeholder="Ej. 420000"
+          aria-label="Valor de la contratación" />
+      </label>
+    </div>
+    <label app-campo etiqueta="Concepto" requerido [error]="error('concepto')">
+      <input type="text" formControlName="concepto" class="input input-bordered bg-base-100 border-neutral w-full" [class.input-error]="error('concepto')" />
+    </label>
+    <label app-campo etiqueta="Mes inicial del servicio" requerido [error]="error('periodoInicio')">
+      <input type="month" formControlName="periodoInicio" class="input input-bordered bg-base-100 border-neutral w-full"
+        [class.input-error]="error('periodoInicio')" />
+    </label>
+    <label app-campo etiqueta="Mes final del servicio" requerido [error]="error('periodoFin')">
+      <input type="month" formControlName="periodoFin" class="input input-bordered bg-base-100 border-neutral w-full"
+        [class.input-error]="error('periodoFin')" />
+    </label>
+    <div class="md:col-span-2 rounded-box bg-primary/10 border border-primary/40 px-4 py-3 flex flex-wrap items-center justify-between gap-2">
+      <div>
+        <div class="text-xs uppercase tracking-wide text-base-content/80">Total del contrato</div>
+        <div class="text-xs text-base-content/70">
+          {{ meses() }} mes(es) × {{ form.controls.valorContratacion.value ?? 0 | currency: 'COP' : 'symbol-narrow' : '1.0-0' }}
+        </div>
+      </div>
+      <div class="text-2xl font-bold text-primary">{{ total() | currency: 'COP' : 'symbol-narrow' : '1.0-0' }}</div>
+    </div>
+
+    <app-titulo-seccion>Emisión</app-titulo-seccion>
+    <label app-campo etiqueta="Fecha de emisión" requerido [error]="error('fechaEmision')">
+      <input type="date" formControlName="fechaEmision" class="input input-bordered bg-base-100 border-neutral w-full" />
+    </label>
+    <div app-campo etiqueta="Estado" requerido [error]="error('estado')">
+      <app-selector-busqueda formControlName="estado" [opciones]="estados" etiqueta="Estado" [invalido]="!!error('estado')" />
+    </div>
+    <label app-campo class="md:col-span-2" etiqueta="Observaciones" [error]="error('observaciones')">
+      <textarea formControlName="observaciones" rows="2" class="textarea textarea-bordered bg-base-100 border-neutral w-full"></textarea>
+    </label>
+  </div>
+</form>

@@ -1,8 +1,6 @@
 import { Routes } from '@angular/router';
 
-/** Página temporal para las secciones que aún no tienen contenido. */
-const enConstruccion = () => import('../shared/en-construccion/en-construccion-page');
-
+// Los repositorios (local / API) se eligen en `core/repositorios.ts`.
 export default [
   {
     path: 'cotizaciones',
@@ -10,41 +8,39 @@ export default [
     data: { breadcrumb: ['Finanzas', 'Cotizaciones'] },
   },
   {
-    path: 'contrataciones',
-    loadComponent: () => import('./contrataciones/contrataciones-page'),
-    data: { breadcrumb: ['Finanzas', 'Contrataciones'] },
+    path: 'facturas',
+    loadComponent: () => import('./facturas/facturas-page'),
+    data: { breadcrumb: ['Finanzas', 'Facturas'] },
   },
+  // Nombre anterior de la sección.
+  { path: 'contrataciones', redirectTo: 'facturas' },
   {
     path: 'recibos',
-    // Lista para conectar: () => import('./recibos/recibos-page')
-    loadComponent: enConstruccion,
+    loadComponent: () => import('./recibos/recibos-page'),
     data: { breadcrumb: ['Finanzas', 'Recibos'] },
   },
   {
     path: 'programacion-facturacion',
-    loadComponent: () => import('./programacion-facturacion/programacion-facturacion-page'),
-    data: { breadcrumb: ['Finanzas', 'Programación de Facturación'] },
+    loadComponent: () => import('./programacion/programacion-page'),
+    data: { breadcrumb: ['Finanzas', 'Programación de facturación'] },
   },
   {
     path: 'reportes-financieros',
     children: [
       {
         path: 'ingresos',
-        // Lista para conectar: () => import('./reportes/ingresos/reporte-ingresos-page')
-        loadComponent: enConstruccion,
-        data: { breadcrumb: ['Finanzas', 'Reportes Financieros', 'Ingresos'] },
+        loadComponent: () => import('./reportes/ingresos/reporte-ingresos-page'),
+        data: { breadcrumb: ['Finanzas', 'Reportes financieros', 'Ingresos'] },
       },
       {
         path: 'facturas-pendientes',
-        // Lista para conectar: () => import('./reportes/facturas-pendientes/reporte-facturas-pendientes-page')
-        loadComponent: enConstruccion,
-        data: { breadcrumb: ['Finanzas', 'Reportes Financieros', 'Facturas Pendientes'] },
+        loadComponent: () => import('./reportes/facturas-pendientes/reporte-pendientes-page'),
+        data: { breadcrumb: ['Finanzas', 'Reportes financieros', 'Facturas pendientes'] },
       },
       {
         path: 'morosos',
-        // Lista para conectar: () => import('./reportes/morosos/reporte-morosos-page')
-        loadComponent: enConstruccion,
-        data: { breadcrumb: ['Finanzas', 'Reportes Financieros', 'Morosos'] },
+        loadComponent: () => import('./reportes/morosos/reporte-morosos-page'),
+        data: { breadcrumb: ['Finanzas', 'Reportes financieros', 'Morosos'] },
       },
       { path: '**', redirectTo: 'ingresos' },
     ],

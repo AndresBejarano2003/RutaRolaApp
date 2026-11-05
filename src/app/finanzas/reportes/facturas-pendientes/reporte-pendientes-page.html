@@ -1,0 +1,108 @@
+<form [formGroup]="form" class="card bg-base-200 border border-base-300 shadow-xl">
+  <div class="card-body">
+    <div class="flex items-center justify-between">
+      <h2 class="card-title text-base-content text-base"><i class="fa-solid fa-filter text-base-content/70"></i> Filtros</h2>
+      <button type="button" class="btn btn-ghost btn-sm text-base-content/70" (click)="form.reset()">
+        <i class="fa-solid fa-eraser"></i> Limpiar
+      </button>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <label class="input input-bordered bg-base-100 border-neutral w-full flex items-center gap-2">
+        <i class="fa-solid fa-magnifying-glass text-base-content/60"></i>
+        <input type="search" formControlName="texto" class="grow" placeholder="Factura, acudiente o estudiante..." aria-label="Buscar cuota pendiente" />
+      </label>
+      <app-selector-busqueda formControlName="acudienteId" [opciones]="acudientes()" textoTodos="Todos los acudientes" etiqueta="Acudiente" />
+      <app-selector-busqueda formControlName="situacion" [opciones]="situaciones" textoTodos="Vencidas y por vencer" etiqueta="Situación" />
+    </div>
+  </div>
+</form>
+
+@if (reporte().error; as error) {
+  <div role="alert" class="alert alert-error alert-soft mt-6">
+    <i class="fa-solid fa-circle-exclamation"></i> {{ error }}
+    <button type="button" class="btn btn-sm" (click)="reintentar()">Reintentar</button>
+  </div>
+}
+
+<div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-6" [class.opacity-50]="reporte().cargando">
+  <div class="stat card bg-base-200 border border-base-300 shadow-xl">
+    <div class="stat-figure text-warning text-2xl"><i class="fa-solid fa-hourglass-half"></i></div>
+    <div class="stat-title text-base-content/70">Total pendiente</div>
+    <div class="stat-value text-2xl">{{ resumen().total | currency: 'COP' : 'symbol-narrow' : '1.0-0' }}</div>
+    <div class="stat-desc text-base-content/70">{{ reporte().datos.length }} cuota(s)</div>
+  </div>
+  <div class="stat card bg-base-200 border border-base-300 shadow-xl">
+    <div class="stat-figure text-error text-2xl"><i class="fa-solid fa-circle-exclamation"></i></div>
+    <div class="stat-title text-base-content/70">Vencidas</div>
+    <div class="stat-value text-2xl text-error">{{ resumen().valorVencidas | currency: 'COP' : 'symbol-narrow' : '1.0-0' }}</div>
+    <div class="stat-desc text-base-content/70">{{ resumen().vencidas }} cuota(s) en mora</div>
+  </div>
+  <div class="stat card bg-base-200 border border-base-300 shadow-xl">
+    <div class="stat-figure text-info text-2xl"><i class="fa-solid fa-calendar-day"></i></div>
+    <div class="stat-title text-base-content/70">Por vencer</div>
+    <div class="stat-value text-2xl">{{ resumen().valorPorVencer | currency: 'COP' : 'symbol-narrow' : '1.0-0' }}</div>
+    <div class="stat-desc text-base-content/70">{{ resumen().porVencer }} cuota(s) del mes en curso</div>
+  </div>
+</div>
+
+<section class="mt-6 card bg-base-200 border border-base-300 shadow-xl">
+  <div class="card-body">
+    <div class="flex flex-wrap items-center justify-between gap-3">
+      <div>
+        <h2 class="card-title text-base-content">Cuotas sin pago</h2>
+        <p class="text-sm text-base-content/70">Mensualidades de facturas vigentes, hasta el mes en curso, que aún no tienen recibo válido.</p>
+      </div>
+      <div class="flex gap-2">
+        <button type="button" class="btn bg-base-300 border-neutral hover:bg-neutral" [disabled]="!reporte().datos.length" (click)="exportar()">
+          <i class="fa-solid fa-file-csv"></i> Exportar CSV
+        </button>
+        <a routerLink="/finanzas/recibos" class="btn btn-primary"><i class="fa-solid fa-receipt"></i> Registrar pago</a>
+      </div>
+    </div>
+    <div class="overflow-x-auto rounded-box border border-base-300 mt-2">
+      <table class="table">
+        <thead>
+          <tr class="bg-base-300 text-base-content/80 text-xs uppercase tracking-wide">
+            <th>Factura</th>
+            <th class="hidden md:table-cell">Acudiente</th>
+            <th>Estudiante</th>
+            <th>Mes</th>
+            <th class="hidden lg:table-cell">Fecha límite</th>
+            <th>Situación</th>
+            <th class="text-right">Valor</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (c of paginacion.visibles(); track c.facturaId + c.periodo) {
+            <tr class="border-base-300 hover:bg-base-300/50">
+              <td class="font-mono font-semibold whitespace-nowrap">{{ c.numeroFactura }}</td>
+              <td class="hidden md:table-cell">{{ c.nombreAcudiente }}</td>
+              <td>{{ c.nombreEstudiante }}</td>
+              <td class="whitespace-nowrap">{{ nombrePeriodo(c.periodo) }}</td>
+              <td class="hidden lg:table-cell whitespace-nowrap">{{ fechaCorta(c.fechaLimite) }}</td>
+              <td>
+                <span class="badge badge-sm badge-soft whitespace-nowrap" [class.badge-error]="c.diasMora > 0" [class.badge-warning]="c.diasMora <= 0">
+                  {{ textoDias(c) }}
+                </span>
+              </td>
+              <td class="text-right font-semibold whitespace-nowrap">{{ c.valor | currency: 'COP' : 'symbol-narrow' : '1.0-0' }}</td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="7" class="text-center py-10 text-base-content/70">
+                @if (reporte().cargando) {
+                  <span class="loading loading-spinner text-primary"></span>
+                } @else {
+                  <i class="fa-solid fa-circle-check text-success text-2xl block mb-2"></i>
+                  No hay cuotas pendientes con estos filtros.
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+    <app-paginacion [pagina]="paginacion.pagina()" [tamano]="paginacion.tamano()" [total]="paginacion.total()"
+      [totalPaginas]="paginacion.totalPaginas()" (cambiarPagina)="paginacion.irA($event)" (cambiarTamano)="paginacion.cambiarTamano($event)" />
+  </div>
+</section>
