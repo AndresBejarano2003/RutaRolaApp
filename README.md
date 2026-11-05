@@ -277,7 +277,7 @@ tarjeta = 13.3:1; texto secundario `/70` = 7.3:1. No se permite `gray-500` sobre
 - **Tarjeta:** `card bg-base-200 border border-base-300 shadow-xl`.
 - **Input / select:** `input input-bordered bg-base-100 border-neutral` (igual para `select`).
 - **Tabla:**
-  - contenedor `overflow-x-auto rounded-box border border-base-300`;
+  - contenedor `@container overflow-x-auto rounded-box border border-base-300` (ver "Diseño responsive");
   - encabezado `bg-base-300 text-base-content/80 text-xs uppercase tracking-wide`;
   - filas `border-base-300 hover:bg-base-300/50 cursor-pointer`;
   - estados con `badge badge-soft` (verde = activo, gris = inactivo);
@@ -314,6 +314,36 @@ tarjeta = 13.3:1; texto secundario `/70` = 7.3:1. No se permite `gray-500` sobre
   `<app-titulo-seccion>` para las secciones del formulario; `<app-lista-seleccion>` para elegir varios
   registros (p. ej. estudiantes de una ruta).
 - **Botón principal:** `btn btn-primary` (amarillo con texto oscuro).
+
+### Diseño responsive (obligatorio)
+
+El sistema debe verse bien en teléfonos (iPhone/Android, desde 320 px, vertical y horizontal),
+tablets, portátiles y pantallas grandes y extra grandes. Se verifica en 320, 375, 768, 1024, 1280,
+1920 y 2560 px.
+
+- **Layout (`layout/shell`):** altura `h-dvh` (correcta con las barras del navegador móvil), barra
+  superior con botón ☰ por debajo de `lg` y menú lateral fijo desde `lg`. El menú se cierra al elegir
+  una opción. El contenido tiene `min-w-0`, padding `px-3 sm:px-4 lg:px-6` y un ancho máximo de
+  1920 px centrado. Se respetan las zonas seguras del iPhone (`viewport-fit=cover`, `env(safe-area-inset-*)`).
+- **Nunca hay scroll horizontal de la página.** Lo ancho (tablas) se desplaza dentro de su tarjeta.
+- **Tablas:**
+  - contenedor `@container overflow-x-auto …`;
+  - filas de una sola línea (los encabezados sí pueden partirse);
+  - la última columna (acciones o valor) queda fija a la derecha;
+  - las columnas secundarias se muestran según el **ancho de la tarjeta** (container queries), no
+    de la ventana: `hidden @3xl:table-cell` (≥ 768 px), `@5xl:` (≥ 1024 px), `@6xl:` (≥ 1152 px);
+  - desde 768 px de tarjeta la tabla debe caber completa sin desplazarse;
+  - una celda con listas largas puede usar `whitespace-normal min-w-44`.
+- **Filtros:** van dentro de `<app-panel-filtros (limpiar)="…">`. Se pliegan en teléfonos (también en
+  horizontal) y siempre están abiertos en pantallas `amplio:` (≥ 768 px de ancho y ≥ 512 px de alto).
+- **Grids:** siempre empiezan en una columna en móvil (`grid-cols-1 md:grid-cols-2 …`); los hijos de
+  un grid tienen `min-width: 0` (global) para que nada los ensanche.
+- **Modales:** en teléfono se abren como hoja inferior (`modal-bottom`) y en pantallas `sm+` centrados;
+  título y padding más compactos en móvil.
+- **Grupos de botones o encabezados con acciones:** `flex flex-wrap gap-2`, nunca anchos fijos. Los
+  menús desplegables usan `max-w-[calc(100vw-1rem)]`.
+- Los íconos de Font Awesome no aceptan utilidades de visibilidad (`md:hidden`) porque su CSS les gana:
+  se envuelven en un `<span>` con la utilidad.
 
 ### Regla de modales: botones siempre visibles
 
