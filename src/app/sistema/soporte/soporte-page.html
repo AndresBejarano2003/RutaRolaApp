@@ -1,568 +1,413 @@
 <div class="space-y-6">
 
-    <!-- HEADER -->
-    <div class="card bg-gray-800 border border-gray-700 shadow-xl">
-
-        <div class="card-body">
-
-            <h1 class="text-3xl font-bold text-white">
-
-                <i class="fa-solid fa-headset text-blue-400 mr-3"></i>
-
-                Centro de Ayuda y Soporte
-
-            </h1>
-
-            <p class="text-gray-400">
-
-                Encuentra respuestas rápidas, consulta tutoriales y comunícate con nuestro equipo de soporte.
-
-            </p>
-
+  <!-- ENCABEZADO + BÚSQUEDA -->
+  <section class="card bg-base-200 border border-base-300 shadow-xl">
+    <div class="card-body gap-4">
+      <div class="flex items-start gap-4">
+        <div class="hidden sm:grid place-items-center size-14 shrink-0 rounded-box bg-primary/10 text-primary text-2xl">
+          <i class="fa-solid fa-headset"></i>
         </div>
+        <div class="min-w-0">
+          <h1 class="text-2xl sm:text-3xl font-bold text-base-content">Centro de Ayuda y Soporte</h1>
+          <p class="text-base-content/70 mt-1">
+            Encuentra respuestas rápidas, mira tutoriales, consulta los manuales o escríbele a nuestro equipo.
+          </p>
+        </div>
+      </div>
 
+      <label class="input input-bordered input-lg bg-base-100 border-neutral w-full flex items-center gap-3">
+        <i class="fa-solid fa-magnifying-glass text-base-content/60"></i>
+        <input #campoBusqueda type="search" class="grow min-w-0" placeholder="Buscar: factura, recibo, ruta…"
+          aria-label="Buscar en el Centro de Ayuda" [value]="busqueda()" (input)="busqueda.set(campoBusqueda.value)" />
+        @if (busqueda()) {
+          <button type="button" class="btn btn-ghost btn-sm btn-circle" aria-label="Limpiar búsqueda" (click)="busqueda.set('')">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        }
+      </label>
     </div>
+  </section>
 
-    <!-- ACCIONES RÁPIDAS -->
-    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+  <!-- ACCESOS RÁPIDOS -->
+  <nav aria-label="Accesos rápidos" class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+    <button type="button" class="card bg-base-200 border border-base-300 hover:border-info text-left transition-colors"
+      (click)="irA('tutoriales')">
+      <div class="card-body p-4 sm:p-5 gap-1">
+        <i class="fa-solid fa-circle-play text-2xl text-info"></i>
+        <span class="font-semibold text-base-content mt-2">Tutoriales</span>
+        <span class="text-sm text-base-content/70 hidden sm:block">Videos paso a paso de cada módulo.</span>
+      </div>
+    </button>
+    <button type="button" class="card bg-base-200 border border-base-300 hover:border-info text-left transition-colors"
+      (click)="irA('documentacion')">
+      <div class="card-body p-4 sm:p-5 gap-1">
+        <i class="fa-solid fa-book-open text-2xl text-info"></i>
+        <span class="font-semibold text-base-content mt-2">Documentación</span>
+        <span class="text-sm text-base-content/70 hidden sm:block">Manuales en PDF para ver o descargar.</span>
+      </div>
+    </button>
+    <button type="button" class="card bg-base-200 border border-base-300 hover:border-success text-left transition-colors"
+      (click)="abrirWhatsApp()">
+      <div class="card-body p-4 sm:p-5 gap-1">
+        <i class="fa-brands fa-whatsapp text-2xl text-success"></i>
+        <span class="font-semibold text-base-content mt-2">WhatsApp</span>
+        <span class="text-sm text-base-content/70 hidden sm:block">Chatea con soporte para casos urgentes.</span>
+      </div>
+    </button>
+    <button type="button" class="card bg-base-200 border border-base-300 hover:border-primary text-left transition-colors"
+      (click)="irA('solicitud')">
+      <div class="card-body p-4 sm:p-5 gap-1">
+        <i class="fa-solid fa-ticket text-2xl text-primary"></i>
+        <span class="font-semibold text-base-content mt-2">Crear solicitud</span>
+        <span class="text-sm text-base-content/70 hidden sm:block">Reporta un error o pide ayuda.</span>
+      </div>
+    </button>
+  </nav>
 
-        <div class="card bg-gray-800 border border-gray-700 hover:border-blue-500 transition">
-
-            <div class="card-body items-center text-center">
-
-                <i class="fa-solid fa-book text-4xl text-blue-400"></i>
-
-                <h2 class="card-title text-white">
-                    Documentación
-                </h2>
-
-                <p class="text-gray-400 text-sm">
-                    Consulta manuales y guías del sistema.
-                </p>
-
-                <button class="btn btn-warning mt-4" onclick="modalManuales.showModal()">
-
-                    <i class="fa-solid fa-book-open"></i>
-                    Ver documentación
-
-                </button>
-
-            </div>
-
-        </div>
-
-        <div class="card bg-gray-800 border border-gray-700 hover:border-red-500 transition">
-
-            <div class="card-body items-center text-center">
-
-                <i class="fa-brands fa-youtube text-4xl text-red-400"></i>
-
-                <h2 class="card-title text-white">
-                    Tutoriales
-                </h2>
-
-                <p class="text-gray-400 text-sm">
-                    Aprende a usar cada módulo.
-                </p>
-
-                <button class="btn btn-error btn-sm" (click)="abrirTutorial('iIgsCYgo5P4')">
-                    <i class="fa-brands fa-youtube mr-2"></i>
-                    Ver videos
-                </button>
-
-            </div>
-
-        </div>
-
-        <div class="card bg-gray-800 border border-gray-700 hover:border-green-500 transition">
-
-            <div class="card-body items-center text-center">
-
-                <i class="fa-brands fa-whatsapp text-4xl text-green-400"></i>
-
-                <h2 class="card-title text-white">
-                    WhatsApp
-                </h2>
-
-                <p class="text-gray-400 text-sm">
-                    Contacta soporte inmediatamente.
-                </p>
-
-                <button class="btn btn-success btn-sm" (click)="abrirWhatsApp()">
-
-                    <i class="fa-brands fa-whatsapp mr-2"></i>
-                    Abrir chat
-
-                </button>
-
-            </div>
-
-        </div>
-
-        <div class="card bg-gray-800 border border-gray-700 hover:border-yellow-500 transition">
-
-            <div class="card-body items-center text-center">
-
-                <i class="fa-solid fa-ticket text-4xl text-yellow-400"></i>
-
-                <h2 class="card-title text-white">
-                    Ticket
-                </h2>
-
-                <p class="text-gray-400 text-sm">
-                    Reporta errores o solicitudes.
-                </p>
-
-                <button class="btn btn-warning btn-sm">
-                    Crear ticket
-                </button>
-
-            </div>
-
-        </div>
-
+  @if (sinResultados()) {
+    <div class="card bg-base-200 border border-base-300">
+      <div class="card-body items-center text-center py-10">
+        <i class="fa-solid fa-magnifying-glass text-4xl text-base-content/50"></i>
+        <p class="font-semibold text-base-content mt-2">No encontramos ayuda sobre «{{ busqueda() }}»</p>
+        <p class="text-base-content/70 text-sm">Prueba con otras palabras o cuéntanos tu caso en una solicitud de soporte.</p>
+        <button type="button" class="btn bg-base-300 border-neutral hover:bg-neutral mt-3" (click)="irA('solicitud')">
+          <i class="fa-solid fa-ticket"></i>
+          Crear solicitud
+        </button>
+      </div>
     </div>
+  }
 
-    <!-- FAQ -->
-    <div class="card bg-gray-800 border border-gray-700 shadow-xl">
+  <!-- TUTORIALES -->
+  @if (tutoriales().length) {
+    <section id="soporte-tutoriales" class="card bg-base-200 border border-base-300 shadow-xl scroll-mt-4">
+      <div class="card-body">
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <h2 class="card-title text-base-content">
+            <i class="fa-solid fa-circle-play text-info"></i>
+            Tutoriales destacados
+          </h2>
+          <span class="text-sm text-base-content/70">{{ tutoriales().length }} videos</span>
+        </div>
 
-        <div class="card-body">
+        <ul class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-5 gap-4 mt-2">
+          @for (t of tutoriales(); track t.videoId) {
+            <li>
+              <button type="button" class="group w-full h-full text-left rounded-box border border-base-300 bg-base-100 overflow-hidden hover:border-info transition-colors"
+                (click)="abrirTutorial(t)">
+                <div class="relative aspect-video bg-base-300">
+                  <img [src]="'https://i.ytimg.com/vi/' + t.videoId + '/hqdefault.jpg'" alt="" loading="lazy"
+                    class="absolute inset-0 size-full object-cover" />
+                  <span class="absolute inset-0 grid place-items-center bg-base-100/30 group-hover:bg-base-100/10 transition-colors">
+                    <span class="grid place-items-center size-12 rounded-full bg-base-100/80 text-base-content text-lg">
+                      <i class="fa-solid fa-play"></i>
+                    </span>
+                  </span>
+                </div>
+                <div class="p-3">
+                  <span class="badge badge-soft badge-info badge-sm">{{ t.modulo }}</span>
+                  <h3 class="font-semibold text-base-content mt-2">{{ t.titulo }}</h3>
+                  <p class="text-sm text-base-content/70 mt-1">{{ t.descripcion }}</p>
+                </div>
+              </button>
+            </li>
+          }
+        </ul>
+      </div>
+    </section>
+  }
 
-            <h2 class="card-title text-white">
+  <!-- DOCUMENTACIÓN + PREGUNTAS FRECUENTES -->
+  @if (manuales().length || preguntas().length) {
+    <div class="grid grid-cols-1 xl:grid-cols-2 gap-6 items-start">
 
-                <i class="fa-solid fa-circle-question text-yellow-400"></i>
+      @if (manuales().length) {
+        <section id="soporte-documentacion" class="card bg-base-200 border border-base-300 shadow-xl scroll-mt-4">
+          <div class="card-body">
+            <h2 class="card-title text-base-content">
+              <i class="fa-solid fa-book-open text-info"></i>
+              Documentación
+            </h2>
+            <p class="text-sm text-base-content/70">Manuales en PDF. Ábrelos aquí o descárgalos para consultarlos sin conexión.</p>
 
-                Preguntas frecuentes
+            <ul class="divide-y divide-base-300 mt-2">
+              @for (m of manuales(); track m.archivo) {
+                <li class="flex items-center gap-3 py-3">
+                  <span class="grid place-items-center size-10 shrink-0 rounded-box bg-base-300 text-info">
+                    <i [class]="m.icono"></i>
+                  </span>
+                  <div class="min-w-0 flex-1">
+                    <div class="font-medium text-base-content">{{ m.nombre }}</div>
+                    <div class="text-sm text-base-content/70">{{ m.descripcion }}</div>
+                  </div>
+                  <div class="flex shrink-0 gap-1">
+                    <button type="button" class="btn btn-ghost btn-sm btn-square text-info tooltip tooltip-left" data-tip="Ver"
+                      [attr.aria-label]="'Ver ' + m.nombre" (click)="abrirManual(m)">
+                      <i class="fa-solid fa-eye"></i>
+                    </button>
+                    <a class="btn btn-ghost btn-sm btn-square text-info tooltip tooltip-left" data-tip="Descargar"
+                      [href]="m.archivo" download [attr.aria-label]="'Descargar ' + m.nombre">
+                      <i class="fa-solid fa-download"></i>
+                    </a>
+                  </div>
+                </li>
+              }
+            </ul>
+          </div>
+        </section>
+      }
 
+      @if (preguntas().length) {
+        <section id="soporte-preguntas" class="card bg-base-200 border border-base-300 shadow-xl scroll-mt-4">
+          <div class="card-body">
+            <h2 class="card-title text-base-content">
+              <i class="fa-solid fa-circle-question text-info"></i>
+              Preguntas frecuentes
             </h2>
 
-            <div class="space-y-3">
-
-                <div class="collapse collapse-arrow bg-gray-900 border border-gray-700">
-
-                    <input type="radio" name="faq">
-
-                    <div class="collapse-title text-white">
-
-                        ¿Cómo registrar un estudiante?
-
-                    </div>
-
-                    <div class="collapse-content text-gray-400">
-
-                        Ingresa al módulo Personas → Estudiantes y presiona el botón "Nuevo estudiante".
-
-                    </div>
-
-                </div>
-
-                <div class="collapse collapse-arrow bg-gray-900 border border-gray-700">
-
-                    <input type="radio" name="faq">
-
-                    <div class="collapse-title text-white">
-
-                        ¿Cómo crear una contratación?
-
-                    </div>
-
-                    <div class="collapse-content text-gray-400">
-
-                        Desde Finanzas → Contrataciones puedes asociar acudientes y estudiantes.
-
-                    </div>
-
-                </div>
-
-                <div class="collapse collapse-arrow bg-gray-900 border border-gray-700">
-
-                    <input type="radio" name="faq">
-
-                    <div class="collapse-title text-white">
-
-                        ¿Cómo generar una factura?
-
-                    </div>
-
-                    <div class="collapse-content text-gray-400">
-
-                        Desde el módulo Facturación podrás generar facturas automáticamente.
-
-                    </div>
-
-                </div>
-
+            <div class="space-y-2 mt-2">
+              @for (p of preguntas(); track p.pregunta) {
+                <details class="collapse collapse-arrow bg-base-100 border border-base-300">
+                  <summary class="collapse-title font-medium text-base-content pe-10">
+                    {{ p.pregunta }}
+                  </summary>
+                  <div class="collapse-content text-sm text-base-content/80">
+                    <p>{{ p.respuesta }}</p>
+                  </div>
+                </details>
+              }
             </div>
-
-        </div>
-
+          </div>
+        </section>
+      }
     </div>
+  }
 
-    <!-- TUTORIALES -->
-    <div class="card bg-gray-800 border border-gray-700 shadow-xl">
+  <!-- SOLICITUD DE SOPORTE -->
+  <div class="grid grid-cols-1 xl:grid-cols-3 gap-6 items-start">
 
-        <div class="card-body">
-
-            <h2 class="card-title text-white">
-
-                <i class="fa-solid fa-video text-red-400"></i>
-
-                Tutoriales destacados
-
-            </h2>
-
-            <div class="grid md:grid-cols-2 gap-3">
-                <button class="btn btn-outline" (click)="abrirTutorial('lAoj2JTQtbQ')">
-                    Primeros pasos
-                </button>
-
-                <button class="btn btn-outline" (click)="abrirTutorial('Jd5BdGRMzk8')">
-                    Registrar estudiantes
-                </button>
-                <button class="btn btn-outline" (click)="abrirTutorial('Ls1cOqGf7oI')">
-                    Crear contrataciones
-                </button>
-                <button class="btn btn-outline" (click)="abrirTutorial('PEVztafebuk')">
-                    Facturación automática
-                </button>
-            </div>
-
-        </div>
-
-    </div>
-
-    <!-- TICKETS -->
-    <div class="grid xl:grid-cols-3 gap-6">
-
-        <!-- FORMULARIO -->
-        <div class="xl:col-span-2">
-
-            <div class="card bg-gray-800 border border-gray-700 shadow-xl">
-
-                <div class="card-body">
-
-                    <h2 class="card-title text-white">
-
-                        <i class="fa-solid fa-envelope text-blue-400"></i>
-
-                        Crear solicitud de soporte
-
-                    </h2>
-
-                    <div class="grid md:grid-cols-2 gap-4">
-
-                        <select [(ngModel)]="tipoSolicitud"
-                            class="select select-bordered bg-gray-900 border-gray-700 text-white">
-
-                            <option value="">
-                                Tipo de solicitud
-                            </option>
-
-                            <option>
-                                Error
-                            </option>
-
-                            <option>
-                                Consulta
-                            </option>
-
-                            <option>
-                                Mejora
-                            </option>
-
-                            <option>
-                                Capacitación
-                            </option>
-
-                        </select>
-
-                        <input [(ngModel)]="asunto" type="text" placeholder="Asunto"
-                            class="input input-bordered bg-gray-900 border-gray-700 text-white">
-
-                    </div>
-
-                    <textarea [(ngModel)]="descripcion" rows="6" placeholder="Describe detalladamente tu solicitud..."
-                        class="textarea textarea-bordered bg-gray-900 border-gray-700 text-white mt-4">
-                    </textarea>
-
-                    <input type="file" class="file-input file-input-bordered bg-gray-900 border-gray-700 mt-4">
-
-                    <div class="mt-4">
-
-                        <button class="btn btn-primary" (click)="enviarTicket()">
-
-                            <i class="fa-solid fa-paper-plane"></i>
-
-                            Enviar solicitud
-
-                        </button>
-
-                    </div>
-
-                </div>
-
-            </div>
-
-        </div>
-
-        <!-- ESTADÍSTICAS -->
+    <section id="soporte-solicitud" class="xl:col-span-2 card bg-base-200 border border-base-300 shadow-xl scroll-mt-4">
+      <div class="card-body">
         <div>
-
-            <div class="stats stats-vertical bg-gray-800 border border-gray-700 shadow-xl w-full">
-
-                <div class="stat">
-
-                    <div class="stat-title text-gray-400">
-                        Tickets abiertos
-                    </div>
-
-                    <div class="stat-value text-warning">
-                        {{ ticketsAbiertos() }}
-                    </div>
-
-                </div>
-
-                <div class="stat">
-
-                    <div class="stat-title text-gray-400">
-                        Tickets resueltos
-                    </div>
-
-                    <div class="stat-value text-success">
-                        {{ ticketsResueltos() }}
-                    </div>
-
-                </div>
-
-                <div class="stat">
-
-                    <div class="stat-title text-gray-400">
-                        Tiempo promedio
-                    </div>
-
-                    <div class="stat-value text-info">
-                        {{ tiempoRespuesta() }}
-                    </div>
-
-                </div>
-
-            </div>
-
-            <!-- CONTACTO -->
-            <div class="card bg-gray-800 border border-gray-700 shadow-xl mt-4">
-
-                <div class="card-body">
-
-                    <h2 class="card-title text-white">
-
-                        Contacto directo
-
-                    </h2>
-
-                    <div class="space-y-3">
-
-                        <button class="btn btn-success w-full">
-
-                            <i class="fa-brands fa-whatsapp"></i>
-
-                            WhatsApp
-
-                        </button>
-
-                        <button class="btn btn-primary w-full">
-
-                            <i class="fa-solid fa-envelope"></i>
-
-                            soporte@rutarola.com
-
-                        </button>
-
-                    </div>
-
-                </div>
-
-            </div>
-
+          <h2 class="card-title text-base-content">
+            <i class="fa-solid fa-ticket text-primary"></i>
+            Crear solicitud de soporte
+          </h2>
+          <p class="text-sm text-base-content/70 mt-1">
+            ¿No encontraste la respuesta? Cuéntanos qué pasó y nuestro equipo te contactará.
+            Los campos con <span class="text-error">*</span> son obligatorios.
+          </p>
         </div>
 
-    </div>
+        <form id="form-solicitud-soporte" [formGroup]="form" (ngSubmit)="enviarSolicitud()" novalidate
+          class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
 
+          <app-titulo-seccion>Clasificación</app-titulo-seccion>
+
+          <fieldset class="md:col-span-2">
+            <legend class="label-text text-base-content/90 mb-1">
+              Tipo de solicitud <span class="text-error">*</span>
+            </legend>
+            <div class="grid grid-cols-1 sm:grid-cols-2 2xl:grid-cols-4 gap-2">
+              @for (t of tiposSolicitud; track t.id) {
+                <label class="flex items-start gap-3 rounded-box border border-neutral bg-base-100 p-3 cursor-pointer transition-colors hover:border-primary/60 has-checked:border-primary has-checked:bg-primary/10 has-focus-visible:outline-2 has-focus-visible:outline-primary"
+                  [class.border-error]="!!error('tipo')">
+                  <input type="radio" class="sr-only" formControlName="tipo" [value]="t.id" />
+                  <i class="mt-0.5 text-lg text-primary" [class]="t.icono"></i>
+                  <span class="min-w-0">
+                    <span class="block font-medium text-base-content">{{ t.nombre }}</span>
+                    <span class="block text-xs text-base-content/70">{{ t.descripcion }}</span>
+                  </span>
+                </label>
+              }
+            </div>
+            @if (error('tipo')) {
+              <span class="text-xs text-error mt-1 block">Elige el tipo de solicitud.</span>
+            }
+          </fieldset>
+
+          <div app-campo etiqueta="Módulo afectado" requerido [error]="error('modulo')">
+            <app-selector-busqueda formControlName="modulo" [opciones]="modulos" etiqueta="Módulo afectado"
+              placeholder="Busca la pantalla…" [invalido]="!!error('modulo')" />
+          </div>
+
+          <fieldset>
+            <legend class="label-text text-base-content/90 mb-1">Prioridad</legend>
+            <div class="grid grid-cols-3 gap-2">
+              @for (p of prioridades; track p.id) {
+                <label class="flex flex-col items-center justify-center text-center rounded-box border border-neutral bg-base-100 px-2 py-2 cursor-pointer transition-colors hover:border-primary/60 has-checked:border-primary has-checked:bg-primary/10 has-focus-visible:outline-2 has-focus-visible:outline-primary">
+                  <input type="radio" class="sr-only" formControlName="prioridad" [value]="p.id" />
+                  <span class="font-medium text-sm text-base-content">{{ p.nombre }}</span>
+                  <span class="text-xs text-base-content/70 leading-tight">{{ p.descripcion }}</span>
+                </label>
+              }
+            </div>
+          </fieldset>
+
+          <app-titulo-seccion>Detalle</app-titulo-seccion>
+
+          <label app-campo class="md:col-span-2" etiqueta="Asunto" requerido [error]="error('asunto')">
+            <input formControlName="asunto" type="text" [maxlength]="asuntoMaximo"
+              placeholder="Resume tu solicitud en una frase"
+              class="input input-bordered bg-base-100 border-neutral w-full" [class.input-error]="!!error('asunto')" />
+          </label>
+
+          <label app-campo class="md:col-span-2" etiqueta="Descripción" requerido [error]="error('descripcion')"
+            [ayuda]="guiaDescripcion()">
+            <textarea formControlName="descripcion" rows="6" [maxlength]="descripcionMaxima"
+              [placeholder]="guiaDescripcion()"
+              class="textarea textarea-bordered bg-base-100 border-neutral w-full" [class.textarea-error]="!!error('descripcion')"></textarea>
+            <span class="self-end text-xs text-base-content/70 mt-1" aria-live="polite">
+              {{ largoDescripcion() }} / {{ descripcionMaxima }}
+            </span>
+          </label>
+
+          <div app-campo class="md:col-span-2" etiqueta="Capturas o archivos (opcional)">
+            <app-archivos-adjuntos formControlName="adjuntos" aceptar=".pdf,image/*" [tamanoMaximoMb]="1" [maximo]="3" />
+          </div>
+        </form>
+
+        <div class="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-between gap-3 border-t border-base-300 pt-4 mt-2">
+          <p class="text-sm text-base-content/70 min-w-0">
+            ¿Es urgente?
+            <button type="button" class="link link-success font-medium" (click)="abrirWhatsApp()">Escríbenos por WhatsApp</button>
+            y enviamos lo que ya escribiste.
+          </p>
+          <div class="flex shrink-0 justify-end gap-2">
+            <button type="button" class="btn btn-ghost" [disabled]="solicitudes.enviando()" (click)="limpiar()">Limpiar</button>
+            <button type="submit" form="form-solicitud-soporte" class="btn btn-primary" [disabled]="solicitudes.enviando()">
+              @if (solicitudes.enviando()) {
+                <span class="loading loading-spinner loading-sm"></span>
+                Enviando...
+              } @else {
+                <i class="fa-solid fa-paper-plane"></i>
+                Enviar solicitud
+              }
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <aside class="space-y-6">
+      <!-- CONTACTO DIRECTO -->
+      <section class="card bg-base-200 border border-base-300 shadow-xl">
+        <div class="card-body">
+          <h2 class="card-title text-base-content">
+            <i class="fa-solid fa-phone text-info"></i>
+            Contacto directo
+          </h2>
+          <div class="space-y-2 mt-2">
+            <button type="button" class="btn bg-base-300 border-neutral hover:bg-neutral w-full justify-start h-auto py-3"
+              (click)="abrirWhatsApp()">
+              <i class="fa-brands fa-whatsapp text-xl text-success"></i>
+              <span class="text-left">
+                <span class="block">WhatsApp</span>
+                <span class="block text-xs font-normal text-base-content/70">Respuesta más rápida</span>
+              </span>
+            </button>
+            <a class="btn bg-base-300 border-neutral hover:bg-neutral w-full justify-start h-auto py-3"
+              [href]="'mailto:' + correoSoporte + '?subject=Soporte%20RutaRola'">
+              <i class="fa-solid fa-envelope text-xl text-info"></i>
+              <span class="text-left min-w-0">
+                <span class="block">Correo</span>
+                <span class="block text-xs font-normal text-base-content/70 truncate">{{ correoSoporte }}</span>
+              </span>
+            </a>
+          </div>
+        </div>
+      </section>
+
+      <!-- MIS SOLICITUDES -->
+      <section class="card bg-base-200 border border-base-300 shadow-xl">
+        <div class="card-body">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <h2 class="card-title text-base-content">
+              <i class="fa-solid fa-inbox text-info"></i>
+              Mis solicitudes
+            </h2>
+            <div class="flex items-center gap-2">
+              @if (solicitudes.modoLocal) {
+                <div class="tooltip tooltip-left" data-tip="Se guardan en este navegador hasta conectar el API">
+                  <span class="badge badge-warning badge-soft badge-sm gap-1">
+                    <i class="fa-solid fa-database text-xs"></i>
+                    Modo local
+                  </span>
+                </div>
+              }
+              <span class="badge badge-primary badge-sm">{{ solicitudes.abiertas() }} abiertas</span>
+            </div>
+          </div>
+
+          @if (solicitudes.lista().length) {
+            <ul class="divide-y divide-base-300 mt-2">
+              @for (s of solicitudes.lista().slice(0, 5); track s.numero) {
+                <li class="py-3">
+                  <div class="flex items-center justify-between gap-2">
+                    <span class="font-mono text-sm text-base-content/80">{{ s.numero }}</span>
+                    <span class="badge badge-soft badge-sm" [class]="s.estado === 'ABIERTA' ? 'badge-warning' : 'badge-success'">
+                      {{ s.estado === 'ABIERTA' ? 'Abierta' : 'Resuelta' }}
+                    </span>
+                  </div>
+                  <div class="font-medium text-base-content truncate mt-1">{{ s.asunto }}</div>
+                  <div class="text-xs text-base-content/70 mt-0.5">
+                    {{ nombreTipo(s.tipo) }} · {{ s.fecha | date: 'd MMM y, h:mm a' }}
+                  </div>
+                </li>
+              }
+            </ul>
+          } @else {
+            <div class="text-center py-6">
+              <i class="fa-regular fa-envelope-open text-3xl text-base-content/50"></i>
+              <p class="text-sm text-base-content/70 mt-2">Aún no has enviado solicitudes.</p>
+            </div>
+          }
+        </div>
+      </section>
+    </aside>
+  </div>
 </div>
 
-<dialog #modalTutorial id="modalTutorial" class="modal">
-
-    <div class="modal-box max-w-5xl bg-gray-800 border border-gray-700">
-
-        <!-- HEADER -->
-        <div class="flex justify-between items-center mb-5">
-
-            <h3 class="text-2xl font-bold text-white">
-
-                <i class="fa-brands fa-youtube text-red-500 mr-2"></i>
-
-                Tutorial RutaRola
-
-            </h3>
-
-            <form method="dialog">
-                <button class="btn btn-circle btn-sm btn-ghost" (click)="cerrarTutorial()">
-                    ✕
-                </button>
-            </form>
-
-        </div>
-
-        <!-- VIDEO -->
-        <div class="rounded-xl overflow-hidden border border-gray-700">
-            @if(videoUrl()){
-            <iframe width="100%" height="500" [src]="videoUrl()" title="Tutorial RutaRola" frameborder="0"
-                allowfullscreen>
-            </iframe>
-
-            }
-        </div>
-
-        <!-- DESCRIPCIÓN -->
-        <div class="mt-4">
-
-            <h4 class="text-lg font-semibold text-white">
-
-                Primeros pasos en RutaRola
-
-            </h4>
-
-            <p class="text-gray-400 mt-2">
-
-                Aprende a registrar estudiantes, acudientes,
-                contrataciones y programaciones de facturación.
-
-            </p>
-
-        </div>
-
-        <!-- FOOTER -->
-        <div class="modal-action">
-
-            <a [href]="youtubeLink()" target="_blank" class="btn btn-error">
-                <i class="fa-brands fa-youtube mr-2"></i>
-                Ver en YouTube
-            </a>
-
-            <form method="dialog">
-                <button class="btn btn-outline border-gray-600 text-gray-300" (click)="cerrarTutorial()">
-                    Cerrar
-                </button>
-            </form>
-
-        </div>
-
+<!-- VISOR DE TUTORIAL -->
+<app-modal [(abierto)]="tutorialAbierto" [titulo]="tutorial()?.titulo ?? 'Tutorial'" [subtitulo]="tutorial()?.descripcion ?? ''"
+  ancho="max-w-5xl">
+  @if (tutorialAbierto() && urlVideo(); as url) {
+    <div class="aspect-video w-full overflow-hidden rounded-box border border-base-300 bg-base-100">
+      <iframe class="size-full" [src]="url" [title]="tutorial()?.titulo ?? 'Tutorial'"
+        allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen></iframe>
     </div>
-
-</dialog>
-
-<dialog id="modalManuales" class="modal">
-
-    <div class="modal-box max-w-4xl bg-gray-800 border border-gray-700">
-
-        <h3 class="font-bold text-3xl text-white mb-6">
-
-            <i class="fa-solid fa-book-open text-yellow-400 mr-3"></i>
-
-            Centro de documentación
-
-        </h3>
-
-        <div class="grid md:grid-cols-2 gap-4">
-
-            @for (manual of manuales; track manual.archivo){
-
-            <button class="btn btn-outline h-20 border-gray-600 text-white hover:border-blue-500 hover:bg-blue-500/10"
-                (click)="abrirManual(manual)">
-
-                <i [class]="manual.icono"></i>
-
-                {{ manual.nombre }}
-
-            </button>
-
-            }
-
-        </div>
-
-        <div class="modal-action">
-
-            <form method="dialog">
-
-                <button class="btn">
-
-                    Cerrar
-
-                </button>
-
-            </form>
-
-        </div>
-
+  }
+  @if (tutorialAbierto()) {
+    <div pie class="flex flex-wrap justify-end gap-2">
+      <a class="btn bg-base-300 border-neutral hover:bg-neutral" target="_blank" rel="noopener"
+        [href]="'https://www.youtube.com/watch?v=' + tutorial()?.videoId">
+        <i class="fa-brands fa-youtube text-error"></i>
+        Ver en YouTube
+      </a>
+      <button type="button" class="btn btn-ghost" (click)="tutorialAbierto.set(false)">Cerrar</button>
     </div>
+  }
+</app-modal>
 
-</dialog>
-
-<dialog #modalDocumentacion id="modalDocumentacion" class="modal">
-
-    <div class="modal-box max-w-7xl w-11/12 h-[90vh] bg-gray-800 border border-gray-700">
-
-        <!-- HEADER -->
-        <div class="flex justify-between items-center mb-4">
-
-            <h3 class="text-2xl font-bold text-white">
-
-                <i class="fa-solid fa-book-open text-yellow-400 mr-2">
-                </i>
-
-                {{ manualSeleccionado() }}
-
-            </h3>
-
-            <button class="btn btn-circle btn-sm btn-ghost" (click)="cerrarManual()">
-
-                ✕
-
-            </button>
-
-        </div>
-
-        <!-- PDF -->
-        <div class="h-[75vh] rounded-xl overflow-hidden border border-gray-700">
-
-            @if(pdfUrl()){
-
-            <iframe [src]="pdfUrl()" width="100%" height="100%" class="bg-white">
-
-            </iframe>
-
-            }
-
-        </div>
-
-        <!-- FOOTER -->
-        <div class="modal-action">
-
-            <a [href]="pdfDownloadUrl()" download class="btn btn-warning">
-
-                <i class="fa-solid fa-download"></i>
-
-                Descargar PDF
-
-            </a>
-
-            <button class="btn btn-outline" (click)="cerrarManual()">
-
-                Cerrar
-
-            </button>
-
-        </div>
-
+<!-- VISOR DE MANUAL -->
+<app-modal [(abierto)]="manualAbierto" [titulo]="manual()?.nombre ?? 'Manual'" [subtitulo]="manual()?.descripcion ?? ''"
+  ancho="max-w-6xl">
+  @if (manualAbierto() && urlManual(); as url) {
+    <div class="h-[65dvh] w-full overflow-hidden rounded-box border border-base-300 bg-base-100">
+      <iframe class="size-full bg-white" [src]="url" [title]="manual()?.nombre ?? 'Manual'"></iframe>
     </div>
-
-</dialog>
+  }
+  @if (manualAbierto()) {
+    <div pie class="flex flex-wrap items-center justify-end gap-2">
+      <a class="btn bg-base-300 border-neutral hover:bg-neutral" target="_blank" rel="noopener" [href]="manual()?.archivo">
+        <i class="fa-solid fa-up-right-from-square"></i>
+        Abrir en otra pestaña
+      </a>
+      <a class="btn bg-base-300 border-neutral hover:bg-neutral" download [href]="manual()?.archivo">
+        <i class="fa-solid fa-download"></i>
+        Descargar PDF
+      </a>
+      <button type="button" class="btn btn-ghost" (click)="manualAbierto.set(false)">Cerrar</button>
+    </div>
+  }
+</app-modal>

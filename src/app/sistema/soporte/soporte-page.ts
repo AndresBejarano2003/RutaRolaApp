@@ -1,104 +1,167 @@
-import { Component, ElementRef, inject, signal, viewChild } from '@angular/core';
-import { FormsModule } from '@angular/forms';
+import { DatePipe } from '@angular/common';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
-
-interface Manual {
-  nombre: string;
-  icono: string;
-  /** Ruta relativa a `public/`. */
-  archivo: string;
-}
+import { ArchivoAdjunto, ArchivosAdjuntosCampo } from 'src/app/shared/archivo-adjunto/archivo-adjunto';
+import { Campo, TituloSeccion } from 'src/app/shared/campo/campo';
+import { mensajeError } from 'src/app/shared/formularios/formularios';
+import { Modal } from 'src/app/shared/modal/modal';
+import { NotificacionesService } from 'src/app/shared/notificaciones/notificaciones';
+import { SelectorBusqueda } from 'src/app/shared/selector-busqueda/selector-busqueda';
+import {
+  MANUALES,
+  Manual,
+  PREGUNTAS_FRECUENTES,
+  TUTORIALES,
+  Tutorial,
+  coincideBusqueda,
+  modulosDelMenu,
+} from './contenido-ayuda';
+import {
+  DatosSolicitud,
+  PRIORIDADES_SOLICITUD,
+  PrioridadSolicitud,
+  SolicitudesSoporteService,
+  TIPOS_SOLICITUD,
+  TipoSolicitud,
+} from './solicitudes-soporte';
 
 const WHATSAPP_SOPORTE = '573202871272';
+const CORREO_SOPORTE = 'soporte@rutarola.com';
+const ASUNTO_MAXIMO = 120;
+const DESCRIPCION_MAXIMA = 2000;
 
-const MENSAJE_WHATSAPP = `
-      Hola equipo RutaRola.
-
-      Necesito ayuda con el sistema.
-
-      Módulo:
-      Descripción:
-    `;
-
-const MANUALES: Manual[] = [
-  { nombre: 'Manual General RutaRola', icono: 'fa-solid fa-book', archivo: 'documentacion/manual-general.pdf' },
-  { nombre: 'Gestión de Estudiantes', icono: 'fa-solid fa-user-graduate', archivo: 'documentacion/estudiantes.pdf' },
-  { nombre: 'Gestión de Acudientes', icono: 'fa-solid fa-people-roof', archivo: 'documentacion/acudientes.pdf' },
-  { nombre: 'Finanzas y Contrataciones', icono: 'fa-solid fa-file-invoice-dollar', archivo: 'documentacion/finanzas.pdf' },
-  { nombre: 'Rutas y Operación', icono: 'fa-solid fa-route', archivo: 'documentacion/rutas.pdf' },
-  { nombre: 'Programación de Facturación', icono: 'fa-solid fa-calendar-days', archivo: 'documentacion/facturacion.pdf' },
-];
+type Seccion = 'tutoriales' | 'documentacion' | 'preguntas' | 'solicitud';
 
 @Component({
   selector: 'app-soporte-page',
-  imports: [FormsModule],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [ReactiveFormsModule, DatePipe, Modal, Campo, TituloSeccion, SelectorBusqueda, ArchivosAdjuntosCampo],
   templateUrl: './soporte-page.html',
 })
 export default class SoportePage {
   private readonly sanitizer = inject(DomSanitizer);
+  private readonly fb = inject(NonNullableFormBuilder);
+  private readonly notificaciones = inject(NotificacionesService);
+  protected readonly solicitudes = inject(SolicitudesSoporteService);
 
-  private readonly modalTutorial = viewChild.required<ElementRef<HTMLDialogElement>>('modalTutorial');
-  private readonly modalDocumentacion = viewChild.required<ElementRef<HTMLDialogElement>>('modalDocumentacion');
+  protected readonly correoSoporte = CORREO_SOPORTE;
+  protected readonly asuntoMaximo = ASUNTO_MAXIMO;
+  protected readonly descripcionMaxima = DESCRIPCION_MAXIMA;
 
-  // Formulario de ticket
-  protected tipoSolicitud = '';
-  protected asunto = '';
-  protected descripcion = '';
+  // Búsqueda en todo el contenido de ayuda
+  protected readonly busqueda = signal('');
+  protected readonly tutoriales = computed(() =>
+    TUTORIALES.filter((t) => coincideBusqueda(this.busqueda(), t.titulo, t.descripcion, t.modulo)),
+  );
+  protected readonly manuales = computed(() =>
+    MANUALES.filter((m) => coincideBusqueda(this.busqueda(), m.nombre, m.descripcion)),
+  );
+  protected readonly preguntas = computed(() =>
+    PREGUNTAS_FRECUENTES.filter((p) => coincideBusqueda(this.busqueda(), p.pregunta, p.respuesta, p.modulo)),
+  );
+  protected readonly sinResultados = computed(
+    () => !this.tutoriales().length && !this.manuales().length && !this.preguntas().length,
+  );
 
-  // Indicadores (datos de ejemplo)
-  protected readonly ticketsAbiertos = signal(3);
-  protected readonly ticketsResueltos = signal(21);
-  protected readonly tiempoRespuesta = signal('2h');
+  // Visor de tutoriales
+  protected readonly tutorialAbierto = signal(false);
+  protected readonly tutorial = signal<Tutorial | null>(null);
+  protected readonly urlVideo = computed<SafeResourceUrl | null>(() => {
+    const t = this.tutorial();
+    // videoId viene de las constantes de `contenido-ayuda.ts`, no del usuario.
+    return t
+      ? this.sanitizer.bypassSecurityTrustResourceUrl(
+          `https://www.youtube-nocookie.com/embed/${t.videoId}?autoplay=1&rel=0`,
+        )
+      : null;
+  });
 
-  // Tutoriales
-  protected readonly videoUrl = signal<SafeResourceUrl | null>(null);
-  protected readonly youtubeLink = signal('');
+  // Visor de manuales
+  protected readonly manualAbierto = signal(false);
+  protected readonly manual = signal<Manual | null>(null);
+  protected readonly urlManual = computed<SafeResourceUrl | null>(() => {
+    const m = this.manual();
+    return m ? this.sanitizer.bypassSecurityTrustResourceUrl(m.archivo) : null;
+  });
 
-  // Manuales
-  protected readonly manuales = MANUALES;
-  protected readonly manualSeleccionado = signal('');
-  protected readonly pdfUrl = signal<SafeResourceUrl | null>(null);
-  protected readonly pdfDownloadUrl = signal('');
+  // Solicitud de soporte
+  protected readonly tiposSolicitud = TIPOS_SOLICITUD;
+  protected readonly prioridades = PRIORIDADES_SOLICITUD;
+  protected readonly modulos = modulosDelMenu();
 
-  protected enviarTicket(): void {
-    // TODO: enviar al backend.
-    console.log({ tipo: this.tipoSolicitud, asunto: this.asunto, descripcion: this.descripcion });
-    alert('Solicitud enviada correctamente');
+  protected readonly form = this.fb.group({
+    tipo: this.fb.control<TipoSolicitud | ''>('', Validators.required),
+    modulo: ['', Validators.required],
+    prioridad: this.fb.control<PrioridadSolicitud>('MEDIA'),
+    asunto: ['', [Validators.required, Validators.minLength(5), Validators.maxLength(ASUNTO_MAXIMO)]],
+    descripcion: ['', [Validators.required, Validators.minLength(20), Validators.maxLength(DESCRIPCION_MAXIMA)]],
+    adjuntos: this.fb.control<ArchivoAdjunto[]>([]),
+  });
 
-    this.tipoSolicitud = '';
-    this.asunto = '';
-    this.descripcion = '';
+  private readonly valores = toSignal(this.form.valueChanges, { initialValue: this.form.getRawValue() });
+  protected readonly guiaDescripcion = computed(
+    () =>
+      TIPOS_SOLICITUD.find((t) => t.id === this.valores().tipo)?.guia ??
+      'Describe con detalle tu solicitud para poder ayudarte más rápido.',
+  );
+  protected readonly largoAsunto = computed(() => this.valores().asunto?.length ?? 0);
+  protected readonly largoDescripcion = computed(() => this.valores().descripcion?.length ?? 0);
+
+  protected error(campo: keyof typeof this.form.controls): string | null {
+    return mensajeError(this.form.controls[campo]);
   }
 
-  protected abrirWhatsApp(): void {
-    const mensaje = encodeURIComponent(MENSAJE_WHATSAPP);
-    window.open(`https://wa.me/${WHATSAPP_SOPORTE}?text=${mensaje}`, '_blank');
+  protected irA(seccion: Seccion): void {
+    // Con `withHashLocation` un `href="#…"` cambiaría de ruta: se desplaza por código.
+    document.getElementById(`soporte-${seccion}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
-  protected abrirTutorial(videoId: string): void {
-    this.youtubeLink.set(`https://www.youtube.com/watch?v=${videoId}`);
-    // videoId viene de constantes del template, no de entrada del usuario.
-    this.videoUrl.set(
-      this.sanitizer.bypassSecurityTrustResourceUrl(`https://www.youtube.com/embed/${videoId}`),
-    );
-    this.modalTutorial().nativeElement.showModal();
-  }
-
-  protected cerrarTutorial(): void {
-    this.videoUrl.set(null);
-    this.youtubeLink.set('');
-    this.modalTutorial().nativeElement.close();
+  protected abrirTutorial(tutorial: Tutorial): void {
+    this.tutorial.set(tutorial);
+    this.tutorialAbierto.set(true);
   }
 
   protected abrirManual(manual: Manual): void {
-    this.manualSeleccionado.set(manual.nombre);
-    this.pdfDownloadUrl.set(manual.archivo);
-    this.pdfUrl.set(this.sanitizer.bypassSecurityTrustResourceUrl(manual.archivo));
-    this.modalDocumentacion().nativeElement.showModal();
+    this.manual.set(manual);
+    this.manualAbierto.set(true);
   }
 
-  protected cerrarManual(): void {
-    this.pdfUrl.set(null);
-    this.modalDocumentacion().nativeElement.close();
+  protected async enviarSolicitud(): Promise<void> {
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
+      this.notificaciones.error('Revisa los campos marcados antes de enviar.');
+      return;
+    }
+    try {
+      const solicitud = await this.solicitudes.enviar(this.form.getRawValue() as DatosSolicitud);
+      this.notificaciones.exito(`Solicitud ${solicitud.numero} enviada. Te contactaremos pronto.`);
+      this.limpiar();
+    } catch {
+      this.notificaciones.error('No se pudo enviar la solicitud. Intenta de nuevo o escríbenos por WhatsApp.');
+    }
+  }
+
+  protected limpiar(): void {
+    this.form.reset();
+  }
+
+  /** Abre WhatsApp con un mensaje que incluye lo que ya se escribió en el formulario. */
+  protected abrirWhatsApp(): void {
+    const { tipo, modulo, asunto, descripcion } = this.form.getRawValue();
+    const lineas = [
+      'Hola equipo RutaRola, necesito ayuda con el sistema.',
+      '',
+      `Tipo: ${TIPOS_SOLICITUD.find((t) => t.id === tipo)?.nombre ?? ''}`,
+      `Módulo: ${modulo}`,
+      `Asunto: ${asunto.trim()}`,
+      `Descripción: ${descripcion.trim()}`,
+    ];
+    window.open(`https://wa.me/${WHATSAPP_SOPORTE}?text=${encodeURIComponent(lineas.join('\n'))}`, '_blank', 'noopener');
+  }
+
+  protected nombreTipo(tipo: TipoSolicitud): string {
+    return TIPOS_SOLICITUD.find((t) => t.id === tipo)?.nombre ?? tipo;
   }
 }
