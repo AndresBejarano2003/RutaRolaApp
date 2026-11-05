@@ -1,16 +1,29 @@
-import { Injectable, computed, signal } from '@angular/core';
+import { Injectable } from '@angular/core';
 
 export interface OpcionCatalogo {
   id: string;
   nombre: string;
 }
 
-const opciones = (nombres: string[]): OpcionCatalogo[] => nombres.map((nombre) => ({ id: nombre, nombre }));
+/** Grados escolares en orden, de Jardín a Once (el id es el valor guardado). */
+export const GRADOS: OpcionCatalogo[] = [
+  { id: 'Jardín', nombre: 'Jardín' },
+  { id: 'Transición', nombre: 'Transición' },
+  ...['Primero', 'Segundo', 'Tercero', 'Cuarto', 'Quinto', 'Sexto', 'Séptimo', 'Octavo', 'Noveno', 'Décimo', 'Once'].map(
+    (nombre, i) => ({ id: `${i + 1}°`, nombre: `${i + 1}° · ${nombre}` }),
+  ),
+];
+
+/** Posición del grado en `GRADOS` (para ordenar cursos). */
+export function ordenGrado(grado: string): number {
+  return GRADOS.findIndex((g) => g.id === grado);
+}
 
 /**
- * Listas para los `<select>`. Las fijas (tipos de documento, grados,
- * jornadas) pueden quedarse aquí; colegios y acudientes son TEMPORALES y
- * deben venir del API de sus módulos cuando existan.
+ * Listas FIJAS para `<app-selector-busqueda>` (tipos de documento, grados,
+ * jornadas). Las listas de registros de otras pantallas (colegios,
+ * acudientes, vehículos...) NO van aquí: se piden a su repositorio con
+ * `opciones()`.
  */
 @Injectable({ providedIn: 'root' })
 export class CatalogosService {
@@ -23,36 +36,11 @@ export class CatalogosService {
     { id: 'PA', nombre: 'Pasaporte' },
   ];
 
-  readonly grados: OpcionCatalogo[] = opciones([
-    'Prejardín', 'Jardín', 'Transición', '1°', '2°', '3°', '4°', '5°', '6°', '7°', '8°', '9°', '10°', '11°',
-  ]);
-
-  readonly jornadas: OpcionCatalogo[] = opciones(['Mañana', 'Tarde', 'Única']);
-
-  // TODO: cargar desde GET /colegios cuando exista el API.
-  readonly colegios = signal<OpcionCatalogo[]>([
-    { id: 'col-1', nombre: 'Colegio San Cayetano' },
-    { id: 'col-2', nombre: 'Colegio Matre Paula' },
-    { id: 'col-3', nombre: 'Colegio La Gaitana' },
-    { id: 'col-4', nombre: 'Colegio Enrique Olaya Herrera' },
-    { id: 'col-5', nombre: 'Colegio San José' },
-  ]);
-
-  // TODO: cargar desde GET /acudientes cuando exista el API.
-  readonly acudientes = signal<OpcionCatalogo[]>([
-    { id: 'acu-1', nombre: 'María Pérez' },
-    { id: 'acu-2', nombre: 'Carlos Rodríguez' },
-    { id: 'acu-3', nombre: 'Luz Marina Gómez' },
-    { id: 'acu-4', nombre: 'Jorge Martínez' },
-    { id: 'acu-5', nombre: 'Andrea Castillo' },
-    { id: 'acu-6', nombre: 'Fernando Ríos' },
-  ]);
-
-  readonly nombresColegio = computed(() => aMapa(this.colegios()));
-  readonly nombresAcudiente = computed(() => aMapa(this.acudientes()));
+  readonly grados = GRADOS;
+  readonly jornadas: OpcionCatalogo[] = ['Mañana', 'Tarde', 'Única'].map((nombre) => ({ id: nombre, nombre }));
   readonly nombresTipoDocumento = aMapa(this.tiposDocumento);
 }
 
-function aMapa(lista: OpcionCatalogo[]): ReadonlyMap<string, string> {
+export function aMapa(lista: OpcionCatalogo[]): ReadonlyMap<string, string> {
   return new Map(lista.map((o) => [o.id, o.nombre]));
 }

@@ -26,7 +26,15 @@ export interface Pagina<T> {
 
 export type ModoFormulario = 'crear' | 'editar' | 'consultar';
 
-export type CodigoErrorCrud = 'NO_ENCONTRADO' | 'DUPLICADO' | 'VALIDACION';
+/** Estado estándar de un registro (estudiantes, acudientes, empleados...). */
+export type EstadoRegistro = 'ACTIVO' | 'INACTIVO';
+
+export const ESTADOS_REGISTRO: { id: EstadoRegistro; nombre: string }[] = [
+  { id: 'ACTIVO', nombre: 'Activo' },
+  { id: 'INACTIVO', nombre: 'Inactivo' },
+];
+
+export type CodigoErrorCrud = 'NO_ENCONTRADO' | 'DUPLICADO' | 'VALIDACION' | 'EN_USO' | 'SIN_ESPACIO';
 
 /** Error de negocio con un mensaje listo para mostrar al usuario. */
 export class ErrorCrud extends Error {
@@ -64,8 +72,17 @@ export function mensajeDeError(error: unknown): string {
       case 404:
         return 'El registro no existe o fue eliminado.';
       case 409:
-        return 'Ya existe un registro con esos datos.';
+        return 'Ya existe un registro con esos datos o está en uso por otros registros.';
     }
   }
   return ERROR_GENERICO;
+}
+
+/** Siguiente consecutivo legible, p. ej. `siguienteConsecutivo('FAC', ['FAC-0007'])` → `'FAC-0008'`. */
+export function siguienteConsecutivo(prefijo: string, existentes: string[]): string {
+  const maximo = existentes
+    .filter((n) => n.startsWith(`${prefijo}-`))
+    .map((n) => Number(n.slice(prefijo.length + 1)) || 0)
+    .reduce((a, b) => Math.max(a, b), 0);
+  return `${prefijo}-${String(maximo + 1).padStart(4, '0')}`;
 }

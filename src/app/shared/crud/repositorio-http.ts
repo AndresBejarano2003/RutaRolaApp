@@ -3,6 +3,7 @@ import { inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '@environments/environment';
 import { DatosRegistro, Entidad, Pagina, Paginacion } from './crud';
+import { OpcionCatalogo } from '../catalogos/catalogos';
 import { RepositorioCrud } from './repositorio-crud';
 
 /**
@@ -15,6 +16,7 @@ import { RepositorioCrud } from './repositorio-crud';
  * | crear      | POST   {apiUrl}/{recurso}                       |
  * | actualizar | PUT    {apiUrl}/{recurso}/{id}                  |
  * | eliminar   | DELETE {apiUrl}/{recurso}/{id}                  |
+ * | opciones   | GET    {apiUrl}/{recurso}/opciones?<filtros> → [{id, nombre}] |
  *
  * `listar` espera una respuesta `Pagina<T>`. Si el API responde con otro
  * formato, sobrescribir `listar` en la subclase y adaptar la respuesta.
@@ -47,6 +49,10 @@ export abstract class RepositorioHttp<T extends Entidad, F extends object> exten
 
   eliminar(id: string): Observable<void> {
     return this.http.delete<void>(`${this.url}/${encodeURIComponent(id)}`);
+  }
+
+  opciones(filtros: Partial<F> = {}): Observable<OpcionCatalogo[]> {
+    return this.http.get<OpcionCatalogo[]>(`${this.url}/opciones`, { params: this.aParametros(filtros) });
   }
 
   /** Convierte filtros a query params, omitiendo los vacíos. */

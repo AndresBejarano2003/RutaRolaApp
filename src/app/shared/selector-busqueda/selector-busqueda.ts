@@ -23,7 +23,7 @@ const ALTO_LISTA = 256;
  * `formControlName` / `ngModel` como cualquier control.
  *
  * ```html
- * <app-selector-busqueda formControlName="colegioId" [opciones]="catalogos.colegios()"
+ * <app-selector-busqueda formControlName="colegioId" [opciones]="colegios()"
  *   textoTodos="Todos los colegios" etiqueta="Colegio" />
  * ```
  *
