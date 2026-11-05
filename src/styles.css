@@ -1,8 +1,59 @@
-/* se importa la librería de Tailwind CSS y daisyui */
+/* Tailwind CSS v4 + DaisyUI 5 */
 @import "tailwindcss";
 
+/* Solo se carga el tema propio (antes `themes: all` cargaba 35 temas). */
 @plugin "daisyui" {
-  themes: all;
+  themes: false;
+}
+
+/*
+ * TEMA RUTAROLA — paleta oficial del sistema (ver README → "Diseño").
+ * Todos los pares texto/fondo cumplen WCAG AA (contraste ≥ 4.5:1).
+ *
+ *   base-100  #111827  fondo de página, inputs y selects
+ *   base-200  #1f2937  tarjetas, modales, tablas
+ *   base-300  #374151  encabezado de tabla, hover, botones neutros
+ *   primary   #facc15  amarillo del bus (logo) → acción principal
+ *   secondary #2563eb  azul → acciones secundarias / enlaces
+ *   accent    #dc2626  rojo del logo → acentos de marca (no para errores)
+ */
+@plugin "daisyui/theme" {
+  name: "rutarola";
+  default: true;
+  prefersdark: true;
+  color-scheme: dark;
+
+  --color-base-100: #111827;
+  --color-base-200: #1f2937;
+  --color-base-300: #374151;
+  --color-base-content: #f3f4f6;
+
+  --color-primary: #facc15;
+  --color-primary-content: #1f2937;
+  --color-secondary: #2563eb;
+  --color-secondary-content: #ffffff;
+  --color-accent: #dc2626;
+  --color-accent-content: #ffffff;
+  --color-neutral: #4b5563;
+  --color-neutral-content: #f9fafb;
+
+  --color-info: #38bdf8;
+  --color-info-content: #082f49;
+  --color-success: #4ade80;
+  --color-success-content: #052e16;
+  --color-warning: #fbbf24;
+  --color-warning-content: #451a03;
+  --color-error: #f87171;
+  --color-error-content: #450a0a;
+
+  --radius-selector: 0.5rem;
+  --radius-field: 0.5rem;
+  --radius-box: 1rem;
+  --size-selector: 0.25rem;
+  --size-field: 0.25rem;
+  --border: 1px;
+  --depth: 0;
+  --noise: 0;
 }
 
 html,
