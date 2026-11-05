@@ -1,15 +1,5 @@
 <form [formGroup]="form" class="card bg-base-200 border border-base-300 shadow-xl">
-  <div class="card-body">
-    <div class="flex items-center justify-between">
-      <h2 class="card-title text-base-content text-base">
-        <i class="fa-solid fa-filter text-base-content/70"></i>
-        Filtros
-      </h2>
-      <button type="button" class="btn btn-ghost btn-sm text-base-content/70" (click)="limpiar()">
-        <i class="fa-solid fa-eraser"></i>
-        Limpiar
-      </button>
-    </div>
+  <app-panel-filtros (limpiar)="limpiar()">
 
     <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
       <label class="md:col-span-2 input input-bordered bg-base-100 border-neutral w-full flex items-center gap-2">
@@ -24,5 +14,5 @@
       <app-selector-busqueda formControlName="estado" [opciones]="estados"
         textoTodos="Todos los estados" etiqueta="Estado" />
     </div>
-  </div>
+  </app-panel-filtros>
 </form>

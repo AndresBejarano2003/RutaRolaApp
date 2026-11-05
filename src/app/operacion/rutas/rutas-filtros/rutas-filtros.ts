@@ -1,3 +1,4 @@
+import { PanelFiltros } from 'src/app/shared/panel-filtros/panel-filtros';
 import { ChangeDetectionStrategy, Component, inject, input, output } from '@angular/core';
 import { NonNullableFormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { CatalogosService, OpcionCatalogo } from 'src/app/shared/catalogos/catalogos';
@@ -9,16 +10,10 @@ import { FILTROS_RUTA_VACIOS, FiltrosRuta } from '../ruta';
 @Component({
   selector: 'app-rutas-filtros',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ReactiveFormsModule, SelectorBusqueda],
+  imports: [PanelFiltros, ReactiveFormsModule, SelectorBusqueda],
   template: `
     <form [formGroup]="form" class="card bg-base-200 border border-base-300 shadow-xl">
-      <div class="card-body">
-        <div class="flex items-center justify-between">
-          <h2 class="card-title text-base-content text-base"><i class="fa-solid fa-filter text-base-content/70"></i> Filtros</h2>
-          <button type="button" class="btn btn-ghost btn-sm text-base-content/70" (click)="form.reset()">
-            <i class="fa-solid fa-eraser"></i> Limpiar
-          </button>
-        </div>
+      <app-panel-filtros (limpiar)="form.reset()">
         <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
           <label class="input input-bordered bg-base-100 border-neutral w-full flex items-center gap-2">
             <i class="fa-solid fa-magnifying-glass text-base-content/60"></i>
@@ -28,7 +23,7 @@ import { FILTROS_RUTA_VACIOS, FiltrosRuta } from '../ruta';
           <app-selector-busqueda formControlName="jornada" [opciones]="catalogos.jornadas" textoTodos="Todas las jornadas" etiqueta="Jornada" />
           <app-selector-busqueda formControlName="estado" [opciones]="estados" textoTodos="Todos los estados" etiqueta="Estado" />
         </div>
-      </div>
+      </app-panel-filtros>
     </form>
   `,
 })

@@ -1,3 +1,4 @@
+import { PanelFiltros } from 'src/app/shared/panel-filtros/panel-filtros';
 import { ChangeDetectionStrategy, Component, inject, output } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NonNullableFormBuilder, ReactiveFormsModule } from '@angular/forms';
@@ -10,7 +11,7 @@ import { FILTROS_EMPLEADO_VACIOS, FiltrosEmpleado, TIPOS_EMPLEADO, TipoEmpleado 
 @Component({
   selector: 'app-empleados-filtros',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ReactiveFormsModule, SelectorBusqueda],
+  imports: [PanelFiltros, ReactiveFormsModule, SelectorBusqueda],
   templateUrl: './empleados-filtros.html',
 })
 export class EmpleadosFiltros {

@@ -1,3 +1,4 @@
+import { PanelFiltros } from 'src/app/shared/panel-filtros/panel-filtros';
 import { ChangeDetectionStrategy, Component, inject, input, output } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NonNullableFormBuilder, ReactiveFormsModule } from '@angular/forms';
@@ -11,7 +12,7 @@ import { FILTROS_ESTUDIANTE_VACIOS, FiltrosEstudiante } from '../estudiante';
 @Component({
   selector: 'app-estudiantes-filtros',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ReactiveFormsModule, SelectorBusqueda],
+  imports: [PanelFiltros, ReactiveFormsModule, SelectorBusqueda],
   templateUrl: './estudiantes-filtros.html',
 })
 export class EstudiantesFiltros {
