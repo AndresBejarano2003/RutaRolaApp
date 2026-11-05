@@ -1,11 +1,11 @@
-<div class="overflow-x-auto rounded-box border border-base-300">
+<div class="@container overflow-x-auto rounded-box border border-base-300">
   <table class="table">
     <thead>
       <tr class="bg-base-300 text-base-content/80 text-xs uppercase tracking-wide">
         <th>Acudiente</th>
-        <th>Documento</th>
-        <th>Teléfono</th>
-        <th class="hidden lg:table-cell">Correo</th>
+        <th class="hidden @3xl:table-cell">Documento</th>
+        <th class="hidden @3xl:table-cell">Teléfono</th>
+        <th class="hidden @5xl:table-cell">Correo</th>
         <th>Estado</th>
         <th class="text-right">Acciones</th>
       </tr>
@@ -28,18 +28,18 @@
               <app-celda-persona [nombre]="nombreCompleto(acudiente)" [iniciales]="iniciales(acudiente)"
                 [activo]="acudiente.estado === 'ACTIVO'" [detalle]="acudiente.direccion" />
             </td>
-            <td class="whitespace-nowrap">
+            <td class="hidden @3xl:table-cell whitespace-nowrap">
               <span class="badge badge-sm bg-base-300 border-neutral text-base-content/80 font-mono">
                 {{ acudiente.tipoDocumento }}
               </span>
               <span class="ml-1 font-mono">{{ acudiente.numeroDocumento }}</span>
             </td>
-            <td class="whitespace-nowrap" (click)="$event.stopPropagation()">
+            <td class="hidden @3xl:table-cell whitespace-nowrap" (click)="$event.stopPropagation()">
               <a class="link link-hover" [href]="'tel:' + acudiente.telefono">
                 <i class="fa-solid fa-phone text-xs text-base-content/70"></i> {{ acudiente.telefono }}
               </a>
             </td>
-            <td class="hidden lg:table-cell text-base-content/90">{{ acudiente.correo || '—' }}</td>
+            <td class="hidden @5xl:table-cell text-base-content/90">{{ acudiente.correo || '—' }}</td>
             <td><app-badge-estado [estado]="acudiente.estado" /></td>
             <td class="text-right whitespace-nowrap" (click)="$event.stopPropagation()">
               <div class="inline-flex gap-1">

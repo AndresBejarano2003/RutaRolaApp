@@ -9,15 +9,15 @@ import { Ruta } from '../ruta';
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [AccionesFila, BadgeEstado, EstadoVacio],
   template: `
-    <div class="overflow-x-auto rounded-box border border-base-300">
+    <div class="@container overflow-x-auto rounded-box border border-base-300">
       <table class="table">
         <thead>
           <tr class="bg-base-300 text-base-content/80 text-xs uppercase tracking-wide">
             <th>Ruta</th>
-            <th>Colegio</th>
-            <th>Jornada</th>
+            <th class="hidden @3xl:table-cell">Colegio</th>
+            <th class="hidden @3xl:table-cell">Jornada</th>
             <th>Estudiantes</th>
-            <th class="hidden lg:table-cell">Asignación</th>
+            <th class="hidden @6xl:table-cell">Asignación</th>
             <th>Estado</th>
             <th class="text-right">Acciones</th>
           </tr>
@@ -43,10 +43,10 @@ import { Ruta } from '../ruta';
                     </div>
                   </div>
                 </td>
-                <td class="text-base-content/90">{{ nombresColegio().get(ruta.colegioId) ?? '—' }}</td>
-                <td>{{ ruta.jornada }}</td>
+                <td class="hidden @3xl:table-cell text-base-content/90">{{ nombresColegio().get(ruta.colegioId) ?? '—' }}</td>
+                <td class="hidden @3xl:table-cell">{{ ruta.jornada }}</td>
                 <td class="whitespace-nowrap"><i class="fa-solid fa-children text-xs text-base-content/70"></i> {{ ruta.estudianteIds.length }}</td>
-                <td class="hidden lg:table-cell">
+                <td class="hidden @6xl:table-cell">
                   @if (asignaciones().get(ruta.id); as asignacion) {
                     <span class="text-sm">{{ asignacion }}</span>
                   } @else {

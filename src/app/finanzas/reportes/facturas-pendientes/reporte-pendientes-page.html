@@ -1,11 +1,5 @@
 <form [formGroup]="form" class="card bg-base-200 border border-base-300 shadow-xl">
-  <div class="card-body">
-    <div class="flex items-center justify-between">
-      <h2 class="card-title text-base-content text-base"><i class="fa-solid fa-filter text-base-content/70"></i> Filtros</h2>
-      <button type="button" class="btn btn-ghost btn-sm text-base-content/70" (click)="form.reset()">
-        <i class="fa-solid fa-eraser"></i> Limpiar
-      </button>
-    </div>
+  <app-panel-filtros (limpiar)="form.reset()">
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
       <label class="input input-bordered bg-base-100 border-neutral w-full flex items-center gap-2">
         <i class="fa-solid fa-magnifying-glass text-base-content/60"></i>
@@ -14,7 +8,7 @@
       <app-selector-busqueda formControlName="acudienteId" [opciones]="acudientes()" textoTodos="Todos los acudientes" etiqueta="Acudiente" />
       <app-selector-busqueda formControlName="situacion" [opciones]="situaciones" textoTodos="Vencidas y por vencer" etiqueta="Situación" />
     </div>
-  </div>
+  </app-panel-filtros>
 </form>
 
 @if (reporte().error; as error) {
@@ -52,22 +46,22 @@
         <h2 class="card-title text-base-content">Cuotas sin pago</h2>
         <p class="text-sm text-base-content/70">Mensualidades de facturas vigentes, hasta el mes en curso, que aún no tienen recibo válido.</p>
       </div>
-      <div class="flex gap-2">
+      <div class="flex flex-wrap gap-2">
         <button type="button" class="btn bg-base-300 border-neutral hover:bg-neutral" [disabled]="!reporte().datos.length" (click)="exportar()">
           <i class="fa-solid fa-file-csv"></i> Exportar CSV
         </button>
         <a routerLink="/finanzas/recibos" class="btn btn-primary"><i class="fa-solid fa-receipt"></i> Registrar pago</a>
       </div>
     </div>
-    <div class="overflow-x-auto rounded-box border border-base-300 mt-2">
+    <div class="@container overflow-x-auto rounded-box border border-base-300 mt-2">
       <table class="table">
         <thead>
           <tr class="bg-base-300 text-base-content/80 text-xs uppercase tracking-wide">
-            <th>Factura</th>
-            <th class="hidden md:table-cell">Acudiente</th>
+            <th class="hidden @3xl:table-cell">Factura</th>
+            <th class="hidden @5xl:table-cell">Acudiente</th>
             <th>Estudiante</th>
             <th>Mes</th>
-            <th class="hidden lg:table-cell">Fecha límite</th>
+            <th class="hidden @5xl:table-cell">Fecha límite</th>
             <th>Situación</th>
             <th class="text-right">Valor</th>
           </tr>
@@ -75,11 +69,11 @@
         <tbody>
           @for (c of paginacion.visibles(); track c.facturaId + c.periodo) {
             <tr class="border-base-300 hover:bg-base-300/50">
-              <td class="font-mono font-semibold whitespace-nowrap">{{ c.numeroFactura }}</td>
-              <td class="hidden md:table-cell">{{ c.nombreAcudiente }}</td>
+              <td class="hidden @3xl:table-cell font-mono font-semibold whitespace-nowrap">{{ c.numeroFactura }}</td>
+              <td class="hidden @5xl:table-cell">{{ c.nombreAcudiente }}</td>
               <td>{{ c.nombreEstudiante }}</td>
               <td class="whitespace-nowrap">{{ nombrePeriodo(c.periodo) }}</td>
-              <td class="hidden lg:table-cell whitespace-nowrap">{{ fechaCorta(c.fechaLimite) }}</td>
+              <td class="hidden @5xl:table-cell whitespace-nowrap">{{ fechaCorta(c.fechaLimite) }}</td>
               <td>
                 <span class="badge badge-sm badge-soft whitespace-nowrap" [class.badge-error]="c.diasMora > 0" [class.badge-warning]="c.diasMora <= 0">
                   {{ textoDias(c) }}

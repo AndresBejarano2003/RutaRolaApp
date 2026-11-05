@@ -9,14 +9,14 @@ import { Programacion } from '../programacion';
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [AccionesFila, BadgeEstado, EstadoVacio],
   template: `
-    <div class="overflow-x-auto rounded-box border border-base-300">
+    <div class="@container overflow-x-auto rounded-box border border-base-300">
       <table class="table">
         <thead>
           <tr class="bg-base-300 text-base-content/80 text-xs uppercase tracking-wide">
             <th>Nombre</th>
             <th>No. factura</th>
-            <th class="text-center">Día límite de pago</th>
-            <th class="text-center hidden md:table-cell">Días previos para envío</th>
+            <th class="hidden @3xl:table-cell text-center">Día límite de pago</th>
+            <th class="text-center hidden @3xl:table-cell">Días previos para envío</th>
             <th class="text-center">Historial de envíos</th>
             <th>Estado</th>
             <th class="text-right">Acciones</th>
@@ -46,8 +46,8 @@ import { Programacion } from '../programacion';
                   </div>
                 </td>
                 <td class="font-mono whitespace-nowrap">{{ p.numeroFactura }}</td>
-                <td class="text-center">Día {{ p.diaLimitePago }}</td>
-                <td class="text-center hidden md:table-cell">{{ p.diasPrevios }} {{ p.diasPrevios === 1 ? 'día' : 'días' }}</td>
+                <td class="hidden @3xl:table-cell text-center">Día {{ p.diaLimitePago }}</td>
+                <td class="text-center hidden @3xl:table-cell">{{ p.diasPrevios }} {{ p.diasPrevios === 1 ? 'día' : 'días' }}</td>
                 <td class="text-center" (click)="$event.stopPropagation()">
                   <button type="button" class="btn btn-sm btn-ghost hover:bg-base-300"
                     [attr.aria-label]="'Historial de envíos de ' + p.nombre" (click)="historial.emit(p)">

@@ -1,3 +1,4 @@
+import { PanelFiltros } from 'src/app/shared/panel-filtros/panel-filtros';
 import { CurrencyPipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } from '@angular/core';
 import { NonNullableFormBuilder, ReactiveFormsModule } from '@angular/forms';
@@ -19,7 +20,7 @@ const formatoPesos = new Intl.NumberFormat('es-CO', { style: 'currency', currenc
 @Component({
   selector: 'app-reporte-ingresos-page',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ReactiveFormsModule, SelectorBusqueda, NgApexchartsModule, Paginacion, CurrencyPipe],
+  imports: [PanelFiltros, ReactiveFormsModule, SelectorBusqueda, NgApexchartsModule, Paginacion, CurrencyPipe],
   templateUrl: './reporte-ingresos-page.html',
 })
 export default class ReporteIngresosPage {

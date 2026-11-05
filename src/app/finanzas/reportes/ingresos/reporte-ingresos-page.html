@@ -1,11 +1,5 @@
 <form [formGroup]="form" class="card bg-base-200 border border-base-300 shadow-xl">
-  <div class="card-body">
-    <div class="flex items-center justify-between">
-      <h2 class="card-title text-base-content text-base"><i class="fa-solid fa-filter text-base-content/70"></i> Filtros</h2>
-      <button type="button" class="btn btn-ghost btn-sm text-base-content/70" (click)="form.reset()">
-        <i class="fa-solid fa-eraser"></i> Restablecer
-      </button>
-    </div>
+  <app-panel-filtros (limpiar)="form.reset()" textoLimpiar="Restablecer">
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
       <label class="input input-bordered bg-base-100 border-neutral w-full">
         <span class="label text-base-content/90">Desde</span>
@@ -20,7 +14,7 @@
     @if (rangoInvalido()) {
       <p class="text-sm text-error"><i class="fa-solid fa-triangle-exclamation"></i> El mes "desde" es posterior al mes "hasta".</p>
     }
-  </div>
+  </app-panel-filtros>
 </form>
 
 @if (reporte().error; as error) {
@@ -97,16 +91,16 @@
         <i class="fa-solid fa-file-csv"></i> Exportar CSV
       </button>
     </div>
-    <div class="overflow-x-auto rounded-box border border-base-300 mt-2">
+    <div class="@container overflow-x-auto rounded-box border border-base-300 mt-2">
       <table class="table">
         <thead>
           <tr class="bg-base-300 text-base-content/80 text-xs uppercase tracking-wide">
             <th>Recibo</th>
             <th>Fecha de pago</th>
-            <th class="hidden md:table-cell">Acudiente</th>
+            <th class="hidden @3xl:table-cell">Acudiente</th>
             <th>Estudiante</th>
-            <th class="hidden lg:table-cell">Mes pagado</th>
-            <th class="hidden md:table-cell">Medio</th>
+            <th class="hidden @5xl:table-cell">Mes pagado</th>
+            <th class="hidden @5xl:table-cell">Medio</th>
             <th class="text-right">Valor</th>
           </tr>
         </thead>
@@ -115,10 +109,10 @@
             <tr class="border-base-300 hover:bg-base-300/50">
               <td class="font-mono font-semibold whitespace-nowrap">{{ r.numero }}<div class="text-xs text-base-content/70">{{ r.numeroFactura }}</div></td>
               <td class="whitespace-nowrap">{{ fechaCorta(r.fechaPago) }}</td>
-              <td class="hidden md:table-cell">{{ r.nombreAcudiente }}</td>
+              <td class="hidden @3xl:table-cell">{{ r.nombreAcudiente }}</td>
               <td>{{ r.nombreEstudiante }}</td>
-              <td class="hidden lg:table-cell whitespace-nowrap">{{ nombrePeriodo(r.periodo) }}</td>
-              <td class="hidden md:table-cell">{{ nombreMedio(r.medioPago) }}</td>
+              <td class="hidden @5xl:table-cell whitespace-nowrap">{{ nombrePeriodo(r.periodo) }}</td>
+              <td class="hidden @5xl:table-cell">{{ nombreMedio(r.medioPago) }}</td>
               <td class="text-right font-semibold whitespace-nowrap">{{ r.valor | currency: 'COP' : 'symbol-narrow' : '1.0-0' }}</td>
             </tr>
           } @empty {

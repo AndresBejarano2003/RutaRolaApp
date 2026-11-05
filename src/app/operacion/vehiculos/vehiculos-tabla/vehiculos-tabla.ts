@@ -11,14 +11,14 @@ import { TIPOS_VEHICULO, Vehiculo, estadoDocumentos } from '../vehiculo';
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [AccionesFila, BadgeEstado, BadgeVencimiento, EstadoVacio],
   template: `
-    <div class="overflow-x-auto rounded-box border border-base-300">
+    <div class="@container overflow-x-auto rounded-box border border-base-300">
       <table class="table">
         <thead>
           <tr class="bg-base-300 text-base-content/80 text-xs uppercase tracking-wide">
             <th>Vehículo</th>
-            <th>Interno</th>
-            <th class="hidden md:table-cell">Tipo</th>
-            <th>Capacidad</th>
+            <th class="hidden @3xl:table-cell">Interno</th>
+            <th class="hidden @5xl:table-cell">Tipo</th>
+            <th class="hidden @3xl:table-cell">Capacidad</th>
             <th>Documentos</th>
             <th>Estado</th>
             <th class="text-right">Acciones</th>
@@ -45,9 +45,9 @@ import { TIPOS_VEHICULO, Vehiculo, estadoDocumentos } from '../vehiculo';
                     </div>
                   </div>
                 </td>
-                <td class="font-mono">{{ vehiculo.numeroInterno }}</td>
-                <td class="hidden md:table-cell">{{ nombresTipo.get(vehiculo.tipo) }}</td>
-                <td class="whitespace-nowrap"><i class="fa-solid fa-user-group text-xs text-base-content/70"></i> {{ vehiculo.capacidad }}</td>
+                <td class="hidden @3xl:table-cell font-mono">{{ vehiculo.numeroInterno }}</td>
+                <td class="hidden @5xl:table-cell">{{ nombresTipo.get(vehiculo.tipo) }}</td>
+                <td class="hidden @3xl:table-cell whitespace-nowrap"><i class="fa-solid fa-user-group text-xs text-base-content/70"></i> {{ vehiculo.capacidad }}</td>
                 <td><app-badge-vencimiento [estadoFijo]="estadoDocumentos(vehiculo)" [mostrarFecha]="false" textoVigente="Al día" /></td>
                 <td><app-badge-estado [estado]="vehiculo.estado" /></td>
                 <td class="text-right whitespace-nowrap">

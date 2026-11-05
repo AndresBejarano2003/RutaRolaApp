@@ -11,16 +11,16 @@ import { Factura, mesesFactura, totalFactura } from '../factura';
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [AccionesFila, BadgeEstado, EstadoVacio, CurrencyPipe],
   template: `
-    <div class="overflow-x-auto rounded-box border border-base-300">
+    <div class="@container overflow-x-auto rounded-box border border-base-300">
       <table class="table">
         <thead>
           <tr class="bg-base-300 text-base-content/80 text-xs uppercase tracking-wide">
             <th>Factura</th>
-            <th>Acudiente</th>
+            <th class="hidden @5xl:table-cell">Acudiente</th>
             <th>Estudiante</th>
-            <th class="text-right">Valor mensual</th>
-            <th class="hidden lg:table-cell">Periodo</th>
-            <th class="hidden md:table-cell text-right">Total contrato</th>
+            <th class="hidden @3xl:table-cell text-right">Valor mensual</th>
+            <th class="hidden @6xl:table-cell">Periodo</th>
+            <th class="hidden @6xl:table-cell text-right">Total contrato</th>
             <th>Estado</th>
             <th class="text-right">Acciones</th>
           </tr>
@@ -41,14 +41,14 @@ import { Factura, mesesFactura, totalFactura } from '../factura';
                   <div class="font-mono font-semibold">{{ f.numero }}</div>
                   <div class="text-xs text-base-content/70 truncate max-w-40">{{ f.concepto }}</div>
                 </td>
-                <td>{{ f.nombreAcudiente }}</td>
+                <td class="hidden @5xl:table-cell">{{ f.nombreAcudiente }}</td>
                 <td>{{ f.nombreEstudiante }}</td>
-                <td class="text-right whitespace-nowrap font-semibold">{{ f.valorContratacion | currency: 'COP' : 'symbol-narrow' : '1.0-0' }}</td>
-                <td class="hidden lg:table-cell whitespace-nowrap text-sm">
+                <td class="hidden @3xl:table-cell text-right whitespace-nowrap font-semibold">{{ f.valorContratacion | currency: 'COP' : 'symbol-narrow' : '1.0-0' }}</td>
+                <td class="hidden @6xl:table-cell whitespace-nowrap text-sm">
                   {{ nombrePeriodo(f.periodoInicio) }} – {{ nombrePeriodo(f.periodoFin) }}
                   <div class="text-xs text-base-content/70">{{ meses(f) }} meses</div>
                 </td>
-                <td class="hidden md:table-cell text-right whitespace-nowrap">{{ total(f) | currency: 'COP' : 'symbol-narrow' : '1.0-0' }}</td>
+                <td class="hidden @6xl:table-cell text-right whitespace-nowrap">{{ total(f) | currency: 'COP' : 'symbol-narrow' : '1.0-0' }}</td>
                 <td><app-badge-estado [estado]="f.estado" textoActivo="Vigente" textoInactivo="Anulada" /></td>
                 <td class="text-right whitespace-nowrap">
                   <app-acciones-fila (consultar)="consultar.emit(f)" (editar)="editar.emit(f)" (eliminar)="eliminar.emit(f)" />

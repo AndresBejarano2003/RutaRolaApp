@@ -17,15 +17,15 @@ export interface NombresAsignacion {
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [AccionesFila, BadgeEstado, EstadoVacio],
   template: `
-    <div class="overflow-x-auto rounded-box border border-base-300">
+    <div class="@container overflow-x-auto rounded-box border border-base-300">
       <table class="table">
         <thead>
           <tr class="bg-base-300 text-base-content/80 text-xs uppercase tracking-wide">
             <th>Ruta</th>
             <th>Vehículo</th>
             <th>Conductor</th>
-            <th class="hidden md:table-cell">Monitora</th>
-            <th class="hidden lg:table-cell">Vigencia</th>
+            <th class="hidden @3xl:table-cell">Monitora</th>
+            <th class="hidden @5xl:table-cell">Vigencia</th>
             <th>Estado</th>
             <th class="text-right">Acciones</th>
           </tr>
@@ -47,8 +47,8 @@ export interface NombresAsignacion {
                   <i class="fa-solid fa-bus text-xs text-base-content/70"></i> {{ nombres().vehiculos.get(a.vehiculoId) ?? '—' }}
                 </td>
                 <td>{{ nombres().empleados.get(a.conductorId) ?? '—' }}</td>
-                <td class="hidden md:table-cell">{{ a.monitoraId ? (nombres().empleados.get(a.monitoraId) ?? '—') : 'Sin monitora' }}</td>
-                <td class="hidden lg:table-cell whitespace-nowrap text-sm">
+                <td class="hidden @3xl:table-cell">{{ a.monitoraId ? (nombres().empleados.get(a.monitoraId) ?? '—') : 'Sin monitora' }}</td>
+                <td class="hidden @5xl:table-cell whitespace-nowrap text-sm">
                   {{ fechaCorta(a.fechaInicio) }} – {{ a.fechaFin ? fechaCorta(a.fechaFin) : 'Indefinida' }}
                 </td>
                 <td><app-badge-estado [estado]="a.estado" textoActivo="Activa" textoInactivo="Inactiva" /></td>

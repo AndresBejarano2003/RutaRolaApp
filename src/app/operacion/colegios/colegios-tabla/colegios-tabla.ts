@@ -9,13 +9,13 @@ import { Colegio, rangoCursos } from '../colegio';
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [AccionesFila, BadgeEstado, EstadoVacio],
   template: `
-    <div class="overflow-x-auto rounded-box border border-base-300">
+    <div class="@container overflow-x-auto rounded-box border border-base-300">
       <table class="table">
         <thead>
           <tr class="bg-base-300 text-base-content/80 text-xs uppercase tracking-wide">
             <th>Colegio</th>
-            <th>NIT</th>
-            <th class="hidden md:table-cell">Teléfono</th>
+            <th class="hidden @3xl:table-cell">NIT</th>
+            <th class="hidden @3xl:table-cell">Teléfono</th>
             <th>Cursos</th>
             <th>Estado</th>
             <th class="text-right">Acciones</th>
@@ -45,8 +45,8 @@ import { Colegio, rangoCursos } from '../colegio';
                     </div>
                   </div>
                 </td>
-                <td class="font-mono whitespace-nowrap">{{ colegio.nit }}</td>
-                <td class="hidden md:table-cell whitespace-nowrap">{{ colegio.telefono || '—' }}</td>
+                <td class="hidden @3xl:table-cell font-mono whitespace-nowrap">{{ colegio.nit }}</td>
+                <td class="hidden @3xl:table-cell whitespace-nowrap">{{ colegio.telefono || '—' }}</td>
                 <td class="whitespace-nowrap">
                   <div class="font-medium">{{ rangoCursos(colegio.cursos) }}</div>
                   <div class="text-xs text-base-content/70">{{ activos(colegio) }} curso(s) activo(s)</div>

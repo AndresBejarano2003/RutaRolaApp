@@ -1,11 +1,11 @@
-<div class="overflow-x-auto rounded-box border border-base-300">
+<div class="@container overflow-x-auto rounded-box border border-base-300">
   <table class="table">
     <thead>
       <tr class="bg-base-300 text-base-content/80 text-xs uppercase tracking-wide">
         <th>Estudiante</th>
-        <th>Documento</th>
-        <th class="hidden lg:table-cell">Acudiente</th>
-        <th class="hidden md:table-cell">Colegio</th>
+        <th class="hidden @3xl:table-cell">Documento</th>
+        <th class="hidden @6xl:table-cell">Acudiente</th>
+        <th class="hidden @5xl:table-cell">Colegio</th>
         <th>Grado</th>
         <th>Estado</th>
         <th class="text-right">Acciones</th>
@@ -30,16 +30,16 @@
               <app-celda-persona [nombre]="nombreCompleto(estudiante)" [iniciales]="iniciales(estudiante)"
                 [activo]="estudiante.estado === 'ACTIVO'" [detalle]="edad !== null ? edad + ' años' : ''" />
             </td>
-            <td class="whitespace-nowrap">
+            <td class="hidden @3xl:table-cell whitespace-nowrap">
               <span class="badge badge-sm bg-base-300 border-neutral text-base-content/80 font-mono">
                 {{ estudiante.tipoDocumento }}
               </span>
               <span class="ml-1 font-mono">{{ estudiante.numeroDocumento }}</span>
             </td>
-            <td class="hidden lg:table-cell text-base-content/90">
+            <td class="hidden @6xl:table-cell text-base-content/90">
               {{ nombresAcudiente().get(estudiante.acudienteId) ?? '—' }}
             </td>
-            <td class="hidden md:table-cell text-base-content/90">
+            <td class="hidden @5xl:table-cell text-base-content/90">
               {{ nombresColegio().get(estudiante.colegioId) ?? '—' }}
             </td>
             <td class="whitespace-nowrap">

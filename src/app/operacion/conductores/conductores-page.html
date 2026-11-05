@@ -1,11 +1,5 @@
 <form [formGroup]="filtros" class="card bg-base-200 border border-base-300 shadow-xl">
-  <div class="card-body">
-    <div class="flex items-center justify-between">
-      <h2 class="card-title text-base-content text-base"><i class="fa-solid fa-filter text-base-content/70"></i> Filtros</h2>
-      <button type="button" class="btn btn-ghost btn-sm text-base-content/70" (click)="filtros.reset()">
-        <i class="fa-solid fa-eraser"></i> Limpiar
-      </button>
-    </div>
+  <app-panel-filtros (limpiar)="filtros.reset()">
     <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
       <label class="input input-bordered bg-base-100 border-neutral w-full flex items-center gap-2">
         <i class="fa-solid fa-magnifying-glass text-base-content/60"></i>
@@ -15,7 +9,7 @@
       <app-selector-busqueda formControlName="asignacion" [opciones]="asignaciones" textoTodos="Con y sin ruta" etiqueta="Asignación" />
       <app-selector-busqueda formControlName="estado" [opciones]="estados" textoTodos="Todos los estados" etiqueta="Estado" />
     </div>
-  </div>
+  </app-panel-filtros>
 </form>
 
 <section class="mt-6 card bg-base-200 border border-base-300 shadow-xl">
@@ -31,16 +25,16 @@
       </a>
     </app-encabezado-listado>
 
-    <div class="overflow-x-auto rounded-box border border-base-300">
+    <div class="@container overflow-x-auto rounded-box border border-base-300">
       <table class="table">
         <thead>
           <tr class="bg-base-300 text-base-content/80 text-xs uppercase tracking-wide">
             <th>Conductor</th>
-            <th>Licencia</th>
-            <th>Vencimiento</th>
-            <th class="hidden md:table-cell">Teléfono</th>
+            <th class="hidden @3xl:table-cell">Licencia</th>
+            <th class="hidden @3xl:table-cell">Vencimiento</th>
+            <th class="hidden @5xl:table-cell">Teléfono</th>
             <th>Ruta asignada</th>
-            <th class="hidden lg:table-cell">Vehículo</th>
+            <th class="hidden @6xl:table-cell">Vehículo</th>
             <th>Estado</th>
             <th class="text-right">Acciones</th>
           </tr>
@@ -58,12 +52,12 @@
             @for (c of store.items(); track c.id) {
               <tr class="border-base-300 hover:bg-base-300/50 cursor-pointer transition-colors" (click)="consultar(c)">
                 <td><app-celda-persona [nombre]="c.nombre" [iniciales]="c.iniciales" [activo]="c.estado === 'ACTIVO'" [detalle]="c.documento" /></td>
-                <td class="whitespace-nowrap">
+                <td class="hidden @3xl:table-cell whitespace-nowrap">
                   <span class="badge badge-sm bg-base-300 border-neutral text-base-content/80 font-mono">{{ c.categoriaLicencia || '—' }}</span>
                   <span class="ml-1 font-mono text-sm">{{ c.numeroLicencia }}</span>
                 </td>
-                <td><app-badge-vencimiento [fecha]="c.vencimientoLicencia" /></td>
-                <td class="hidden md:table-cell whitespace-nowrap" (click)="$event.stopPropagation()">
+                <td class="hidden @3xl:table-cell"><app-badge-vencimiento [fecha]="c.vencimientoLicencia" /></td>
+                <td class="hidden @5xl:table-cell whitespace-nowrap" (click)="$event.stopPropagation()">
                   <a class="link link-hover" [href]="'tel:' + c.telefono">{{ c.telefono }}</a>
                 </td>
                 <td>
@@ -74,7 +68,7 @@
                     <span class="badge badge-info badge-soft badge-sm">Disponible</span>
                   }
                 </td>
-                <td class="hidden lg:table-cell text-sm">{{ c.asignacion?.vehiculo ?? '—' }}</td>
+                <td class="hidden @6xl:table-cell text-sm">{{ c.asignacion?.vehiculo ?? '—' }}</td>
                 <td><app-badge-estado [estado]="c.estado" /></td>
                 <td class="text-right" (click)="$event.stopPropagation()">
                   <div class="tooltip tooltip-left" data-tip="Consultar">

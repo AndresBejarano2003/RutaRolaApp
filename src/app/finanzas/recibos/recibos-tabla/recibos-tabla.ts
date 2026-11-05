@@ -11,16 +11,16 @@ import { MEDIOS_PAGO, Recibo } from '../recibo';
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [AccionesFila, BadgeEstado, EstadoVacio, CurrencyPipe],
   template: `
-    <div class="overflow-x-auto rounded-box border border-base-300">
+    <div class="@container overflow-x-auto rounded-box border border-base-300">
       <table class="table">
         <thead>
           <tr class="bg-base-300 text-base-content/80 text-xs uppercase tracking-wide">
             <th>Recibo</th>
             <th>Factura / estudiante</th>
-            <th>Mes pagado</th>
+            <th class="hidden @3xl:table-cell">Mes pagado</th>
             <th class="text-right">Valor</th>
-            <th class="hidden md:table-cell">Medio de pago</th>
-            <th>Estado</th>
+            <th class="hidden @5xl:table-cell">Medio de pago</th>
+            <th class="hidden @3xl:table-cell">Estado</th>
             <th class="text-right">Acciones</th>
           </tr>
         </thead>
@@ -45,12 +45,12 @@ import { MEDIOS_PAGO, Recibo } from '../recibo';
                   <div class="font-medium">{{ r.nombreEstudiante }}</div>
                   <div class="text-xs text-base-content/70">{{ r.numeroFactura }} · {{ r.nombreAcudiente }}</div>
                 </td>
-                <td class="whitespace-nowrap capitalize">{{ nombrePeriodo(r.periodo, true) }}</td>
+                <td class="hidden @3xl:table-cell whitespace-nowrap capitalize">{{ nombrePeriodo(r.periodo, true) }}</td>
                 <td class="text-right whitespace-nowrap font-semibold">{{ r.valor | currency: 'COP' : 'symbol-narrow' : '1.0-0' }}</td>
-                <td class="hidden md:table-cell whitespace-nowrap">
+                <td class="hidden @5xl:table-cell whitespace-nowrap">
                   <i class="text-xs text-base-content/70" [class]="medio?.icono"></i> {{ medio?.nombre }}
                 </td>
-                <td><app-badge-estado [estado]="r.estado" textoActivo="Válido" textoInactivo="Anulado" /></td>
+                <td class="hidden @3xl:table-cell"><app-badge-estado [estado]="r.estado" textoActivo="Válido" textoInactivo="Anulado" /></td>
                 <td class="text-right whitespace-nowrap">
                   <app-acciones-fila (consultar)="consultar.emit(r)" (editar)="editar.emit(r)" (eliminar)="eliminar.emit(r)" />
                 </td>

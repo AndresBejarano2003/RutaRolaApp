@@ -1,3 +1,4 @@
+import { PanelFiltros } from 'src/app/shared/panel-filtros/panel-filtros';
 import { CurrencyPipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
@@ -24,7 +25,7 @@ const SITUACIONES: OpcionCatalogo[] = [
 @Component({
   selector: 'app-reporte-pendientes-page',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ReactiveFormsModule, SelectorBusqueda, Paginacion, CurrencyPipe, RouterLink],
+  imports: [PanelFiltros, ReactiveFormsModule, SelectorBusqueda, Paginacion, CurrencyPipe, RouterLink],
   templateUrl: './reporte-pendientes-page.html',
 })
 export default class ReportePendientesPage {

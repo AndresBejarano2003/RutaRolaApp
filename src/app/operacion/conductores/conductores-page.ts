@@ -1,3 +1,4 @@
+import { PanelFiltros } from 'src/app/shared/panel-filtros/panel-filtros';
 import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
 import { NonNullableFormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
@@ -23,7 +24,7 @@ import { ConductoresStore } from './conductores-store';
 @Component({
   selector: 'app-conductores-page',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ReactiveFormsModule, RouterLink, SelectorBusqueda, EncabezadoListado, Paginacion, Modal, CeldaPersona, BadgeEstado, BadgeVencimiento, EstadoVacio],
+  imports: [PanelFiltros, ReactiveFormsModule, RouterLink, SelectorBusqueda, EncabezadoListado, Paginacion, Modal, CeldaPersona, BadgeEstado, BadgeVencimiento, EstadoVacio],
   providers: [ConductoresStore],
   templateUrl: './conductores-page.html',
 })

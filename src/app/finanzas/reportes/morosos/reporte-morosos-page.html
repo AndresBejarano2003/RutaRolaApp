@@ -1,11 +1,5 @@
 <form [formGroup]="form" class="card bg-base-200 border border-base-300 shadow-xl">
-  <div class="card-body">
-    <div class="flex items-center justify-between">
-      <h2 class="card-title text-base-content text-base"><i class="fa-solid fa-filter text-base-content/70"></i> Filtros</h2>
-      <button type="button" class="btn btn-ghost btn-sm text-base-content/70" (click)="form.reset()">
-        <i class="fa-solid fa-eraser"></i> Limpiar
-      </button>
-    </div>
+  <app-panel-filtros (limpiar)="form.reset()">
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
       <label class="input input-bordered bg-base-100 border-neutral w-full flex items-center gap-2">
         <i class="fa-solid fa-magnifying-glass text-base-content/60"></i>
@@ -13,7 +7,7 @@
       </label>
       <app-selector-busqueda formControlName="diasMinimos" [opciones]="rangos" etiqueta="Días de mora" />
     </div>
-  </div>
+  </app-panel-filtros>
 </form>
 
 @if (reporte().error; as error) {
@@ -53,13 +47,13 @@
         <i class="fa-solid fa-file-csv"></i> Exportar CSV
       </button>
     </div>
-    <div class="overflow-x-auto rounded-box border border-base-300 mt-2">
+    <div class="@container overflow-x-auto rounded-box border border-base-300 mt-2">
       <table class="table">
         <thead>
           <tr class="bg-base-300 text-base-content/80 text-xs uppercase tracking-wide">
             <th>Acudiente</th>
-            <th class="hidden md:table-cell">Estudiantes</th>
-            <th class="hidden lg:table-cell">Meses vencidos</th>
+            <th class="hidden @3xl:table-cell">Estudiantes</th>
+            <th class="hidden @5xl:table-cell">Meses vencidos</th>
             <th>Mora</th>
             <th class="text-right">Adeudado</th>
             <th class="text-right">Contactar</th>
@@ -72,8 +66,8 @@
                 <div class="font-medium">{{ m.nombreAcudiente }}</div>
                 <div class="text-xs text-base-content/70">{{ m.telefono || 'Sin teléfono' }} · {{ m.facturas.join(', ') }}</div>
               </td>
-              <td class="hidden md:table-cell text-sm">{{ m.estudiantes.join(', ') }}</td>
-              <td class="hidden lg:table-cell text-sm">
+              <td class="hidden @3xl:table-cell text-sm whitespace-normal min-w-44">{{ m.estudiantes.join(', ') }}</td>
+              <td class="hidden @5xl:table-cell text-sm whitespace-normal min-w-44">
                 @for (p of m.periodos; track p) {
                   <span class="badge badge-sm bg-base-300 border-neutral mr-1 mb-1">{{ nombrePeriodo(p) }}</span>
                 }
@@ -86,7 +80,7 @@
               <td class="text-right whitespace-nowrap">
                 <div class="inline-flex gap-1">
                   @if (enlaceWhatsapp(m); as enlace) {
-                    <div class="tooltip" data-tip="Recordar por WhatsApp">
+                    <div class="tooltip tooltip-left" data-tip="Recordar por WhatsApp">
                       <a [href]="enlace" target="_blank" rel="noopener" class="btn btn-sm btn-ghost btn-square text-success hover:bg-success/15"
                         [attr.aria-label]="'Recordar por WhatsApp a ' + m.nombreAcudiente"><i class="fa-brands fa-whatsapp text-lg"></i></a>
                     </div>

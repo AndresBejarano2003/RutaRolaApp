@@ -10,14 +10,14 @@ import { Cotizacion, ESTADOS_COTIZACION } from '../cotizacion';
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [AccionesFila, EstadoVacio, CurrencyPipe],
   template: `
-    <div class="overflow-x-auto rounded-box border border-base-300">
+    <div class="@container overflow-x-auto rounded-box border border-base-300">
       <table class="table">
         <thead>
           <tr class="bg-base-300 text-base-content/80 text-xs uppercase tracking-wide">
             <th>Cotización</th>
             <th>Acudiente</th>
-            <th>Estudiantes</th>
-            <th class="hidden md:table-cell text-right">Valor c/u</th>
+            <th class="hidden @3xl:table-cell">Estudiantes</th>
+            <th class="hidden @5xl:table-cell text-right">Valor c/u</th>
             <th class="text-right">Total</th>
             <th>Estado</th>
             <th class="text-right">Acciones</th>
@@ -48,11 +48,11 @@ import { Cotizacion, ESTADOS_COTIZACION } from '../cotizacion';
                     <span class="badge badge-warning badge-soft badge-xs">Cliente nuevo</span>
                   }
                 </td>
-                <td class="max-w-56">
+                <td class="hidden @3xl:table-cell max-w-56">
                   <div class="font-medium">{{ c.estudiantes.length }}</div>
                   <div class="text-xs text-base-content/70 truncate">{{ nombres(c) }}</div>
                 </td>
-                <td class="hidden md:table-cell text-right whitespace-nowrap">{{ c.valorPorEstudiante | currency: 'COP' : 'symbol-narrow' : '1.0-0' }}</td>
+                <td class="hidden @5xl:table-cell text-right whitespace-nowrap">{{ c.valorPorEstudiante | currency: 'COP' : 'symbol-narrow' : '1.0-0' }}</td>
                 <td class="text-right whitespace-nowrap font-semibold">{{ c.valorTotal | currency: 'COP' : 'symbol-narrow' : '1.0-0' }}</td>
                 <td><span class="badge badge-soft badge-sm" [class]="estado?.clase">{{ estado?.nombre }}</span></td>
                 <td class="text-right whitespace-nowrap">
