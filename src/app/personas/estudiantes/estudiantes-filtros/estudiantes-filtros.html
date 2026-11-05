@@ -1,0 +1,31 @@
+<form [formGroup]="form" class="card bg-base-200 border border-base-300 shadow-xl">
+  <div class="card-body">
+    <div class="flex items-center justify-between">
+      <h2 class="card-title text-base-content text-base">
+        <i class="fa-solid fa-filter text-base-content/70"></i>
+        Filtros
+      </h2>
+      <button type="button" class="btn btn-ghost btn-sm text-base-content/70" (click)="limpiar()">
+        <i class="fa-solid fa-eraser"></i>
+        Limpiar
+      </button>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+      <label class="input input-bordered bg-base-100 border-neutral w-full flex items-center gap-2">
+        <i class="fa-solid fa-magnifying-glass text-base-content/60"></i>
+        <input type="search" formControlName="texto" class="grow" placeholder="Nombre o documento..."
+          aria-label="Buscar por nombre o documento" />
+      </label>
+
+      <app-selector-busqueda formControlName="colegioId" [opciones]="catalogos.colegios()"
+        textoTodos="Todos los colegios" etiqueta="Colegio" />
+
+      <app-selector-busqueda formControlName="grado" [opciones]="catalogos.grados"
+        textoTodos="Todos los grados" etiqueta="Grado" />
+
+      <app-selector-busqueda formControlName="estado" [opciones]="estados"
+        textoTodos="Todos los estados" etiqueta="Estado" />
+    </div>
+  </div>
+</form>

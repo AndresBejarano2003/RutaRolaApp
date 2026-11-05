@@ -1,0 +1,120 @@
+<div class="overflow-x-auto rounded-box border border-base-300">
+  <table class="table">
+    <thead>
+      <tr class="bg-base-300 text-base-content/80 text-xs uppercase tracking-wide">
+        <th>Estudiante</th>
+        <th>Documento</th>
+        <th class="hidden lg:table-cell">Acudiente</th>
+        <th class="hidden md:table-cell">Colegio</th>
+        <th>Grado</th>
+        <th>Estado</th>
+        <th class="text-right">Acciones</th>
+      </tr>
+    </thead>
+
+    <tbody class="transition-opacity" [class.opacity-50]="cargando() && estudiantes().length > 0">
+      @if (cargando() && estudiantes().length === 0) {
+        @for (fila of filasEsqueleto; track fila) {
+          <tr class="border-base-300">
+            @for (col of columnasEsqueleto; track col) {
+              <td><div class="skeleton bg-base-300 h-4 w-full"></div></td>
+            }
+          </tr>
+        }
+      } @else {
+        @for (estudiante of estudiantes(); track estudiante.id) {
+          @let edad = calcularEdad(estudiante.fechaNacimiento);
+          @let activo = estudiante.estado === 'ACTIVO';
+          <tr class="border-base-300 hover:bg-base-300/50 cursor-pointer transition-colors"
+            (click)="consultar.emit(estudiante)">
+            <td>
+              <div class="flex items-center gap-3">
+                <div class="avatar avatar-placeholder">
+                  <div class="w-9 rounded-full text-xs font-bold"
+                    [class]="activo ? 'bg-primary text-primary-content' : 'bg-base-300 text-base-content/70'">
+                    {{ estudiante.primerNombre[0] }}{{ estudiante.primerApellido[0] }}
+                  </div>
+                </div>
+                <div>
+                  <div class="font-semibold text-base-content">{{ nombreCompleto(estudiante) }}</div>
+                  @if (edad !== null) {
+                    <div class="text-xs text-base-content/70">{{ edad }} años</div>
+                  }
+                </div>
+              </div>
+            </td>
+            <td class="whitespace-nowrap">
+              <span class="badge badge-sm bg-base-300 border-neutral text-base-content/80 font-mono">
+                {{ estudiante.tipoDocumento }}
+              </span>
+              <span class="ml-1 font-mono">{{ estudiante.numeroDocumento }}</span>
+            </td>
+            <td class="hidden lg:table-cell text-base-content/90">
+              {{ catalogos.nombresAcudiente().get(estudiante.acudienteId) ?? '—' }}
+            </td>
+            <td class="hidden md:table-cell text-base-content/90">
+              {{ catalogos.nombresColegio().get(estudiante.colegioId) ?? '—' }}
+            </td>
+            <td class="whitespace-nowrap">
+              <div class="font-medium">{{ estudiante.grado }}</div>
+              <div class="text-xs text-base-content/70">{{ estudiante.jornada }}</div>
+            </td>
+            <td>
+              @if (activo) {
+                <span class="badge badge-success badge-soft badge-sm gap-1">
+                  <i class="fa-solid fa-circle text-[6px]"></i> Activo
+                </span>
+              } @else {
+                <span class="badge badge-sm bg-base-300 border-neutral text-base-content/70 gap-1">
+                  <i class="fa-solid fa-circle text-[6px]"></i> Inactivo
+                </span>
+              }
+            </td>
+            <td class="text-right whitespace-nowrap" (click)="$event.stopPropagation()">
+              <div class="inline-flex gap-1">
+                <div class="tooltip" data-tip="Consultar">
+                  <button type="button" class="btn btn-sm btn-ghost btn-square text-info hover:bg-info/15"
+                    aria-label="Consultar" (click)="consultar.emit(estudiante)">
+                    <i class="fa-solid fa-eye"></i>
+                  </button>
+                </div>
+                <div class="tooltip" data-tip="Editar">
+                  <button type="button" class="btn btn-sm btn-ghost btn-square text-primary hover:bg-primary/15"
+                    aria-label="Editar" (click)="editar.emit(estudiante)">
+                    <i class="fa-solid fa-pen"></i>
+                  </button>
+                </div>
+                <div class="tooltip tooltip-left" data-tip="Eliminar">
+                  <button type="button" class="btn btn-sm btn-ghost btn-square text-error hover:bg-error/15"
+                    aria-label="Eliminar" (click)="eliminar.emit(estudiante)">
+                    <i class="fa-solid fa-trash"></i>
+                  </button>
+                </div>
+              </div>
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="7">
+              <div class="flex flex-col items-center gap-3 py-12 text-center">
+                <div class="rounded-full bg-base-300 w-16 h-16 grid place-items-center">
+                  <i class="fa-solid fa-user-graduate text-2xl text-base-content/70"></i>
+                </div>
+                @if (hayFiltros()) {
+                  <p class="font-semibold">Ningún estudiante coincide con los filtros.</p>
+                  <p class="text-sm text-base-content/70">Prueba con otros criterios o limpia los filtros.</p>
+                } @else {
+                  <p class="font-semibold">Aún no hay estudiantes registrados.</p>
+                  <button type="button" class="btn btn-primary btn-sm" (click)="crear.emit()">
+                    <i class="fa-solid fa-plus"></i>
+                    Registrar el primero
+                  </button>
+                }
+              </div>
+            </td>
+          </tr>
+        }
+      }
+    </tbody>
+  </table>
+</div>
