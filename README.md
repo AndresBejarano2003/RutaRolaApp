@@ -31,10 +31,10 @@ rutas, variables y textos en **español**.
 src/app/
   core/           servicios globales (auth, whatsapp) y repositorios.ts (fuente de datos de cada módulo)
   modulos.routes.ts  módulos internos (con layout) cargados de forma diferida junto con los repositorios
-  layout/         shell, barra-superior, menu-lateral (opciones-menu.ts)
+  layout/         shell, barra-superior, campana-notificaciones, menu-lateral (opciones-menu.ts)
   shared/         piezas reutilizables (crud, modal, paginación, notificaciones, formularios, catálogos, fechas, exportar, pruebas)
   autenticacion/  login, registro, recuperar
-  inicio/         dashboard, perfil, configuración
+  inicio/         dashboard, perfil, configuración, notificaciones
   personas/  finanzas/  operacion/  sistema/     una carpeta por pantalla + <modulo>.routes.ts
 ```
 
@@ -181,6 +181,83 @@ lo obtiene de forma diferida con `Injector.get()` dentro del método, no con `in
   hace el servidor y se ven en el historial.
 - **Reportes:** ingresos (recibos válidos por fecha de pago), facturas pendientes (meses sin recibo hasta
   el mes en curso) y morosos (cuotas vencidas según el día límite de la programación, o el día 5).
+- **Centro de Ayuda (`sistema/soporte`):** manuales, tutoriales y preguntas frecuentes se editan solo en
+  `contenido-ayuda.ts`; las respuestas deben coincidir con las rutas y reglas vigentes (actualizarlas
+  cuando cambie un módulo). La búsqueda filtra los tres a la vez. Una **solicitud de soporte** exige tipo
+  (error, consulta, mejora, capacitación), módulo afectado (sale del menú con `modulosDelMenu()`, nunca
+  de una lista fija), prioridad (Media por defecto), asunto de 5 a 120 caracteres y descripción de 20 a
+  2000; admite hasta 3 adjuntos (PDF o imagen, 1 MB c/u). El consecutivo `SOP-0001` lo asigna el servidor.
+  WhatsApp se abre con lo que el usuario ya escribió en el formulario.
+
+### Inicio (`inicio/dashboard/`)
+
+La pantalla principal resume el estado del negocio con **datos reales** de todos los módulos (nunca cifras
+fijas). `TableroRepositorio` entrega un `Tablero` calculado por `calcular-tablero.ts` (reglas puras que el
+API debe replicar en `GET /tablero`); se recalcula cuando se guarda o elimina un registro.
+
+- **Encabezado:** saludo, fecha, mes del resumen, "Modo local" y accesos rápidos (Registrar pago, Nueva
+  factura, Nuevo estudiante, Nueva cotización) que abren el formulario de creación con `?accion=nuevo`.
+- **Indicadores** (cada tarjeta lleva a su pantalla):
+  - *Recaudo del mes:* recibos vigentes que pagan el mes en curso frente al valor mensual de las facturas
+    vigentes que lo cubren (barra de %), número de pagos y el recaudo del mes anterior como referencia.
+  - *Cartera vencida:* valor de las cuotas con la fecha límite vencida, acudientes en mora y lo que aún está
+    en plazo este mes.
+  - *Estudiantes activos:* colegios, nuevos del mes y cuántos no tienen ruta.
+  - *Operación:* rutas activas, vehículos, conductores y % de cupos ocupados.
+- **Requiere atención** (reemplaza las alertas fijas): solo lo que tiene cantidad > 0, de lo crítico a lo
+  informativo, y cada fila lleva a la pantalla donde se resuelve: acudientes en mora, vehículos con documentos
+  vencidos, licencias vencidas, recordatorios fallidos (30 días), estudiantes sin ruta, rutas sin vehículo ni
+  conductor, documentos y licencias por vencer (30 días), contratos que terminan este mes o el siguiente,
+  facturas vigentes sin programación de cobro y cotizaciones pendientes. Si no hay nada: "Todo en orden".
+- **Próximos 30 días** (reemplaza "Actividad reciente"; la actividad ya está en la campana): vencimientos de
+  documentos y licencias, fechas límite de pago (agrupadas por día) y fin de contratos.
+- **Últimos pagos:** los 5 recibos más recientes.
+- **Gráficas:** facturado vs recaudado (6 o 12 meses), estudiantes por colegio (5 principales + Otros) y
+  ocupación de cada ruta frente a la capacidad del vehículo asignado (≥ 90 % en amarillo; sin vehículo, aviso).
+  Los colores de ApexCharts son los del tema (`COLORES` en `dashboard-page.ts`).
+
+### Centro de notificaciones (`inicio/notificaciones/`)
+
+La campana de la barra superior y la página `/inicio/notificaciones` muestran lo que pasa en el sistema.
+No confundir con los toasts (`shared/notificaciones`), que son mensajes pasajeros de una acción.
+
+- **Quién las crea:** el **servidor** (por evento y con un proceso diario). El usuario solo las lee,
+  marca como leídas/no leídas, archiva/restaura y elimina. Hoy, en modo local, las genera
+  `NotificacionesLocal` a partir de los datos del navegador.
+- **Qué se notifica** (reglas en `generar-notificaciones.ts`, que el API debe replicar):
+
+  | Categoría | Hecho | Prioridad |
+  |---|---|---|
+  | Pagos y cartera | Pago recibido (recibo vigente) | Éxito |
+  | Pagos y cartera | Acudiente en mora (cuotas vencidas) | Crítica |
+  | Facturas y contratos | Nueva factura | Informativa |
+  | Facturas y contratos | Contrato por terminar (termina este mes o el siguiente) | Advertencia |
+  | Facturas y contratos | Contrato terminado con la factura aún vigente | Informativa |
+  | Cotizaciones | Nueva cotización / aprobada / rechazada | Informativa / Éxito |
+  | Vencimientos | SOAT, técnico-mecánica, tarjeta de operación o pólizas por vencer (30 días) / vencidos | Advertencia / Crítica |
+  | Vencimientos | Licencia de conductor activo por vencer / vencida | Advertencia / Crítica |
+  | Operación / Personas | Vehículo o empleado registrado | Informativa |
+  | Envíos | Recordatorio de cobro enviado / fallido | Informativa / Crítica |
+
+  Los eventos (registros, pagos, envíos) solo se notifican si ocurrieron en los últimos **30 días**.
+- **Sin repetidos:** cada notificación tiene una `clave` que identifica el hecho (p. ej.
+  `licencia:{id}:{fecha}:VENCIDA`). Un hecho se notifica **una sola vez**, aunque se elimine. Si se vence
+  otra cuota o se renueva un documento, la clave cambia y llega una notificación nueva.
+- **Campana:** número de no leídas (rojo si hay críticas, máximo "99+"), las 6 más recientes,
+  "Marcar todas como leídas" y "Ver todas". Al hacer clic en una, se marca leída y se abre expandida en
+  la página (`?abrir=<id>`). En teléfonos el panel ocupa todo el ancho.
+- **Página:** bandeja de entrada y archivadas; filtros por texto, categoría, prioridad y lectura; agrupadas
+  por fecha (Hoy, Ayer, Últimos 7 días, Anteriores); al expandir se ve el mensaje completo, la fecha, la
+  prioridad y el botón para ir a la pantalla relacionada. Selección múltiple para marcar, archivar o
+  eliminar. Archivar también la marca como leída.
+- **Eliminar:** una notificación se elimina de inmediato; varias seleccionadas o "Vaciar bandeja" piden
+  confirmación con `<app-dialogo-confirmacion>`.
+- **Actualización:** `CentroNotificaciones` (estado compartido, registrado en `core/repositorios.ts`) se
+  refresca al iniciar, cada 60 s y cada vez que se guarda o elimina un registro en cualquier módulo
+  (`CrudStore` → `CambiosDatos.notificar()`).
+- **API** (`NotificacionesHttp`): `GET /notificaciones`, `GET /notificaciones/resumen`,
+  `PATCH /notificaciones/lectura`, `POST /notificaciones/leer-todas`, `PATCH /notificaciones/archivo`,
+  `POST /notificaciones/eliminar`, `DELETE /notificaciones?bandeja=`; solo afectan las del usuario autenticado.
 
 ### Piezas compartidas de personas (`personas/compartido/`)
 
@@ -292,6 +369,9 @@ tarjeta = 13.3:1; texto secundario `/70` = 7.3:1. No se permite `gray-500` sobre
   - **En filtros:** `textoTodos="Todos los …"` agrega la opción "Todos" y el botón ✕.
   - **En formularios:** `[invalido]="!!error('campo')"` lo marca en rojo. Va dentro de un `<div>` con
     su `<span class="label-text">`, **no** dentro de un `<label>`.
+  - **Excepción:** 2 a 4 opciones fijas que conviene ver a la vez (p. ej. tipo y prioridad de una
+    solicitud de soporte) pueden ir como tarjetas de opción: `<label>` + radio `sr-only` +
+    `has-checked:border-primary has-checked:bg-primary/10 has-focus-visible:outline-2`.
 
   ```html
   <!-- Filtro -->
@@ -307,6 +387,8 @@ tarjeta = 13.3:1; texto secundario `/70` = 7.3:1. No se permite `gray-500` sobre
   ```
 - **Paginación:** siempre `<app-paginacion>`: números de página, la actual en amarillo (`btn-primary`),
   "Mostrando a–b de n" y selector de filas por página (10/25/50).
+- **Abrir el formulario desde otra pantalla:** toda página CRUD (`PaginaCrud`) abre el formulario de
+  creación si la URL trae `?accion=nuevo` (p. ej. `/finanzas/recibos?accion=nuevo`).
 - **Modal:** `<app-modal>`; eliminar con `<app-dialogo-confirmacion>`. Ver la regla de modales abajo.
 - **Piezas de pantalla:** `<app-encabezado-listado>` (título, total, "Modo local", botón Nuevo, error con
   Reintentar), `<app-acciones-fila>` (Consultar / Editar / Eliminar), `<app-estado-vacio>`,
@@ -314,6 +396,14 @@ tarjeta = 13.3:1; texto secundario `/70` = 7.3:1. No se permite `gray-500` sobre
   `<app-titulo-seccion>` para las secciones del formulario; `<app-lista-seleccion>` para elegir varios
   registros (p. ej. estudiantes de una ruta).
 - **Botón principal:** `btn btn-primary` (amarillo con texto oscuro).
+- **Mensajes:** siempre con toasts (`NotificacionesService`), nunca `alert()`.
+- **Accesos rápidos:** la tarjeta completa es el botón (`<button class="card …">` con ícono de color);
+  no se ponen botones de colores dentro de cada tarjeta (así se mantiene un solo `btn-primary` por vista).
+- **Navegación dentro de la página:** nunca `href="#…"` (con la URL `/#/…` cambiaría de ruta); la sección
+  lleva un `id` y `scroll-mt-4` y se llega con `scrollIntoView`.
+- **Videos y PDF incrustados:** se abren en `<app-modal>`. Los videos usan `aspect-video` (nunca alto
+  fijo) y `youtube-nocookie.com`; los PDF ofrecen además "Abrir en otra pestaña" y "Descargar", porque
+  los navegadores de celular no muestran PDF dentro de un iframe.
 
 ### Diseño responsive (obligatorio)
 
@@ -401,4 +491,9 @@ Las pantallas que aún usan grises fijos se migran a estas clases cuando se modi
 - **Envíos automáticos:** la programación de facturación solo guarda la configuración; el envío por
   WhatsApp/correo y su historial los debe hacer el servidor (`WhatsappService` apunta a
   `${apiUrl}/whatsapp/enviar.php`, que no existe aún).
-- **Datos fijos:** el dashboard, la barra superior y el módulo Sistema siguen con datos de ejemplo.
+- **Datos fijos:** el usuario de la barra superior y del saludo (`USUARIO_DEMO`) y Planes y Membresías siguen
+  con datos de ejemplo. El inicio se calcula en el navegador (`TableroLocal`) hasta que exista `GET /tablero`.
+- **Notificaciones:** se generan en el navegador (`NotificacionesLocal`) a partir de los datos locales;
+  con API, el servidor debe crearlas con las mismas reglas y cambiar a `NotificacionesHttp`.
+- **Soporte:** las solicitudes del Centro de Ayuda se guardan en `localStorage`
+  (`SolicitudesSoporteService`) hasta que exista el API de soporte (envío, adjuntos, estado y respuesta).
