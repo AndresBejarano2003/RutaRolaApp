@@ -101,6 +101,51 @@
         <span class="text-xs text-error mt-1">{{ mensaje }}</span>
       }
     </label>
+    <h4 class="md:col-span-2 text-sm font-semibold uppercase tracking-wide text-info mt-2 border-b border-base-300 pb-1">Acceso a la app</h4>
+    <p class="md:col-span-2 text-xs text-base-content/70 -mt-1">
+      <i class="fa-solid fa-mobile-screen text-info"></i>
+      Con este usuario y contraseña ingresa a la <b>Ruta del día</b>. Puede ser su correo, documento u otro texto.
+    </p>
+    <label class="flex flex-col w-full">
+      <span class="label-text text-base-content/90 mb-1">Usuario <span class="text-error">*</span></span>
+      <input type="text" formControlName="usuario" class="input input-bordered bg-base-100 border-neutral w-full"
+        [class.input-error]="error('usuario')" placeholder="Ej. jcardenas" autocomplete="off" autocapitalize="off" />
+      @if (error('usuario'); as mensaje) {
+        <span class="text-xs text-error mt-1">{{ mensaje }}</span>
+      }
+    </label>
+    @if (!soloLectura()) {
+    <div class="hidden md:block"></div>
+    <label class="flex flex-col w-full">
+      <span class="label-text text-base-content/90 mb-1">
+        {{ modo() === 'crear' ? 'Contraseña' : 'Nueva contraseña' }}
+        @if (modo() === 'crear') { <span class="text-error">*</span> }
+      </span>
+      <span class="input input-bordered bg-base-100 border-neutral w-full flex items-center gap-2" [class.input-error]="error('contrasena')">
+        <input [type]="mostrarContrasena() ? 'text' : 'password'" formControlName="contrasena" class="grow" autocomplete="new-password"
+          [placeholder]="modo() === 'crear' ? 'Mínimo ' + minimoContrasena + ' caracteres' : 'Vacía = conservar la actual'" />
+        <button type="button" class="text-base-content/70 hover:text-base-content" (click)="mostrarContrasena.set(!mostrarContrasena())"
+          [attr.aria-label]="mostrarContrasena() ? 'Ocultar contraseña' : 'Mostrar contraseña'">
+          <i [class]="mostrarContrasena() ? 'fa-solid fa-eye-slash' : 'fa-solid fa-eye'"></i>
+        </button>
+      </span>
+      @if (error('contrasena'); as mensaje) {
+        <span class="text-xs text-error mt-1">{{ mensaje }}</span>
+      }
+    </label>
+    <label class="flex flex-col w-full">
+      <span class="label-text text-base-content/90 mb-1">
+        Confirmar contraseña
+        @if (modo() === 'crear') { <span class="text-error">*</span> }
+      </span>
+      <input [type]="mostrarContrasena() ? 'text' : 'password'" formControlName="confirmarContrasena"
+        class="input input-bordered bg-base-100 border-neutral w-full" [class.input-error]="error('confirmarContrasena')"
+        autocomplete="new-password" placeholder="Repite la contraseña" />
+      @if (error('confirmarContrasena'); as mensaje) {
+        <span class="text-xs text-error mt-1">{{ mensaje }}</span>
+      }
+    </label>
+    }
     <div class="flex flex-col w-full">
       <span class="label-text text-base-content/90 mb-1">Estado <span class="text-error">*</span></span>
       <app-selector-busqueda formControlName="estado" [opciones]="estados" etiqueta="Estado"

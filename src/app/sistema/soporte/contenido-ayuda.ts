@@ -134,6 +134,12 @@ export const PREGUNTAS_FRECUENTES: PreguntaFrecuente[] = [
       'En Operación › Asignaciones elige la ruta, el vehículo, el conductor y la monitora. El conductor debe tener la licencia vigente y el vehículo debe estar activo, con cupo suficiente y documentos al día.',
   },
   {
+    modulo: 'Operación',
+    pregunta: '¿Cómo ven los conductores y monitoras su ruta del día?',
+    respuesta:
+      'Ingresan con el usuario y la contraseña que se les asigna al crearlos en Personas › Empleados (sección "Acceso a la app") y el sistema los lleva a "Ruta del día" (no ven los módulos administrativos). Allí aparecen las rutas de sus asignaciones activas y vigentes; inician la recogida (casa → colegio) o la entrega (colegio → casa) y marcan a cada estudiante como recogido, entregado o "No asistió". Un recorrido solo se finaliza cuando ningún estudiante queda a bordo. El administrador los consulta en Operación › Recorridos.',
+  },
+  {
     modulo: 'General',
     pregunta: '¿Por qué no puedo eliminar un registro?',
     respuesta:

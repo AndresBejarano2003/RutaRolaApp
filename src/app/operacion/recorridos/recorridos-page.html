@@ -1,0 +1,188 @@
+<form [formGroup]="filtros" class="card bg-base-200 border border-base-300 shadow-xl">
+  <app-panel-filtros (limpiar)="filtros.reset()">
+    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+      <label class="input input-bordered bg-base-100 border-neutral w-full flex items-center gap-2 md:col-span-2">
+        <i class="fa-solid fa-magnifying-glass text-base-content/60"></i>
+        <input type="search" formControlName="texto" class="grow" placeholder="Ruta, colegio, placa, conductor o estudiante..."
+          aria-label="Buscar recorrido" />
+      </label>
+      <label class="input input-bordered bg-base-100 border-neutral w-full flex items-center gap-2">
+        <span class="text-base-content/70 text-sm">Desde</span>
+        <input type="date" formControlName="desde" class="grow" [max]="hoy" aria-label="Desde" />
+      </label>
+      <label class="input input-bordered bg-base-100 border-neutral w-full flex items-center gap-2">
+        <span class="text-base-content/70 text-sm">Hasta</span>
+        <input type="date" formControlName="hasta" class="grow" [min]="filtros.controls.desde.value" aria-label="Hasta" />
+      </label>
+      <app-selector-busqueda formControlName="rutaId" [opciones]="rutas()" textoTodos="Todas las rutas" etiqueta="Ruta" />
+      <app-selector-busqueda formControlName="trayecto" [opciones]="trayectos" textoTodos="Recogida y entrega" etiqueta="Trayecto" />
+      <app-selector-busqueda formControlName="estado" [opciones]="estadosRecorrido" textoTodos="Todos los estados" etiqueta="Estado" />
+      <app-selector-busqueda formControlName="novedad" [opciones]="novedades" textoTodos="Con y sin novedades" etiqueta="Novedad" />
+    </div>
+  </app-panel-filtros>
+</form>
+
+<section class="mt-6 card bg-base-200 border border-base-300 shadow-xl">
+  <div class="card-body">
+    <app-encabezado-listado titulo="Historial de recorridos"
+      descripcion="Recogidas y entregas registradas por conductores y monitoras desde la Ruta del día."
+      [cargando]="store.cargando()" [total]="store.total()" [modoLocal]="store.modoLocal" [error]="store.error()"
+      (reintentar)="store.recargar()">
+      <a routerLink="/operacion/asignaciones" class="btn bg-base-300 border-neutral hover:bg-neutral">
+        <i class="fa-solid fa-diagram-project"></i> Asignaciones
+      </a>
+      <button type="button" class="btn btn-primary" [disabled]="exportando() || !store.total()" (click)="exportar()">
+        @if (exportando()) {
+          <span class="loading loading-spinner loading-sm"></span>
+        } @else {
+          <i class="fa-solid fa-file-csv"></i>
+        }
+        Exportar CSV
+      </button>
+    </app-encabezado-listado>
+
+    <div class="@container overflow-x-auto rounded-box border border-base-300">
+      <table class="table">
+        <thead>
+          <tr class="bg-base-300 text-base-content/80 text-xs uppercase tracking-wide">
+            <th>Fecha</th>
+            <th>Ruta</th>
+            <th class="hidden @3xl:table-cell">Trayecto</th>
+            <th class="hidden @5xl:table-cell">Conductor / monitora</th>
+            <th class="hidden @3xl:table-cell">Horario</th>
+            <th class="hidden @6xl:table-cell">Estudiantes</th>
+            <th>Estado</th>
+            <th class="text-right">Acciones</th>
+          </tr>
+        </thead>
+        <tbody class="transition-opacity" [class.opacity-50]="store.cargando() && store.items().length > 0">
+          @if (store.cargando() && store.items().length === 0) {
+            @for (fila of [1, 2, 3, 4]; track fila) {
+              <tr class="border-base-300">
+                @for (col of [1, 2, 3, 4, 5, 6, 7, 8]; track col) {
+                  <td><div class="skeleton bg-base-300 h-4 w-full"></div></td>
+                }
+              </tr>
+            }
+          } @else {
+            @for (r of store.items(); track r.id) {
+              @let c = contar(r.paradas);
+              <tr class="border-base-300 hover:bg-base-300/50 cursor-pointer transition-colors" (click)="consultar(r)">
+                <td>
+                  <div class="font-medium">{{ fechaCorta(r.fecha) }}</div>
+                  <div class="text-xs text-base-content/70 @3xl:hidden">{{ nombreTrayecto(r.trayecto) }} · {{ hora(r.inicio) }}</div>
+                </td>
+                <td>
+                  <div class="font-medium">{{ r.ruta }}</div>
+                  <div class="text-xs text-base-content/70">{{ r.colegio }} · {{ r.jornada }}</div>
+                </td>
+                <td class="hidden @3xl:table-cell">
+                  <span class="badge badge-sm bg-base-300 border-neutral gap-1">
+                    <i [class]="r.trayecto === 'RECOGIDA' ? 'fa-solid fa-house-chimney-user text-info' : 'fa-solid fa-school text-info'"></i>
+                    {{ nombreTrayecto(r.trayecto) }}
+                  </span>
+                </td>
+                <td class="hidden @5xl:table-cell">
+                  <div>{{ r.conductor }}</div>
+                  <div class="text-xs text-base-content/70">{{ r.monitora || 'Sin monitora' }} · {{ r.vehiculo }}</div>
+                </td>
+                <td class="hidden @3xl:table-cell">
+                  <div>{{ hora(r.inicio) }} – {{ r.fin ? hora(r.fin) : '…' }}</div>
+                  <div class="text-xs text-base-content/70">{{ duracion(r) }}</div>
+                </td>
+                <td class="hidden @6xl:table-cell">
+                  <span class="text-success">{{ c.entregados }}</span>/{{ c.total }} entregados
+                  @if (c.ausentes) {
+                    <span class="badge badge-soft badge-warning badge-sm ml-1">{{ c.ausentes }} no asistió</span>
+                  }
+                </td>
+                <td>
+                  @if (r.estado === 'EN_CURSO') {
+                    <span class="badge badge-soft badge-info badge-sm">En curso</span>
+                  } @else {
+                    <span class="badge badge-soft badge-success badge-sm">Finalizado</span>
+                  }
+                </td>
+                <td class="text-right" (click)="$event.stopPropagation()">
+                  <div class="tooltip tooltip-left" data-tip="Consultar">
+                    <button type="button" class="btn btn-sm btn-ghost btn-square text-info hover:bg-info/15" aria-label="Consultar"
+                      (click)="consultar(r)"><i class="fa-solid fa-eye"></i></button>
+                  </div>
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="8">
+                  <app-estado-vacio icono="fa-solid fa-clock-rotate-left"
+                    mensaje="Aún no hay recorridos. Aparecen cuando un conductor o monitora inicia su ruta del día."
+                    textoCrear="" [hayFiltros]="store.hayFiltros()" />
+                </td>
+              </tr>
+            }
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <app-paginacion [pagina]="store.paginacion().pagina" [tamano]="store.paginacion().tamano" [total]="store.total()"
+      [totalPaginas]="store.totalPaginas()" (cambiarPagina)="store.irAPagina($event)" (cambiarTamano)="store.cambiarTamano($event)" />
+  </div>
+</section>
+
+<app-modal [(abierto)]="detalleAbierto" titulo="Detalle del recorrido"
+  [subtitulo]="detalle() ? nombreTrayecto(detalle()!.trayecto) + ' · ' + fechaCorta(detalle()!.fecha) : ''">
+  @if (detalleAbierto() && detalle(); as r) {
+    <div class="space-y-5">
+      <div>
+        <h4 class="text-sm font-semibold uppercase tracking-wide text-info mb-2 border-b border-base-300 pb-1">Recorrido</h4>
+        <dl class="grid sm:grid-cols-2 gap-x-4 gap-y-2 text-sm">
+          <div><dt class="text-base-content/70">Ruta</dt><dd>{{ r.ruta }} · Jornada {{ r.jornada }}</dd></div>
+          <div><dt class="text-base-content/70">Colegio</dt><dd>{{ r.colegio }}</dd></div>
+          <div><dt class="text-base-content/70">Vehículo</dt><dd>{{ r.vehiculo }}</dd></div>
+          <div><dt class="text-base-content/70">Personal</dt><dd>{{ r.conductor }} · {{ r.monitora || 'Sin monitora' }}</dd></div>
+          <div><dt class="text-base-content/70">Horario</dt><dd>{{ hora(r.inicio) }} – {{ r.fin ? hora(r.fin) : 'en curso' }} ({{ duracion(r) }})</dd></div>
+          <div><dt class="text-base-content/70">Estado</dt>
+            <dd>
+              @if (r.estado === 'EN_CURSO') {
+                <span class="badge badge-soft badge-info badge-sm">En curso</span>
+              } @else {
+                <span class="badge badge-soft badge-success badge-sm">Finalizado</span>
+              }
+            </dd>
+          </div>
+          @if (r.observaciones) {
+            <div class="sm:col-span-2"><dt class="text-base-content/70">Observaciones</dt><dd class="whitespace-pre-line">{{ r.observaciones }}</dd></div>
+          }
+        </dl>
+      </div>
+      <div>
+        <h4 class="text-sm font-semibold uppercase tracking-wide text-info mb-2 border-b border-base-300 pb-1">
+          Estudiantes ({{ r.paradas.length }})
+        </h4>
+        <ol class="divide-y divide-base-300">
+          @for (p of r.paradas; track p.estudianteId; let i = $index) {
+            <li class="py-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
+              <span class="w-6 h-6 rounded-full bg-base-300 grid place-items-center text-xs font-semibold shrink-0">{{ i + 1 }}</span>
+              <div class="min-w-0 flex-1 basis-48">
+                <p class="font-medium">{{ p.estudiante }}</p>
+                <p class="text-xs text-base-content/70">{{ p.grado }} · {{ p.direccion }}</p>
+              </div>
+              <div class="text-xs text-base-content/70 text-right">
+                @if (p.horaAbordo) { <div>Subió {{ hora(p.horaAbordo) }}</div> }
+                @if (p.horaEntrega) { <div>Entregado {{ hora(p.horaEntrega) }}</div> }
+              </div>
+              <span class="badge badge-sm gap-1" [class]="estadosParada[p.estado].badge">
+                <i [class]="estadosParada[p.estado].icono"></i> {{ estadosParada[p.estado].nombre }}
+              </span>
+            </li>
+          }
+        </ol>
+      </div>
+    </div>
+  }
+  @if (detalleAbierto()) {
+    <div pie class="flex flex-wrap justify-end gap-2">
+      <button type="button" class="btn btn-ghost" (click)="detalleAbierto.set(false)">Cerrar</button>
+    </div>
+  }
+</app-modal>

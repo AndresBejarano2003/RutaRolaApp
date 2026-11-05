@@ -64,6 +64,7 @@ export const MENU_OPERATIVO: OpcionMenu[] = [
       { icono: 'fa-solid fa-bus', etiqueta: 'Vehículos', ruta: '/operacion/vehiculos' },
       { icono: 'fa-solid fa-id-badge', etiqueta: 'Conductores', ruta: '/operacion/conductores' },
       { icono: 'fa-solid fa-diagram-project', etiqueta: 'Asignaciones', ruta: '/operacion/asignaciones' },
+      { icono: 'fa-solid fa-clock-rotate-left', etiqueta: 'Recorridos', ruta: '/operacion/recorridos' },
     ],
   },
 ];

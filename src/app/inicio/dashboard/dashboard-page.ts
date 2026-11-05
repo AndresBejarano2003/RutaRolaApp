@@ -16,7 +16,7 @@ import {
   ApexYAxis,
   NgApexchartsModule,
 } from 'ng-apexcharts';
-import { USUARIO_DEMO } from 'src/app/core/auth';
+import { AuthService } from 'src/app/core/auth';
 import { MEDIOS_PAGO, MedioPago } from 'src/app/finanzas/recibos/recibo';
 import { CambiosDatos } from 'src/app/shared/crud/cambios-datos';
 import { mensajeDeError } from 'src/app/shared/crud/crud';
@@ -66,7 +66,7 @@ export default class DashboardPage {
   protected readonly fechaCorta = fechaCorta;
 
   private readonly ahora = new Date();
-  protected readonly saludo = `${this.ahora.getHours() < 12 ? 'Buenos días' : this.ahora.getHours() < 19 ? 'Buenas tardes' : 'Buenas noches'}, ${USUARIO_DEMO.nombre.split(' ')[0]}`;
+  protected readonly saludo = `${this.ahora.getHours() < 12 ? 'Buenos días' : this.ahora.getHours() < 19 ? 'Buenas tardes' : 'Buenas noches'}, ${inject(AuthService).sesion()?.nombre.split(' ')[0] ?? ''}`;
   protected readonly fechaHoy = this.ahora.toLocaleDateString('es-CO', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
 
   protected readonly accesos = [

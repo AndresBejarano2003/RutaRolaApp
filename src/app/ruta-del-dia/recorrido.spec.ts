@@ -1,0 +1,100 @@
+import { TestBed } from '@angular/core/testing';
+import { firstValueFrom } from 'rxjs';
+import { AuthService } from 'src/app/core/auth';
+import { repositoriosDePrueba } from 'src/app/shared/pruebas/pruebas';
+import { fechaIso } from 'src/app/shared/fechas/fechas';
+import { Parada, cambiarEstado, motivoNoFinalizar, siguientePaso } from './recorrido';
+import { RecorridosRepositorio } from './recorridos-repositorio';
+
+const parada = (id: string, estado: Parada['estado'] = 'PENDIENTE'): Parada => ({
+  estudianteId: id, estudiante: id, grado: '', direccion: '', acudiente: '', telefonoAcudiente: '', estado, horaAbordo: null, horaEntrega: null,
+});
+
+describe('Reglas del recorrido', () => {
+  it('recogida: recoger en orden y luego entregar a todos en el colegio', () => {
+    expect(siguientePaso({ trayecto: 'RECOGIDA', paradas: [parada('a', 'A_BORDO'), parada('b')] })).toMatchObject({ tipo: 'RECOGER', parada: { estudianteId: 'b' } });
+    expect(siguientePaso({ trayecto: 'RECOGIDA', paradas: [parada('a', 'A_BORDO'), parada('b', 'AUSENTE')] })).toEqual({ tipo: 'LLEGADA_COLEGIO', aBordo: 1 });
+    expect(siguientePaso({ trayecto: 'RECOGIDA', paradas: [parada('a', 'ENTREGADO')] })).toEqual({ tipo: 'FINALIZAR' });
+  });
+
+  it('entrega: primero el abordaje en el colegio y luego cada casa', () => {
+    expect(siguientePaso({ trayecto: 'ENTREGA', paradas: [parada('a'), parada('b', 'A_BORDO')] }).tipo).toBe('ABORDAJE');
+    expect(siguientePaso({ trayecto: 'ENTREGA', paradas: [parada('a', 'ENTREGADO'), parada('b', 'A_BORDO')] })).toMatchObject({ tipo: 'ENTREGAR', parada: { estudianteId: 'b' } });
+  });
+
+  it('nadie puede quedar a bordo ni sin marcar al finalizar', () => {
+    expect(motivoNoFinalizar([parada('a', 'A_BORDO')])).toContain('a bordo');
+    expect(motivoNoFinalizar([parada('a')])).toContain('Falta 1');
+    expect(motivoNoFinalizar([parada('a', 'ENTREGADO'), parada('b', 'AUSENTE')])).toBeNull();
+  });
+
+  it('solo permite las transiciones válidas y guarda la hora', () => {
+    const abordo = cambiarEstado(parada('a'), 'A_BORDO', 'T1');
+    expect(abordo).toMatchObject({ estado: 'A_BORDO', horaAbordo: 'T1' });
+    expect(cambiarEstado(abordo, 'ENTREGADO', 'T2')).toMatchObject({ horaAbordo: 'T1', horaEntrega: 'T2' });
+    expect(() => cambiarEstado(parada('a'), 'ENTREGADO', 'T')).toThrow('no se puede pasar');
+    expect(() => cambiarEstado(parada('a', 'AUSENTE'), 'A_BORDO', 'T')).toThrow();
+  });
+});
+
+describe('RecorridosLocal', () => {
+  let repo: RecorridosRepositorio;
+  const entrar = (empleadoId: string, rol: 'CONDUCTOR' | 'MONITORA' = 'CONDUCTOR') =>
+    TestBed.inject(AuthService).abrirSesion({ usuario: 'x', nombre: 'X', correo: '', rol, empleadoId, imagen: '', inicio: '' });
+
+  beforeEach(() => {
+    localStorage.clear();
+    sessionStorage.clear();
+    TestBed.configureTestingModule({ providers: repositoriosDePrueba() });
+    repo = TestBed.inject(RecorridosRepositorio);
+    // Las asignaciones de ejemplo terminan el 2026-11-30: se fija la fecha para que la prueba no caduque.
+    vi.useFakeTimers({ now: new Date('2026-11-05T06:30:00'), toFake: ['Date'] });
+  });
+
+  afterEach(() => vi.useRealTimers());
+
+  it('cada empleado ve solo sus rutas; conductor y monitora comparten el recorrido', async () => {
+    entrar('emp-1');
+    const rutas = await firstValueFrom(repo.rutasDelDia(fechaIso()));
+    expect(rutas.map((r) => r.ruta)).toEqual(['R-01 · Norte']);
+    expect(rutas[0]).toMatchObject({ rol: 'CONDUCTOR', companero: { rol: 'MONITORA' }, estudiantes: 2 });
+
+    const r = await firstValueFrom(repo.iniciar(rutas[0].asignacionId, 'RECOGIDA'));
+    entrar('emp-6', 'MONITORA');
+    expect((await firstValueFrom(repo.obtener(r.id))).id).toBe(r.id);
+    entrar('emp-2');
+    await expect(firstValueFrom(repo.obtener(r.id))).rejects.toThrow('no pertenece');
+    await expect(firstValueFrom(repo.iniciar(rutas[0].asignacionId, 'ENTREGA'))).rejects.toThrow('no está asignada');
+  });
+
+  it('recogida completa: un recorrido por trayecto al día y no se finaliza con estudiantes a bordo', async () => {
+    entrar('emp-1');
+    const [ruta] = await firstValueFrom(repo.rutasDelDia(fechaIso()));
+    let r = await firstValueFrom(repo.iniciar(ruta.asignacionId, 'RECOGIDA'));
+    expect(r.paradas.map((p) => p.estudianteId)).toEqual(['est-1', 'est-2']);
+    expect(r.paradas[0].acudiente).not.toBe('');
+    await expect(firstValueFrom(repo.iniciar(ruta.asignacionId, 'ENTREGA'))).rejects.toThrow('en curso');
+
+    r = await firstValueFrom(repo.marcar(r.id, ['est-1'], 'A_BORDO'));
+    r = await firstValueFrom(repo.marcar(r.id, ['est-2'], 'AUSENTE'));
+    await expect(firstValueFrom(repo.finalizar(r.id, ''))).rejects.toThrow('a bordo');
+    r = await firstValueFrom(repo.marcar(r.id, ['est-1'], 'ENTREGADO'));
+    r = await firstValueFrom(repo.finalizar(r.id, ' Sin novedad '));
+    expect(r).toMatchObject({ estado: 'FINALIZADO', observaciones: 'Sin novedad' });
+    await expect(firstValueFrom(repo.marcar(r.id, ['est-1'], 'A_BORDO'))).rejects.toThrow('finalizado');
+    await expect(firstValueFrom(repo.iniciar(ruta.asignacionId, 'RECOGIDA'))).rejects.toThrow('ya fue registrada');
+
+    // La entrega recorre la ruta al revés.
+    const entrega = await firstValueFrom(repo.iniciar(ruta.asignacionId, 'ENTREGA'));
+    expect(entrega.paradas.map((p) => p.estudianteId)).toEqual(['est-2', 'est-1']);
+    const [hoy] = await firstValueFrom(repo.rutasDelDia(fechaIso()));
+    expect(hoy.recorridos.map((x) => [x.trayecto, x.estado])).toEqual([['RECOGIDA', 'FINALIZADO'], ['ENTREGA', 'EN_CURSO']]);
+  });
+
+  it('sin asignación vigente no hay rutas', async () => {
+    entrar('emp-3');
+    expect(await firstValueFrom(repo.rutasDelDia(fechaIso()))).toEqual([]);
+    entrar('emp-1');
+    expect(await firstValueFrom(repo.rutasDelDia('2026-12-15'))).toEqual([]);
+  });
+});

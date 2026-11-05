@@ -62,6 +62,9 @@ describe('EmpleadosPage', () => {
     ui.elegir('tipoContrato', 'indefinido');
     ui.escribir('sueldo', '2300000');
     ui.escribir('telefono', '3009998877');
+    ui.escribir('usuario', 'malvarez');
+    ui.escribir('contrasena', 'clave123');
+    ui.escribir('confirmarContrasena', 'clave123');
 
     ui.boton('Registrar empleado').click();
     await estabilizar(fixture);
@@ -75,5 +78,17 @@ describe('EmpleadosPage', () => {
 
     expect(el.textContent).toContain('9 registros');
     expect(el.textContent).toContain('Mario Álvarez');
+  });
+
+  it('pide usuario y contraseña confirmada para el acceso a la app', async () => {
+    ui.boton('Nuevo empleado').click();
+    await estabilizar(fixture);
+    ui.escribir('usuario', 'con espacio');
+    ui.escribir('contrasena', 'clave123');
+    ui.escribir('confirmarContrasena', 'otra');
+    ui.boton('Registrar empleado').click();
+    await estabilizar(fixture);
+    expect(el.textContent).toContain('Entre 4 y 40 caracteres, sin espacios.');
+    expect(el.textContent).toContain('Las contraseñas no coinciden.');
   });
 });

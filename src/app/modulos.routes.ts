@@ -1,24 +1,41 @@
 import { Routes } from '@angular/router';
+import { ROLES_OPERATIVOS } from './core/auth';
+import { soloInvitados, soloRoles } from './core/guardias';
 import { proveerRepositorios } from './core/repositorios';
 
-/** Layout con barra superior y menú lateral, compartido por los módulos internos. */
+/** Layout del sistema administrativo: barra superior + menú lateral. */
 const shell = () => import('./layout/shell/shell');
+/** Layout de la app del conductor/monitora: móvil, sin menú lateral. */
+const shellConductor = () => import('./layout/shell-conductor/shell-conductor');
+const administrador = [soloRoles('ADMINISTRADOR')];
 
 /**
- * Módulos internos (con layout). Se cargan de forma diferida junto con los
- * repositorios: la ruta padre los provee UNA vez para todos los módulos, así
- * comparten instancias (los módulos se enlazan entre sí) sin inflar el bundle inicial.
+ * Login y sistemas por TIPO DE USUARIO. Se cargan de forma diferida junto con los
+ * repositorios: la ruta padre los provee UNA vez para todos, así comparten instancias
+ * (los módulos se enlazan entre sí) sin inflar el bundle inicial. El login va aquí
+ * porque, en modo local, resuelve el rol consultando los empleados.
+ *
+ * - ADMINISTRADOR → `/inicio` y los módulos administrativos.
+ * - CONDUCTOR / MONITORA → `/ruta-del-dia`.
+ * Los guards (`core/guardias.ts`) llevan a cada quien a su sistema si entra a una URL de otro rol.
  */
 export default [
   {
     path: '',
     providers: proveerRepositorios(),
     children: [
-      { path: 'inicio', loadComponent: shell, loadChildren: () => import('./inicio/inicio.routes') },
-      { path: 'personas', loadComponent: shell, loadChildren: () => import('./personas/personas.routes') },
-      { path: 'finanzas', loadComponent: shell, loadChildren: () => import('./finanzas/finanzas.routes') },
-      { path: 'operacion', loadComponent: shell, loadChildren: () => import('./operacion/operacion.routes') },
-      { path: 'sistema', loadComponent: shell, loadChildren: () => import('./sistema/sistema.routes') },
+      { path: 'login', canActivate: [soloInvitados], loadComponent: () => import('./autenticacion/login/login-page') },
+      { path: 'inicio', canActivate: administrador, loadComponent: shell, loadChildren: () => import('./inicio/inicio.routes') },
+      { path: 'personas', canActivate: administrador, loadComponent: shell, loadChildren: () => import('./personas/personas.routes') },
+      { path: 'finanzas', canActivate: administrador, loadComponent: shell, loadChildren: () => import('./finanzas/finanzas.routes') },
+      { path: 'operacion', canActivate: administrador, loadComponent: shell, loadChildren: () => import('./operacion/operacion.routes') },
+      { path: 'sistema', canActivate: administrador, loadComponent: shell, loadChildren: () => import('./sistema/sistema.routes') },
+      {
+        path: 'ruta-del-dia',
+        canActivate: [soloRoles(...ROLES_OPERATIVOS)],
+        loadComponent: shellConductor,
+        loadChildren: () => import('./ruta-del-dia/ruta-del-dia.routes'),
+      },
     ],
   },
 ] satisfies Routes;

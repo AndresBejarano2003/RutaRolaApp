@@ -29,11 +29,12 @@ rutas, variables y textos en **español**.
 
 ```
 src/app/
-  core/           servicios globales (auth, whatsapp) y repositorios.ts (fuente de datos de cada módulo)
-  modulos.routes.ts  módulos internos (con layout) cargados de forma diferida junto con los repositorios
-  layout/         shell, barra-superior, campana-notificaciones, menu-lateral (opciones-menu.ts)
+  core/           auth.ts (sesión y roles), guardias.ts (guards por rol), whatsapp y repositorios.ts (fuente de datos de cada módulo)
+  modulos.routes.ts  login + sistemas por tipo de usuario (con layout y guards), diferidos junto con los repositorios
+  layout/         shell (administrativo), shell-conductor (ruta del día), barra-superior, campana-notificaciones, menu-lateral
+  ruta-del-dia/   app del conductor/monitora: rutas de hoy y recorrido paso a paso
   shared/         piezas reutilizables (crud, modal, paginación, notificaciones, formularios, catálogos, fechas, exportar, pruebas)
-  autenticacion/  login, registro, recuperar
+  autenticacion/  login (+ AutenticacionRepositorio local/HTTP), registro, recuperar
   inicio/         dashboard, perfil, configuración, notificaciones
   personas/  finanzas/  operacion/  sistema/     una carpeta por pantalla + <modulo>.routes.ts
 ```
@@ -188,6 +189,58 @@ lo obtiene de forma diferida con `Injector.get()` dentro del método, no con `in
   de una lista fija), prioridad (Media por defecto), asunto de 5 a 120 caracteres y descripción de 20 a
   2000; admite hasta 3 adjuntos (PDF o imagen, 1 MB c/u). El consecutivo `SOP-0001` lo asigna el servidor.
   WhatsApp se abre con lo que el usuario ya escribió en el formulario.
+
+### Tipos de usuario y acceso (`core/auth.ts`, `core/guardias.ts`, `autenticacion/`)
+Cada tipo de usuario entra a SU sistema; el rol lo decide el servidor al iniciar sesión.
+
+| Rol | Entra a | Ve |
+|---|---|---|
+| `ADMINISTRADOR` | `/inicio` | Sistema administrativo completo (menú lateral, todos los módulos) |
+| `CONDUCTOR` / `MONITORA` | `/ruta-del-dia` | Solo la app de la ruta del día (layout `shell-conductor`, sin menú lateral) |
+
+- `AutenticacionRepositorio` (`AutenticacionLocal` → `AutenticacionHttp`, `POST /auth/login` → `Sesion`)
+  valida las credenciales; `AuthService` guarda la sesión (`rutarola.sesion`: `localStorage` con
+  "Recordarme", si no `sessionStorage`). **Cerrar sesión borra solo la sesión**, nunca los datos.
+- **El login pide "Usuario"** (no correo): cada quien decide si es su correo, documento u otro texto.
+- **Credenciales de empleados:** el formulario de Personas › Empleados tiene la sección "Acceso a la app"
+  con usuario (obligatorio, único, 4–40 caracteres sin espacios, se guarda en minúsculas) y contraseña
+  (obligatoria al crear, mínimo 6, con "Confirmar contraseña"; al editar, vacía = conservar la actual).
+  La contraseña es de SOLO ESCRITURA: el API nunca la devuelve y debe guardarla con hash.
+- Login local: usuario + contraseña de un empleado → CONDUCTOR o MONITORA según su tipo (inactivo → no
+  entra); `admin` / `rutarola` → ADMINISTRADOR. Error genérico "Usuario o contraseña incorrectos" (no se
+  revela cuál falló). Las contraseñas locales viven aparte de los registros (`rutarola.credenciales`,
+  `autenticacion/credenciales-local.ts`); los empleados de ejemplo usan inicial + apellido (`jcardenas`,
+  `ycharry`…) con contraseña `rutarola`. La pantalla muestra un acceso de prueba por rol.
+- Guards: `soloRoles(...)` en cada módulo (sin sesión → `/login?volver=<url>`; otro rol → la entrada de
+  su sistema) y `soloInvitados` en el login. `volver` solo acepta rutas internas (`rutaInternaSegura`).
+- El login vive en `modulos.routes.ts` (no en `app.routes.ts`) porque en modo local consulta empleados.
+- La barra superior y el saludo del inicio muestran el usuario de la sesión.
+
+### Ruta del día (`ruta-del-dia/`)
+App para el celular del conductor y la monitora, dentro del vehículo.
+- **Rutas de hoy:** las de sus asignaciones ACTIVAS vigentes en la fecha (`fechaInicio ≤ hoy ≤ fechaFin`)
+  con ruta activa; muestra colegio, vehículo, número de estudiantes y el compañero (conductor ↔ monitora)
+  con botón de llamar. El empleado sale de la sesión/token, nunca de un parámetro.
+- **Trayectos:** `RECOGIDA` (casa → colegio, en el orden de la ruta) y `ENTREGA` (colegio → casa, en orden
+  inverso). Un recorrido por asignación, fecha y trayecto; uno solo `EN_CURSO` por asignación. Conductor
+  y monitora comparten el mismo recorrido.
+- **Snapshot:** al iniciar se guardan ruta, colegio, vehículo, personal y, por estudiante activo de la
+  ruta, nombre, grado, dirección y acudiente con teléfono.
+- **Estados por estudiante:** `PENDIENTE → A_BORDO → ENTREGADO` o `PENDIENTE → AUSENTE` ("No asistió"),
+  con hora; "Deshacer" vuelve al estado anterior. Otras transiciones → 422.
+- **Siguiente paso** (`siguientePaso`): recogida = recoger al siguiente pendiente y luego "Entregar en el
+  colegio" a todos los que van a bordo; entrega = abordaje en el colegio y luego cada casa. Cada parada
+  ofrece "Cómo llegar" (Google Maps), llamar y avisar por WhatsApp al acudiente.
+- **Finalizar** solo con todos ENTREGADOS o AUSENTES: **ningún estudiante puede quedar a bordo**.
+  Un recorrido finalizado no se modifica. Si se cierra la app, el recorrido en curso se retoma desde "Mis rutas".
+- **Historial** (Operación › Recorridos, solo lectura, administrador): todos los recorridos del más
+  reciente al más antiguo, filtros por texto (ruta, colegio, placa, personal, estudiante), rango de fechas,
+  ruta, trayecto, estado y novedad (con ausencias / con observaciones); detalle con la hora de cada
+  estudiante y exportación CSV de todo lo filtrado. `HistorialRecorridosRepositorio`
+  (`HistorialRecorridosLocal` → `HistorialRecorridosHttp`, `GET /recorridos`).
+- `RecorridosRepositorio` (`RecorridosLocal`, `rutarola.recorridos` → `RecorridosHttp`, endpoints y
+  códigos 409/422 documentados en la clase). Botones grandes, una sola acción principal (`btn-primary`)
+  y sin toasts por cada marca (solo errores y el cierre).
 
 ### Inicio (`inicio/dashboard/`)
 
@@ -485,13 +538,18 @@ Las pantallas que aún usan grises fijos se migran a estas clases cuando se modi
 
 ## 5. Pendientes conocidos
 
-- **Autenticación provisional:** `core/auth.ts` acepta cualquier usuario y contraseña no vacíos.
+- **Autenticación provisional:** `AutenticacionLocal` guarda las contraseñas sin hash en el navegador (solo
+  demo) y el administrador es fijo (`admin`). Con API: cambiar a `AutenticacionHttp`, agregar el token
+  (interceptor) del que el servidor saca el usuario en cada petición y un módulo de usuarios administrativos.
+  Datos locales creados antes de este cambio no tienen usuario: editar el empleado o limpiar los datos.
+- **Ruta del día:** los recorridos se guardan en `localStorage` (`RecorridosLocal`). Falta que el servidor
+  avise al acudiente (recogido, entregado, no asistió).
 - **Modo local:** todas las pantallas de Personas, Operación y Finanzas funcionan con `localStorage`
   hasta que exista el API (cambiar `useClass` en `core/repositorios.ts`).
 - **Envíos automáticos:** la programación de facturación solo guarda la configuración; el envío por
   WhatsApp/correo y su historial los debe hacer el servidor (`WhatsappService` apunta a
   `${apiUrl}/whatsapp/enviar.php`, que no existe aún).
-- **Datos fijos:** el usuario de la barra superior y del saludo (`USUARIO_DEMO`) y Planes y Membresías siguen
+- **Datos fijos:** el perfil del administrador local (`USUARIO_DEMO`) y Planes y Membresías siguen
   con datos de ejemplo. El inicio se calcula en el navegador (`TableroLocal`) hasta que exista `GET /tablero`.
 - **Notificaciones:** se generan en el navegador (`NotificacionesLocal`) a partir de los datos locales;
   con API, el servidor debe crearlas con las mismas reglas y cambiar a `NotificacionesHttp`.

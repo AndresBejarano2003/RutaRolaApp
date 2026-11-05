@@ -1,0 +1,225 @@
+<section class="space-y-4">
+  <a routerLink="/ruta-del-dia" class="btn btn-ghost btn-sm -ml-2">
+    <i class="fa-solid fa-arrow-left" aria-hidden="true"></i> Mis rutas
+  </a>
+
+  @if (cargando() && !recorrido()) {
+    <div class="card bg-base-200 border border-base-300 p-5 space-y-3">
+      <div class="skeleton h-6 w-2/3"></div>
+      <div class="skeleton h-4 w-full"></div>
+      <div class="skeleton h-32 w-full"></div>
+    </div>
+  } @else if (error()) {
+    <div role="alert" class="alert alert-error alert-soft">
+      <i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i>
+      <span>{{ error() }}</span>
+    </div>
+  } @else if (recorrido(); as r) {
+    <!-- Encabezado y avance -->
+    <header class="card bg-base-200 border border-base-300 shadow-xl">
+      <div class="card-body p-4 sm:p-5 gap-3">
+        <div class="flex flex-wrap items-start justify-between gap-2">
+          <div class="min-w-0">
+            <p class="text-sm text-info font-semibold uppercase tracking-wide flex items-center gap-2">
+              <i [class]="trayecto().icono" aria-hidden="true"></i> {{ trayecto().nombre }} · {{ trayecto().descripcion }}
+            </p>
+            <h1 class="text-xl font-bold">{{ r.ruta }}</h1>
+            <p class="text-sm text-base-content/70">{{ r.colegio }} · {{ r.vehiculo }} · Jornada {{ r.jornada }}</p>
+          </div>
+          @if (enCurso()) {
+            <span class="badge badge-soft badge-info">En curso desde {{ hora(r.inicio) }}</span>
+          } @else {
+            <span class="badge badge-soft badge-success">Finalizado {{ hora(r.fin) }}</span>
+          }
+        </div>
+        <div>
+          <div class="flex justify-between text-sm mb-1">
+            <span>{{ conteo().entregados + conteo().ausentes }} de {{ conteo().total }} resueltos</span>
+            <span class="font-semibold">{{ avance() }} %</span>
+          </div>
+          <progress class="progress w-full" [class]="enCurso() ? 'progress-info' : 'progress-success'" [value]="avance()" max="100"
+            aria-label="Avance del recorrido"></progress>
+        </div>
+        <div class="grid grid-cols-4 gap-2 text-center">
+          <div class="rounded-box bg-base-100 p-2"><p class="text-lg font-bold">{{ conteo().pendientes }}</p><p class="text-xs text-base-content/70">Pendientes</p></div>
+          <div class="rounded-box bg-base-100 p-2"><p class="text-lg font-bold text-info">{{ conteo().aBordo }}</p><p class="text-xs text-base-content/70">A bordo</p></div>
+          <div class="rounded-box bg-base-100 p-2"><p class="text-lg font-bold text-success">{{ conteo().entregados }}</p><p class="text-xs text-base-content/70">Entregados</p></div>
+          <div class="rounded-box bg-base-100 p-2"><p class="text-lg font-bold text-warning">{{ conteo().ausentes }}</p><p class="text-xs text-base-content/70">No asistió</p></div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Siguiente paso -->
+    @if (paso(); as p) {
+      <section class="card bg-base-200 border-2 border-primary/60 shadow-xl" aria-live="polite">
+        <div class="card-body p-4 sm:p-5 gap-4">
+          @switch (p.tipo) {
+            @case ('RECOGER') {
+              <ng-container *ngTemplateOutlet="parada; context: { $implicit: p.parada, titulo: 'Próxima recogida' }" />
+              <div class="grid grid-cols-2 gap-2">
+                <button type="button" class="btn btn-primary btn-lg h-auto min-h-14 py-3 leading-tight" [disabled]="procesando()"
+                  (click)="marcar([p.parada.estudianteId], 'A_BORDO')">
+                  <i class="fa-solid fa-check" aria-hidden="true"></i> Recogido
+                </button>
+                <button type="button" class="btn btn-lg h-auto min-h-14 py-3 leading-tight bg-base-300 border-neutral hover:bg-neutral" [disabled]="procesando()"
+                  (click)="marcar([p.parada.estudianteId], 'AUSENTE')">
+                  <i class="fa-solid fa-user-slash" aria-hidden="true"></i> No asistió
+                </button>
+              </div>
+            }
+            @case ('LLEGADA_COLEGIO') {
+              <div class="flex items-start gap-3">
+                <div class="w-12 h-12 rounded-full bg-primary/15 text-primary grid place-items-center shrink-0">
+                  <i class="fa-solid fa-school text-xl" aria-hidden="true"></i>
+                </div>
+                <div class="min-w-0">
+                  <p class="text-sm text-base-content/70 uppercase tracking-wide">Llegada al colegio</p>
+                  <h2 class="text-xl font-bold">{{ r.colegio }}</h2>
+                  <p class="text-base-content/70">{{ r.direccionColegio }}</p>
+                  <a class="link link-secondary text-sm" [href]="enlaceMapa(r.direccionColegio)" target="_blank" rel="noopener">
+                    <i class="fa-solid fa-diamond-turn-right" aria-hidden="true"></i> Cómo llegar
+                  </a>
+                </div>
+              </div>
+              <button type="button" class="btn btn-primary btn-lg h-auto min-h-14 py-3 leading-tight w-full" [disabled]="procesando()"
+                (click)="marcar(idsCon('A_BORDO'), 'ENTREGADO')">
+                <i class="fa-solid fa-people-arrows" aria-hidden="true"></i>
+                Entregar {{ p.aBordo === 1 ? '1 estudiante' : p.aBordo + ' estudiantes' }} en el colegio
+              </button>
+            }
+            @case ('ABORDAJE') {
+              <div class="flex items-start gap-3">
+                <div class="w-12 h-12 rounded-full bg-primary/15 text-primary grid place-items-center shrink-0">
+                  <i class="fa-solid fa-clipboard-check text-xl" aria-hidden="true"></i>
+                </div>
+                <div class="min-w-0">
+                  <p class="text-sm text-base-content/70 uppercase tracking-wide">Abordaje en el colegio</p>
+                  <h2 class="text-xl font-bold">{{ p.pendientes.length === 1 ? 'Falta 1 estudiante' : 'Faltan ' + p.pendientes.length + ' estudiantes' }}</h2>
+                  <p class="text-base-content/70">Marca quién subió al vehículo y quién no asistió.</p>
+                </div>
+              </div>
+              <button type="button" class="btn btn-primary btn-lg h-auto min-h-14 py-3 leading-tight w-full" [disabled]="procesando()"
+                (click)="marcar(idsCon('PENDIENTE'), 'A_BORDO')">
+                <i class="fa-solid fa-check-double" aria-hidden="true"></i> Subieron todos
+              </button>
+            }
+            @case ('ENTREGAR') {
+              <ng-container *ngTemplateOutlet="parada; context: { $implicit: p.parada, titulo: 'Próxima entrega' }" />
+              <button type="button" class="btn btn-primary btn-lg h-auto min-h-14 py-3 leading-tight w-full" [disabled]="procesando()"
+                (click)="marcar([p.parada.estudianteId], 'ENTREGADO')">
+                <i class="fa-solid fa-house-circle-check" aria-hidden="true"></i> Entregado
+              </button>
+            }
+            @case ('FINALIZAR') {
+              <div class="flex items-start gap-3">
+                <div class="w-12 h-12 rounded-full bg-success/15 text-success grid place-items-center shrink-0">
+                  <i class="fa-solid fa-flag-checkered text-xl" aria-hidden="true"></i>
+                </div>
+                <div class="min-w-0">
+                  <h2 class="text-xl font-bold">Todos los estudiantes están resueltos</h2>
+                  <p class="text-base-content/70">Ninguno quedó a bordo. Finaliza el recorrido para registrarlo.</p>
+                </div>
+              </div>
+              <label class="flex flex-col gap-1">
+                <span class="label-text text-base-content/90">Observaciones (opcional)</span>
+                <textarea class="textarea bg-base-100 border-neutral w-full" rows="2" maxlength="500" [(ngModel)]="observaciones"
+                  placeholder="Novedades del recorrido: tráfico, incidentes…"></textarea>
+              </label>
+              <button type="button" class="btn btn-primary btn-lg h-auto min-h-14 py-3 leading-tight w-full" [disabled]="procesando()" (click)="finalizar()">
+                @if (procesando()) {
+                  <span class="loading loading-spinner loading-sm"></span>
+                }
+                Finalizar recorrido
+              </button>
+            }
+          }
+        </div>
+      </section>
+    } @else if (r.observaciones) {
+      <p class="rounded-box bg-base-200 border border-base-300 p-4 text-sm"><span class="text-base-content/70">Observaciones:</span> {{ r.observaciones }}</p>
+    }
+
+    <!-- Lista completa -->
+    <section class="card bg-base-200 border border-base-300">
+      <div class="card-body p-0 gap-0">
+        <h2 class="px-4 pt-4 pb-2 text-sm text-info font-semibold uppercase tracking-wide">
+          Estudiantes en orden de {{ esRecogida() ? 'recogida' : 'entrega' }}
+        </h2>
+        <ol class="divide-y divide-base-300">
+          @for (e of r.paradas; track e.estudianteId; let i = $index) {
+            <li class="px-4 py-3 flex flex-wrap items-center gap-x-3 gap-y-2">
+              <span class="w-7 h-7 rounded-full bg-base-300 grid place-items-center text-sm font-semibold shrink-0">{{ i + 1 }}</span>
+              <div class="min-w-0 flex-1 basis-48">
+                <p class="font-medium truncate">{{ e.estudiante }}</p>
+                <p class="text-xs text-base-content/70 truncate">{{ e.grado }} · {{ e.direccion }}</p>
+              </div>
+              <span class="badge badge-sm gap-1 shrink-0" [class]="estados[e.estado].badge">
+                <i [class]="estados[e.estado].icono" aria-hidden="true"></i> {{ momento(e) }}
+              </span>
+              @if (enCurso()) {
+                <div class="flex flex-wrap gap-1 w-full sm:w-auto justify-end">
+                  @if (e.estado === 'PENDIENTE') {
+                    <button type="button" class="btn btn-xs btn-soft btn-info" [disabled]="procesando()" (click)="marcar([e.estudianteId], 'A_BORDO')">
+                      {{ esRecogida() ? 'Recogido' : 'Subió' }}
+                    </button>
+                    <button type="button" class="btn btn-xs btn-soft btn-warning" [disabled]="procesando()" (click)="marcar([e.estudianteId], 'AUSENTE')">
+                      No asistió
+                    </button>
+                  } @else if (e.estado === 'A_BORDO') {
+                    <button type="button" class="btn btn-xs btn-soft btn-success" [disabled]="procesando()" (click)="marcar([e.estudianteId], 'ENTREGADO')">
+                      Entregado
+                    </button>
+                  }
+                  @if (puedeDeshacer(e)) {
+                    <button type="button" class="btn btn-xs btn-ghost" [disabled]="procesando()" (click)="deshacer(e)"
+                      [attr.aria-label]="'Deshacer ' + e.estudiante">
+                      <i class="fa-solid fa-rotate-left" aria-hidden="true"></i> Deshacer
+                    </button>
+                  }
+                  @if (e.telefonoAcudiente) {
+                    <a class="btn btn-xs btn-ghost text-secondary" [href]="telefono(e.telefonoAcudiente)" [attr.aria-label]="'Llamar a ' + e.acudiente">
+                      <i class="fa-solid fa-phone" aria-hidden="true"></i>
+                    </a>
+                  }
+                </div>
+              }
+            </li>
+          }
+        </ol>
+      </div>
+    </section>
+  }
+</section>
+
+<!-- Tarjeta del estudiante del siguiente paso: dirección, acudiente y contacto -->
+<ng-template #parada let-p let-titulo="titulo">
+  <div class="flex items-start gap-3">
+    <div class="w-12 h-12 rounded-full bg-primary/15 text-primary grid place-items-center shrink-0">
+      <i class="fa-solid fa-child-reaching text-xl" aria-hidden="true"></i>
+    </div>
+    <div class="min-w-0">
+      <p class="text-sm text-base-content/70 uppercase tracking-wide">{{ titulo }}</p>
+      <h2 class="text-xl font-bold">{{ p.estudiante }}</h2>
+      <p class="text-base-content/70">{{ p.grado }}</p>
+    </div>
+  </div>
+  <div class="rounded-box bg-base-100 p-3 space-y-2 text-sm">
+    <p class="flex items-start gap-2"><i class="fa-solid fa-location-dot text-error mt-0.5 w-4" aria-hidden="true"></i><span>{{ p.direccion }}</span></p>
+    @if (p.acudiente) {
+      <p class="flex items-start gap-2"><i class="fa-solid fa-user-shield text-base-content/60 mt-0.5 w-4" aria-hidden="true"></i><span>Acudiente: {{ p.acudiente }}</span></p>
+    }
+    <div class="flex flex-wrap gap-2 pt-1">
+      <a class="btn btn-sm bg-base-300 border-neutral hover:bg-neutral" [href]="enlaceMapa(p.direccion)" target="_blank" rel="noopener">
+        <i class="fa-solid fa-diamond-turn-right text-info" aria-hidden="true"></i> Cómo llegar
+      </a>
+      @if (p.telefonoAcudiente) {
+        <a class="btn btn-sm bg-base-300 border-neutral hover:bg-neutral" [href]="telefono(p.telefonoAcudiente)">
+          <i class="fa-solid fa-phone text-secondary" aria-hidden="true"></i> Llamar
+        </a>
+        <a class="btn btn-sm bg-base-300 border-neutral hover:bg-neutral" [href]="whatsapp(p)" target="_blank" rel="noopener">
+          <i class="fa-brands fa-whatsapp text-success" aria-hidden="true"></i> Avisar
+        </a>
+      }
+    </div>
+  </div>
+</ng-template>

@@ -1,0 +1,156 @@
+<section class="space-y-5">
+  <header class="flex flex-wrap items-end justify-between gap-2">
+    <div class="min-w-0">
+      <h1 class="text-2xl font-bold">{{ saludo }}</h1>
+      <p class="text-base-content/70 first-letter:uppercase">{{ fechaHoy }}</p>
+    </div>
+    @if (modoLocal) {
+      <span class="badge badge-soft badge-warning gap-1"><i class="fa-solid fa-database" aria-hidden="true"></i> Modo local</span>
+    }
+  </header>
+
+  @if (cargando() && !rutas().length) {
+    @for (i of [1, 2]; track i) {
+      <div class="card bg-base-200 border border-base-300 p-5 space-y-3">
+        <div class="skeleton h-6 w-1/2"></div>
+        <div class="skeleton h-4 w-3/4"></div>
+        <div class="grid grid-cols-2 gap-3"><div class="skeleton h-24"></div><div class="skeleton h-24"></div></div>
+      </div>
+    }
+  } @else if (error()) {
+    <div role="alert" class="alert alert-error alert-soft">
+      <i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i>
+      <span>{{ error() }}</span>
+      <button type="button" class="btn btn-sm" (click)="cargar()">Reintentar</button>
+    </div>
+  } @else if (!rutas().length) {
+    <div class="card bg-base-200 border border-base-300 p-8 text-center items-center gap-3">
+      <div class="w-16 h-16 rounded-full bg-base-300 grid place-items-center">
+        <i class="fa-solid fa-route text-2xl text-base-content/60" aria-hidden="true"></i>
+      </div>
+      <h2 class="text-lg font-semibold">No tienes rutas asignadas para hoy</h2>
+      <p class="text-base-content/70 max-w-sm">
+        Las rutas aparecen aquí cuando el administrador te asigna a una (Operación › Asignaciones) y la asignación está vigente.
+      </p>
+    </div>
+  } @else {
+    <!-- Resumen del día -->
+    <div class="grid grid-cols-3 gap-2 sm:gap-3">
+      <div class="rounded-box bg-base-200 border border-base-300 p-3 text-center">
+        <p class="text-2xl font-bold">{{ rutas().length }}</p>
+        <p class="text-xs text-base-content/70">{{ rutas().length === 1 ? 'Ruta' : 'Rutas' }} hoy</p>
+      </div>
+      <div class="rounded-box bg-base-200 border border-base-300 p-3 text-center">
+        <p class="text-2xl font-bold">{{ completados() }}<span class="text-base text-base-content/70">/{{ rutas().length * trayectos.length }}</span></p>
+        <p class="text-xs text-base-content/70">Recorridos hechos</p>
+      </div>
+      <div class="rounded-box bg-base-200 border border-base-300 p-3 text-center">
+        <p class="text-2xl font-bold" [class.text-info]="enCurso()">{{ enCurso() ? 'En ruta' : 'Libre' }}</p>
+        <p class="text-xs text-base-content/70">Estado</p>
+      </div>
+    </div>
+
+    <!-- Recorrido abierto -->
+    @if (enCurso(); as abierto) {
+      <a [routerLink]="['/ruta-del-dia/recorrido', abierto.recorrido.id]"
+        class="card bg-info/10 border border-info/40 p-4 sm:p-5 flex-row items-center gap-4 hover:bg-info/15 transition">
+        <div class="w-12 h-12 rounded-full bg-info/20 text-info grid place-items-center shrink-0">
+          <i class="fa-solid fa-bus text-xl" aria-hidden="true"></i>
+        </div>
+        <div class="min-w-0 flex-1">
+          <p class="text-sm text-info font-semibold uppercase tracking-wide">Recorrido en curso</p>
+          <p class="font-semibold truncate">{{ abierto.recorrido.trayecto === 'RECOGIDA' ? 'Recogida' : 'Entrega' }} · {{ abierto.ruta.ruta }}</p>
+          <progress class="progress progress-info w-full mt-2" [value]="avance(abierto.recorrido.conteo)" max="100"
+            [attr.aria-label]="'Avance ' + avance(abierto.recorrido.conteo) + '%'"></progress>
+        </div>
+        <span class="btn btn-primary shrink-0">Continuar</span>
+      </a>
+    }
+
+    <!-- Rutas -->
+    @for (ruta of rutas(); track ruta.asignacionId) {
+      <article class="card bg-base-200 border border-base-300 shadow-xl">
+        <div class="card-body p-4 sm:p-5 gap-4">
+          <div class="flex flex-wrap items-start justify-between gap-2">
+            <div class="min-w-0">
+              <h2 class="text-lg font-bold">{{ ruta.ruta }}</h2>
+              <p class="text-sm text-base-content/70">{{ ruta.sector }}</p>
+            </div>
+            <span class="badge badge-soft badge-info gap-1"><i class="fa-solid fa-sun" aria-hidden="true"></i> Jornada {{ ruta.jornada }}</span>
+          </div>
+
+          <dl class="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2 text-sm">
+            <div class="flex items-start gap-2 min-w-0">
+              <dt class="sr-only">Colegio</dt>
+              <i class="fa-solid fa-school text-base-content/60 mt-0.5 w-4" aria-hidden="true"></i>
+              <dd class="min-w-0"><span class="font-medium">{{ ruta.colegio }}</span><br /><span class="text-base-content/70">{{ ruta.direccionColegio }}</span></dd>
+            </div>
+            <div class="flex items-start gap-2">
+              <dt class="sr-only">Vehículo</dt>
+              <i class="fa-solid fa-van-shuttle text-base-content/60 mt-0.5 w-4" aria-hidden="true"></i>
+              <dd><span class="font-medium">{{ ruta.vehiculo }}</span> · {{ ruta.estudiantes }} {{ ruta.estudiantes === 1 ? 'estudiante' : 'estudiantes' }}</dd>
+            </div>
+            @if (ruta.companero; as companero) {
+              <div class="flex items-center gap-2 sm:col-span-2">
+                <dt class="sr-only">{{ companero.rol === 'MONITORA' ? 'Monitora' : 'Conductor' }}</dt>
+                <i class="fa-solid fa-user-group text-base-content/60 w-4" aria-hidden="true"></i>
+                <dd class="flex flex-wrap items-center gap-x-2">
+                  <span><span class="text-base-content/70">{{ companero.rol === 'MONITORA' ? 'Monitora' : 'Conductor' }}:</span> {{ companero.nombre }}</span>
+                  @if (companero.telefono) {
+                    <a class="link link-secondary text-sm" [href]="telefono(companero.telefono)">
+                      <i class="fa-solid fa-phone" aria-hidden="true"></i> Llamar
+                    </a>
+                  }
+                </dd>
+              </div>
+            }
+          </dl>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            @for (t of trayectos; track t.id) {
+              @let r = recorridoDe(ruta, t.id);
+              <div class="rounded-box border p-4 flex flex-col gap-3"
+                [class]="r?.estado === 'FINALIZADO' ? 'border-success/40 bg-success/5' : r ? 'border-info/40 bg-info/5' : 'border-base-300 bg-base-100'">
+                <div class="flex items-center gap-3">
+                  <i [class]="t.icono + ' text-xl ' + (r?.estado === 'FINALIZADO' ? 'text-success' : 'text-info')" aria-hidden="true"></i>
+                  <div class="min-w-0">
+                    <p class="font-semibold">{{ t.nombre }}</p>
+                    <p class="text-xs text-base-content/70">{{ t.descripcion }}</p>
+                  </div>
+                </div>
+                @if (!r) {
+                  <button type="button" class="btn w-full"
+                    [class]="sugerido() === ruta.asignacionId + ':' + t.id ? 'btn-primary' : 'bg-base-300 border-neutral hover:bg-neutral'"
+                    [disabled]="!!iniciando() || !!enCurso()" (click)="iniciar(ruta, t.id)">
+                    @if (iniciando() === ruta.asignacionId + ':' + t.id) {
+                      <span class="loading loading-spinner loading-sm"></span>
+                    } @else {
+                      <i class="fa-solid fa-play" aria-hidden="true"></i>
+                    }
+                    Iniciar {{ t.nombre.toLowerCase() }}
+                  </button>
+                } @else if (r.estado === 'EN_CURSO') {
+                  <div>
+                    <div class="flex justify-between text-xs text-base-content/70 mb-1">
+                      <span>Inició {{ hora(r.inicio) }}</span><span>{{ avance(r.conteo) }} %</span>
+                    </div>
+                    <progress class="progress progress-info w-full" [value]="avance(r.conteo)" max="100"></progress>
+                  </div>
+                  <a class="btn btn-sm bg-base-300 border-neutral hover:bg-neutral" [routerLink]="['/ruta-del-dia/recorrido', r.id]">Continuar</a>
+                } @else {
+                  <p class="text-sm">
+                    <span class="badge badge-soft badge-success gap-1"><i class="fa-solid fa-check" aria-hidden="true"></i> Finalizado {{ hora(r.fin) }}</span>
+                  </p>
+                  <p class="text-sm text-base-content/70">
+                    {{ r.conteo.entregados }} entregados@if (r.conteo.ausentes) { · {{ r.conteo.ausentes }} no asistieron }
+                  </p>
+                  <a class="link link-secondary text-sm" [routerLink]="['/ruta-del-dia/recorrido', r.id]">Ver detalle</a>
+                }
+              </div>
+            }
+          </div>
+        </div>
+      </article>
+    }
+  }
+</section>

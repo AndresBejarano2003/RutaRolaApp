@@ -27,5 +27,10 @@ export default [
     loadComponent: () => import('./asignaciones/asignaciones-page'),
     data: { breadcrumb: ['Operación', 'Asignaciones'] },
   },
+  {
+    path: 'recorridos',
+    loadComponent: () => import('./recorridos/recorridos-page'),
+    data: { breadcrumb: ['Operación', 'Recorridos'] },
+  },
   { path: '**', redirectTo: 'colegios' },
 ] satisfies Routes;

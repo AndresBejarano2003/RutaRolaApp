@@ -1,4 +1,8 @@
 import { Provider } from '@angular/core';
+import { AutenticacionLocal } from '../autenticacion/autenticacion-local';
+import { AutenticacionRepositorio } from '../autenticacion/autenticacion-repositorio';
+import { RecorridosLocal } from '../ruta-del-dia/recorridos-local';
+import { RecorridosRepositorio } from '../ruta-del-dia/recorridos-repositorio';
 import { TableroLocal } from '../inicio/dashboard/tablero-local';
 import { TableroRepositorio } from '../inicio/dashboard/tablero-repositorio';
 import { CentroNotificaciones } from '../inicio/notificaciones/centro-notificaciones';
@@ -20,6 +24,8 @@ import { ColegiosLocal } from '../operacion/colegios/colegios-local';
 import { ColegiosRepositorio } from '../operacion/colegios/colegios-repositorio';
 import { ConductoresLocal } from '../operacion/conductores/conductores-local';
 import { ConductoresRepositorio } from '../operacion/conductores/conductores-repositorio';
+import { HistorialRecorridosLocal } from '../operacion/recorridos/historial-recorridos-local';
+import { HistorialRecorridosRepositorio } from '../operacion/recorridos/historial-recorridos-repositorio';
 import { RutasLocal } from '../operacion/rutas/rutas-local';
 import { RutasRepositorio } from '../operacion/rutas/rutas-repositorio';
 import { VehiculosLocal } from '../operacion/vehiculos/vehiculos-local';
@@ -54,6 +60,7 @@ export function proveerRepositorios(): Provider[] {
     { provide: RutasRepositorio, useClass: RutasLocal },
     { provide: AsignacionesRepositorio, useClass: AsignacionesLocal },
     { provide: ConductoresRepositorio, useClass: ConductoresLocal },
+    { provide: HistorialRecorridosRepositorio, useClass: HistorialRecorridosLocal },
     // Finanzas
     { provide: CotizacionesRepositorio, useClass: CotizacionesLocal },
     { provide: FacturasRepositorio, useClass: FacturasLocal },
@@ -66,5 +73,8 @@ export function proveerRepositorios(): Provider[] {
     // compartido de la campana y la página; va aquí porque necesita estos repositorios.
     { provide: NotificacionesRepositorio, useClass: NotificacionesLocal },
     CentroNotificaciones,
+    // Acceso (el login local resuelve el rol con los empleados) y ruta del día de conductores/monitoras
+    { provide: AutenticacionRepositorio, useClass: AutenticacionLocal },
+    { provide: RecorridosRepositorio, useClass: RecorridosLocal },
   ];
 }

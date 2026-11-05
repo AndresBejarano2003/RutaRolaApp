@@ -1,8 +1,8 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { filter, map } from 'rxjs';
-import { AuthService, USUARIO_DEMO } from 'src/app/core/auth';
+import { AuthService, nombreRol } from 'src/app/core/auth';
 import { CampanaNotificaciones } from '../campana-notificaciones/campana-notificaciones';
 
 interface OpcionUsuario {
@@ -31,8 +31,18 @@ export class BarraSuperior {
     { initialValue: this.leerBreadcrumb() },
   );
 
-  // TODO: reemplazar por los datos del usuario autenticado.
-  protected readonly usuario = USUARIO_DEMO;
+  /** Usuario de la sesión (el guard garantiza que existe dentro del shell). */
+  protected readonly usuario = computed(() => {
+    const s = this.auth.sesion();
+    return {
+      nombre: s?.nombre ?? '',
+      correo: s?.correo || s?.usuario || '',
+      imagen: s?.imagen ?? '',
+      iniciales: (s?.nombre ?? '?').split(' ').filter(Boolean).slice(0, 2).map((p) => p[0]).join('').toUpperCase(),
+      rol: s ? nombreRol(s.rol) : '',
+      enLinea: true,
+    };
+  });
 
   protected readonly opcionesUsuario: OpcionUsuario[] = [
     { icono: 'fa-solid fa-user', etiqueta: 'Mi perfil', ruta: '/inicio/perfil' },
