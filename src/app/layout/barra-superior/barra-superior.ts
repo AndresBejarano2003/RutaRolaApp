@@ -3,6 +3,7 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { filter, map } from 'rxjs';
 import { AuthService } from 'src/app/core/auth';
+import { CampanaNotificaciones } from '../campana-notificaciones/campana-notificaciones';
 
 interface OpcionUsuario {
   icono: string;
@@ -14,7 +15,7 @@ interface OpcionUsuario {
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-barra-superior',
-  imports: [RouterLink, RouterLinkActive],
+  imports: [RouterLink, RouterLinkActive, CampanaNotificaciones],
   templateUrl: './barra-superior.html',
 })
 export class BarraSuperior {

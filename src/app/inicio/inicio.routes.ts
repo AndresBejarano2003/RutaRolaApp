@@ -17,4 +17,9 @@ export default [
     loadComponent: () => import('./configuracion/configuracion-page'),
     data: { breadcrumb: ['Inicio', 'Configuración'] },
   },
+  {
+    path: 'notificaciones',
+    loadComponent: () => import('./notificaciones/notificaciones-page'),
+    data: { breadcrumb: ['Inicio', 'Notificaciones'] },
+  },
 ] satisfies Routes;

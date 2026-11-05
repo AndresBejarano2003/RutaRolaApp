@@ -1,0 +1,239 @@
+<!-- ENCABEZADO + BANDEJAS -->
+<section class="card bg-base-200 border border-base-300 shadow-xl">
+  <div class="card-body gap-4">
+    <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+      <div class="min-w-0">
+        <h1 class="card-title text-base-content text-xl sm:text-2xl">
+          <i class="fa-solid fa-bell text-primary"></i>
+          Centro de notificaciones
+          @if (store.cargando()) {
+            <span class="loading loading-spinner loading-sm text-base-content/70"></span>
+          }
+        </h1>
+        <p class="text-sm text-base-content/70 mt-1">
+          Pagos, mora, vencimientos de documentos y licencias, contratos, envíos y registros nuevos.
+        </p>
+      </div>
+
+      <div class="flex flex-wrap items-center gap-2 lg:shrink-0 lg:justify-end">
+        @if (centro.modoLocal) {
+          <div class="tooltip tooltip-bottom" data-tip="Se generan en este navegador a partir de los datos locales hasta conectar el API">
+            <span class="badge badge-warning badge-soft gap-1">
+              <i class="fa-solid fa-database text-xs"></i>
+              Modo local
+            </span>
+          </div>
+        }
+        @if (bandeja() === 'ENTRADA') {
+          <button type="button" class="btn btn-sm sm:btn-md bg-base-300 border-neutral hover:bg-neutral"
+            [disabled]="!centro.resumen().noLeidas || centro.procesando()" (click)="centro.marcarTodasLeidas()">
+            <i class="fa-solid fa-check-double text-info"></i>
+            Marcar todas como leídas
+          </button>
+        }
+        <button type="button" class="btn btn-sm sm:btn-md btn-ghost text-error"
+          [disabled]="(store.total() === 0 && !store.hayFiltros()) || centro.procesando()" (click)="pedirVaciar()">
+          <i class="fa-solid fa-trash-can"></i>
+          {{ bandeja() === 'ENTRADA' ? 'Vaciar bandeja' : 'Vaciar archivadas' }}
+        </button>
+      </div>
+    </div>
+
+    <div role="tablist" class="tabs tabs-box bg-base-100 w-full sm:w-fit">
+      <button type="button" role="tab" class="tab flex-1 sm:flex-none gap-2 flex-nowrap whitespace-nowrap" [class.tab-active]="bandeja() === 'ENTRADA'"
+        [attr.aria-selected]="bandeja() === 'ENTRADA'" (click)="cambiarBandeja('ENTRADA')">
+        <i class="fa-solid fa-inbox"></i>
+        <span><span class="hidden sm:inline">Bandeja de </span><span class="sm:hidden">E</span><span class="hidden sm:inline">e</span>ntrada</span>
+        @if (centro.resumen().noLeidas) {
+          <span class="badge badge-sm" [class]="centro.resumen().criticas ? 'badge-error' : 'badge-primary'">{{ centro.resumen().noLeidas }}</span>
+        }
+      </button>
+      <button type="button" role="tab" class="tab flex-1 sm:flex-none gap-2 flex-nowrap whitespace-nowrap" [class.tab-active]="bandeja() === 'ARCHIVADAS'"
+        [attr.aria-selected]="bandeja() === 'ARCHIVADAS'" (click)="cambiarBandeja('ARCHIVADAS')">
+        <i class="fa-solid fa-box-archive"></i>
+        Archivadas
+      </button>
+    </div>
+  </div>
+</section>
+
+<!-- FILTROS -->
+<form [formGroup]="filtros" class="mt-6 card bg-base-200 border border-base-300 shadow-xl">
+  <app-panel-filtros (limpiar)="limpiarFiltros()">
+    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+      <label class="input input-bordered bg-base-100 border-neutral w-full flex items-center gap-2">
+        <i class="fa-solid fa-magnifying-glass text-base-content/60"></i>
+        <input type="search" formControlName="texto" class="grow min-w-0" placeholder="Buscar en título o mensaje..." aria-label="Buscar notificación" />
+      </label>
+      <app-selector-busqueda formControlName="categoria" [opciones]="categorias" textoTodos="Todas las categorías" etiqueta="Categoría" />
+      <app-selector-busqueda formControlName="nivel" [opciones]="niveles" textoTodos="Todas las prioridades" etiqueta="Prioridad" />
+      <app-selector-busqueda formControlName="lectura" [opciones]="lecturas" textoTodos="Leídas y no leídas" etiqueta="Lectura" />
+    </div>
+  </app-panel-filtros>
+</form>
+
+<!-- LISTA -->
+<section class="mt-6 card bg-base-200 border border-base-300 shadow-xl">
+  <div class="card-body gap-4">
+    <!-- Barra de selección -->
+    <div class="flex flex-wrap items-center gap-x-4 gap-y-2 min-h-10">
+      <label class="flex items-center gap-2 cursor-pointer">
+        <input type="checkbox" class="checkbox checkbox-sm checkbox-primary" aria-label="Seleccionar todas las de esta página"
+          [checked]="todasSeleccionadas()" [indeterminate]="algunaSeleccionada() && !todasSeleccionadas()"
+          [disabled]="!store.items().length" (change)="alternarTodas()" />
+        <span class="text-sm text-base-content/80">
+          @if (algunaSeleccionada()) {
+            {{ seleccion().size }} {{ seleccion().size === 1 ? 'seleccionada' : 'seleccionadas' }}
+          } @else {
+            {{ store.total() }} {{ store.total() === 1 ? 'notificación' : 'notificaciones' }}
+          }
+        </span>
+      </label>
+
+      @if (algunaSeleccionada()) {
+        <div class="flex flex-wrap items-center gap-1">
+          <button type="button" class="btn btn-sm btn-ghost" [disabled]="centro.procesando()" (click)="marcarSeleccion(true)">
+            <i class="fa-regular fa-envelope-open text-info"></i> Marcar leídas
+          </button>
+          <button type="button" class="btn btn-sm btn-ghost" [disabled]="centro.procesando()" (click)="marcarSeleccion(false)">
+            <i class="fa-solid fa-envelope text-info"></i> Marcar no leídas
+          </button>
+          <button type="button" class="btn btn-sm btn-ghost" [disabled]="centro.procesando()" (click)="archivarSeleccion()">
+            @if (bandeja() === 'ENTRADA') {
+              <i class="fa-solid fa-box-archive text-info"></i> Archivar
+            } @else {
+              <i class="fa-solid fa-inbox text-info"></i> Restaurar
+            }
+          </button>
+          <button type="button" class="btn btn-sm btn-ghost text-error" [disabled]="centro.procesando()" (click)="pedirEliminarSeleccion()">
+            <i class="fa-solid fa-trash"></i> Eliminar
+          </button>
+        </div>
+      }
+    </div>
+
+    @if (store.error(); as mensaje) {
+      <div role="alert" class="alert alert-error">
+        <i class="fa-solid fa-circle-exclamation"></i>
+        <span>{{ mensaje }}</span>
+        <button type="button" class="btn btn-sm" (click)="store.recargar()">Reintentar</button>
+      </div>
+    }
+
+    @if (store.cargando() && !store.items().length) {
+      <div class="space-y-2">
+        @for (fila of [1, 2, 3, 4]; track fila) {
+          <div class="skeleton bg-base-300 h-16 w-full"></div>
+        }
+      </div>
+    } @else if (!store.items().length) {
+      <app-estado-vacio [icono]="bandeja() === 'ENTRADA' ? 'fa-regular fa-bell-slash' : 'fa-solid fa-box-archive'"
+        [mensaje]="bandeja() === 'ENTRADA' ? 'Estás al día: no tienes notificaciones.' : 'No tienes notificaciones archivadas.'"
+        textoCrear="" [hayFiltros]="store.hayFiltros() && bandeja() === 'ENTRADA'" />
+    } @else {
+      <div class="space-y-5 transition-opacity" [class.opacity-60]="store.cargando()">
+        @for (grupo of grupos(); track grupo.nombre) {
+          <div>
+            <h2 class="text-xs font-semibold uppercase tracking-wide text-base-content/70 mb-2">{{ grupo.nombre }}</h2>
+            <ul class="space-y-2">
+              @for (n of grupo.items; track n.id) {
+                @let niv = nivel(n.nivel);
+                @let cat = categoria(n.categoria);
+                @let abierta = expandida() === n.id;
+                <li class="rounded-box border bg-base-100 transition-colors"
+                  [class]="seleccion().has(n.id) ? 'border-primary' : n.leida ? 'border-base-300' : 'border-base-300 border-l-4 border-l-primary'">
+                  <div class="flex items-start gap-3 p-3">
+                    <input type="checkbox" class="checkbox checkbox-sm checkbox-primary mt-2.5"
+                      [attr.aria-label]="'Seleccionar ' + n.titulo" [checked]="seleccion().has(n.id)" (change)="alternarSeleccion(n.id)" />
+
+                    <button type="button" class="flex flex-1 min-w-0 items-start gap-3 text-left" [attr.aria-expanded]="abierta"
+                      (click)="alternarExpandida(n)">
+                      <span class="grid place-items-center size-10 shrink-0 rounded-full {{ niv.fondo }} {{ niv.texto }}">
+                        <i [class]="cat.icono"></i>
+                      </span>
+                      <span class="min-w-0 flex-1">
+                        <span class="flex flex-wrap items-center gap-x-2 gap-y-1">
+                          <span [class]="n.leida ? 'text-base-content/90' : 'font-semibold text-base-content'">{{ n.titulo }}</span>
+                          @if (n.nivel === 'CRITICA' || n.nivel === 'ADVERTENCIA') {
+                            <span class="badge badge-soft badge-sm {{ niv.badge }}">{{ niv.nombre }}</span>
+                          }
+                        </span>
+                        <span class="block text-sm text-base-content/70 mt-0.5" [class.line-clamp-1]="!abierta">
+                          @if (!abierta) { {{ n.mensaje }} } @else { {{ cat.nombre }} }
+                        </span>
+                        <span class="block text-xs mt-1" [class]="!n.leida && n.nivel === 'CRITICA' ? 'text-error' : 'text-base-content/70'">
+                          {{ tiempo(n.fecha) }}
+                          @if (!n.leida) { · <span class="text-primary font-medium">Sin leer</span> }
+                        </span>
+                      </span>
+                      <i class="fa-solid fa-chevron-down text-xs text-base-content/60 mt-3 transition-transform" [class.rotate-180]="abierta"></i>
+                    </button>
+
+                    <div class="hidden sm:flex shrink-0 items-center">
+                      <div class="tooltip tooltip-left" [attr.data-tip]="n.leida ? 'Marcar como no leída' : 'Marcar como leída'">
+                        <button type="button" class="btn btn-sm btn-ghost btn-square text-info"
+                          [attr.aria-label]="n.leida ? 'Marcar como no leída' : 'Marcar como leída'" (click)="alternarLeida(n)">
+                          <i [class]="n.leida ? 'fa-solid fa-envelope' : 'fa-regular fa-envelope-open'"></i>
+                        </button>
+                      </div>
+                      <div class="tooltip tooltip-left" [attr.data-tip]="n.archivada ? 'Restaurar a la bandeja' : 'Archivar'">
+                        <button type="button" class="btn btn-sm btn-ghost btn-square text-info"
+                          [attr.aria-label]="n.archivada ? 'Restaurar' : 'Archivar'" (click)="archivar(n)">
+                          <i [class]="n.archivada ? 'fa-solid fa-inbox' : 'fa-solid fa-box-archive'"></i>
+                        </button>
+                      </div>
+                      <div class="tooltip tooltip-left" data-tip="Eliminar">
+                        <button type="button" class="btn btn-sm btn-ghost btn-square text-error" aria-label="Eliminar" (click)="eliminar(n)">
+                          <i class="fa-solid fa-trash"></i>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  @if (abierta) {
+                    <div class="border-t border-base-300 px-3 pb-3 pt-3 sm:pl-[4.75rem] space-y-3">
+                      <p class="text-base-content/90 whitespace-pre-line">{{ n.mensaje }}</p>
+                      <dl class="grid grid-cols-1 sm:grid-cols-3 gap-2 text-sm">
+                        <div><dt class="text-base-content/70">Fecha</dt><dd class="first-letter:uppercase">{{ fechaCompleta(n.fecha) }}</dd></div>
+                        <div><dt class="text-base-content/70">Categoría</dt><dd>{{ cat.nombre }}</dd></div>
+                        <div><dt class="text-base-content/70">Prioridad</dt>
+                          <dd><span class="badge badge-soft badge-sm {{ niv.badge }}">{{ niv.nombre }}</span></dd></div>
+                      </dl>
+                      <div class="flex flex-wrap gap-2">
+                        @if (n.enlace) {
+                          <a [routerLink]="n.enlace" class="btn btn-sm btn-primary">
+                            {{ n.textoEnlace }}
+                            <i class="fa-solid fa-arrow-right"></i>
+                          </a>
+                        }
+                        <button type="button" class="btn btn-sm bg-base-300 border-neutral hover:bg-neutral" (click)="alternarLeida(n)">
+                          <i [class]="n.leida ? 'fa-solid fa-envelope' : 'fa-regular fa-envelope-open'" class="text-info"></i>
+                          {{ n.leida ? 'Marcar como no leída' : 'Marcar como leída' }}
+                        </button>
+                        <button type="button" class="btn btn-sm bg-base-300 border-neutral hover:bg-neutral" (click)="archivar(n)">
+                          <i [class]="n.archivada ? 'fa-solid fa-inbox' : 'fa-solid fa-box-archive'" class="text-info"></i>
+                          {{ n.archivada ? 'Restaurar' : 'Archivar' }}
+                        </button>
+                        <button type="button" class="btn btn-sm btn-ghost text-error" (click)="eliminar(n)">
+                          <i class="fa-solid fa-trash"></i> Eliminar
+                        </button>
+                      </div>
+                    </div>
+                  }
+                </li>
+              }
+            </ul>
+          </div>
+        }
+      </div>
+    }
+
+    <app-paginacion [pagina]="store.paginacion().pagina" [tamano]="store.paginacion().tamano" [total]="store.total()"
+      [totalPaginas]="store.totalPaginas()" (cambiarPagina)="store.irAPagina($event)" (cambiarTamano)="store.cambiarTamano($event)" />
+  </div>
+</section>
+
+<app-dialogo-confirmacion [(abierto)]="dialogoAbierto"
+  [titulo]="confirmacion()?.tipo === 'vaciar' ? (bandeja() === 'ENTRADA' ? '¿Vaciar la bandeja de entrada?' : '¿Vaciar las archivadas?') : '¿Eliminar notificaciones?'"
+  [mensaje]="mensajeConfirmacion()" [textoConfirmar]="confirmacion()?.tipo === 'vaciar' ? 'Vaciar' : 'Eliminar'"
+  [procesando]="centro.procesando()" (confirmar)="confirmar()" />

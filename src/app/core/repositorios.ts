@@ -1,4 +1,7 @@
 import { Provider } from '@angular/core';
+import { CentroNotificaciones } from '../inicio/notificaciones/centro-notificaciones';
+import { NotificacionesLocal } from '../inicio/notificaciones/notificaciones-local';
+import { NotificacionesRepositorio } from '../inicio/notificaciones/notificaciones-repositorio';
 import { CotizacionesLocal } from '../finanzas/cotizaciones/cotizaciones-local';
 import { CotizacionesRepositorio } from '../finanzas/cotizaciones/cotizaciones-repositorio';
 import { FacturasLocal } from '../finanzas/facturas/facturas-local';
@@ -55,5 +58,9 @@ export function proveerRepositorios(): Provider[] {
     { provide: RecibosRepositorio, useClass: RecibosLocal },
     { provide: ProgramacionesRepositorio, useClass: ProgramacionesLocal },
     { provide: ReportesRepositorio, useClass: ReportesLocal },
+    // Notificaciones (leen datos de todos los módulos). `CentroNotificaciones` es el estado
+    // compartido de la campana y la página; va aquí porque necesita estos repositorios.
+    { provide: NotificacionesRepositorio, useClass: NotificacionesLocal },
+    CentroNotificaciones,
   ];
 }

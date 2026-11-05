@@ -1,6 +1,7 @@
 import { inject, signal } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { NotificacionesService } from '../notificaciones/notificaciones';
+import { CambiosDatos } from './cambios-datos';
 import { DatosRegistro, Entidad, mensajeDeError } from './crud';
 import { ListadoStore } from './listado-store';
 import { RepositorioCrud } from './repositorio-crud';
@@ -23,6 +24,7 @@ export abstract class CrudStore<T extends Entidad, F extends object> extends Lis
   protected abstract readonly textos: TextosCrud;
 
   private readonly notificaciones = inject(NotificacionesService);
+  private readonly cambios = inject(CambiosDatos);
   private readonly _guardando = signal(false);
   readonly guardando = this._guardando.asReadonly();
 
@@ -42,6 +44,7 @@ export abstract class CrudStore<T extends Entidad, F extends object> extends Lis
     try {
       await firstValueFrom(id ? this.repositorio.actualizar(id, datos) : this.repositorio.crear(datos));
       this.notificaciones.exito(id ? this.textos.actualizado : this.textos.creado);
+      this.cambios.notificar();
       this.recargar();
       return true;
     } catch (error) {
@@ -66,6 +69,7 @@ export abstract class CrudStore<T extends Entidad, F extends object> extends Lis
     try {
       await firstValueFrom(this.repositorio.eliminar(id));
       this.notificaciones.exito(this.textos.eliminado);
+      this.cambios.notificar();
       // Si se borró el último registro de la página, retroceder una.
       const { pagina } = this.paginacion();
       if (this.items().length === 1 && pagina > 1) {
