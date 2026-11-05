@@ -31,8 +31,9 @@ rutas, variables y textos en **español**.
 src/app/
   core/           auth.ts (sesión y roles), guardias.ts (guards por rol), whatsapp y repositorios.ts (fuente de datos de cada módulo)
   modulos.routes.ts  login + sistemas por tipo de usuario (con layout y guards), diferidos junto con los repositorios
-  layout/         shell (administrativo), shell-conductor (ruta del día), barra-superior, campana-notificaciones, menu-lateral
+  layout/         shell (administrativo), shell-conductor (ruta del día), shell-portal (acudiente), barra-superior, campana-notificaciones, menu-lateral
   ruta-del-dia/   app del conductor/monitora: rutas de hoy y recorrido paso a paso
+  portal/         portal del acudiente: sus estudiantes, facturas, pagos y cotizaciones (solo lectura)
   shared/         piezas reutilizables (crud, modal, paginación, notificaciones, formularios, catálogos, fechas, exportar, pruebas)
   autenticacion/  login (+ AutenticacionRepositorio local/HTTP), registro, recuperar
   inicio/         dashboard, perfil, configuración, notificaciones
@@ -197,20 +198,26 @@ Cada tipo de usuario entra a SU sistema; el rol lo decide el servidor al iniciar
 |---|---|---|
 | `ADMINISTRADOR` | `/inicio` | Sistema administrativo completo (menú lateral, todos los módulos) |
 | `CONDUCTOR` / `MONITORA` | `/ruta-del-dia` | Solo la app de la ruta del día (layout `shell-conductor`, sin menú lateral) |
+| `ACUDIENTE` | `/portal` | Solo el portal del acudiente (layout `shell-portal`): sus estudiantes, facturas, pagos y cotizaciones |
 
 - `AutenticacionRepositorio` (`AutenticacionLocal` → `AutenticacionHttp`, `POST /auth/login` → `Sesion`)
   valida las credenciales; `AuthService` guarda la sesión (`rutarola.sesion`: `localStorage` con
   "Recordarme", si no `sessionStorage`). **Cerrar sesión borra solo la sesión**, nunca los datos.
 - **El login pide "Usuario"** (no correo): cada quien decide si es su correo, documento u otro texto.
-- **Credenciales de empleados:** el formulario de Personas › Empleados tiene la sección "Acceso a la app"
-  con usuario (obligatorio, único, 4–40 caracteres sin espacios, se guarda en minúsculas) y contraseña
+- **Credenciales de empleados y acudientes:** los formularios de Personas › Empleados y Personas ›
+  Acudientes tienen la sección "Acceso a la app" (`<app-campos-acceso>` y `controlesAcceso`/
+  `contrasenasIguales`/`ajustarContrasena` de `personas/compartido/acceso.ts`) con usuario (obligatorio, único, 4–40 caracteres sin espacios, se guarda en minúsculas) y contraseña
   (obligatoria al crear, mínimo 6, con "Confirmar contraseña"; al editar, vacía = conservar la actual).
   La contraseña es de SOLO ESCRITURA: el API nunca la devuelve y debe guardarla con hash.
-- Login local: usuario + contraseña de un empleado → CONDUCTOR o MONITORA según su tipo (inactivo → no
-  entra); `admin` / `rutarola` → ADMINISTRADOR. Error genérico "Usuario o contraseña incorrectos" (no se
+  **El usuario es único entre empleados, acudientes y el administrador** (409): cada repositorio local lo
+  revisa contra el otro módulo en `validarRelaciones` (`validarUsuarioLibre`). Al eliminar el registro se
+  libera su usuario.
+- Login local: usuario + contraseña de un empleado → CONDUCTOR o MONITORA según su tipo; de un acudiente →
+  ACUDIENTE (con `acudienteId` en la sesión); inactivo → no entra; `admin` / `rutarola` → ADMINISTRADOR. Error genérico "Usuario o contraseña incorrectos" (no se
   revela cuál falló). Las contraseñas locales viven aparte de los registros (`rutarola.credenciales`,
-  `autenticacion/credenciales-local.ts`); los empleados de ejemplo usan inicial + apellido (`jcardenas`,
-  `ycharry`…) con contraseña `rutarola`. La pantalla muestra un acceso de prueba por rol.
+  `autenticacion/credenciales-local.ts`, `{usuario: {contrasena, titular: EMPLEADO|ACUDIENTE}}`); los
+  empleados y acudientes de ejemplo usan inicial + apellido (`jcardenas`, `ycharry`, `mperez`…) con
+  contraseña `rutarola`. La pantalla muestra un acceso de prueba por rol.
 - Guards: `soloRoles(...)` en cada módulo (sin sesión → `/login?volver=<url>`; otro rol → la entrada de
   su sistema) y `soloInvitados` en el login. `volver` solo acepta rutas internas (`rutaInternaSegura`).
 - El login vive en `modulos.routes.ts` (no en `app.routes.ts`) porque en modo local consulta empleados.
@@ -241,6 +248,24 @@ App para el celular del conductor y la monitora, dentro del vehículo.
 - `RecorridosRepositorio` (`RecorridosLocal`, `rutarola.recorridos` → `RecorridosHttp`, endpoints y
   códigos 409/422 documentados en la clase). Botones grandes, una sola acción principal (`btn-primary`)
   y sin toasts por cada marca (solo errores y el cierre).
+
+### Portal del acudiente (`portal/`)
+Para el celular del acudiente; **solo lectura** (no paga, no edita). El acudiente sale de la
+sesión/token, nunca de un parámetro: solo ve SUS estudiantes, facturas, recibos y cotizaciones.
+- `PortalRepositorio` (`PortalLocal` → `PortalHttp`, `GET /portal` → `PortalAcudiente`), estado
+  compartido en `PortalEstado` (provisto en `portal.routes.ts`, botón "Actualizar" en el encabezado).
+- Secciones (pestañas desde `sm`, barra inferior fija en celular): **Inicio** (saldo vencido, próximo
+  pago, pagado en el año, "Hoy en la ruta" y últimos pagos), **Estudiantes** (colegio, horario, dirección
+  de recogida, ruta, vehículo, conductor y monitora con llamada, estado de hoy), **Pagos** (facturas
+  vigentes con cada mes, anuladas y recibos) y **Cotizaciones**.
+- **Estado de cuenta** (`calcularEstadoCuenta`, puro; el API debe aplicar las mismas reglas): cada mes de
+  una factura vigente es `PAGADA` (tiene recibo vigente), `VENCIDA` (pasó la fecha límite sin recibo),
+  `PENDIENTE` (mes en curso dentro del plazo) o `PROGRAMADA` (mes futuro). La fecha límite es
+  `fechaLimiteCuota` (`finanzas/reportes/reportes.ts`): día límite de la programación de la factura o el
+  día 5. Las facturas anuladas no generan cuotas y los recibos anulados no cuentan. Próximo pago:
+  primero lo vencido, luego lo pendiente y luego lo programado, por fecha.
+- **Hoy en la ruta:** estado del recorrido de hoy por trayecto (`situacionRecorrido`): aún no inicia, la
+  ruta va en camino, a bordo desde…, entregado…, no asistió.
 
 ### Inicio (`inicio/dashboard/`)
 
@@ -542,6 +567,7 @@ Las pantallas que aún usan grises fijos se migran a estas clases cuando se modi
   demo) y el administrador es fijo (`admin`). Con API: cambiar a `AutenticacionHttp`, agregar el token
   (interceptor) del que el servidor saca el usuario en cada petición y un módulo de usuarios administrativos.
   Datos locales creados antes de este cambio no tienen usuario: editar el empleado o limpiar los datos.
+- **Portal del acudiente:** se calcula en el navegador (`PortalLocal`) hasta que exista `GET /portal`.
 - **Ruta del día:** los recorridos se guardan en `localStorage` (`RecorridosLocal`). Falta que el servidor
   avise al acudiente (recogido, entregado, no asistió).
 - **Modo local:** todas las pantallas de Personas, Operación y Finanzas funcionan con `localStorage`

@@ -140,6 +140,12 @@ export const PREGUNTAS_FRECUENTES: PreguntaFrecuente[] = [
       'Ingresan con el usuario y la contraseña que se les asigna al crearlos en Personas › Empleados (sección "Acceso a la app") y el sistema los lleva a "Ruta del día" (no ven los módulos administrativos). Allí aparecen las rutas de sus asignaciones activas y vigentes; inician la recogida (casa → colegio) o la entrega (colegio → casa) y marcan a cada estudiante como recogido, entregado o "No asistió". Un recorrido solo se finaliza cuando ningún estudiante queda a bordo. El administrador los consulta en Operación › Recorridos.',
   },
   {
+    modulo: 'Personas',
+    pregunta: '¿Cómo consultan los acudientes sus facturas y pagos?',
+    respuesta:
+      'Ingresan con el usuario y la contraseña que se les asigna en Personas › Acudientes (sección "Acceso a la app") y el sistema los lleva al Portal del acudiente, donde solo ven su información: sus estudiantes (colegio, ruta, vehículo, conductor y monitora, y el estado de la ruta de hoy), sus facturas con el estado de cada mes (pagada, vencida, por pagar o programada), sus recibos y sus cotizaciones. El portal es de solo consulta. El usuario no puede repetirse entre empleados y acudientes.',
+  },
+  {
     modulo: 'General',
     pregunta: '¿Por qué no puedo eliminar un registro?',
     respuesta:
