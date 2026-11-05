@@ -1,47 +1,55 @@
-<ul class="menu p-4 w-64 min-h-full bg-gray-900 text-white border-r border-gray-700">
-  <!-- MENÚ OPERATIVO -->
-  @for (opcion of menuOperativo; track opcion.etiqueta) {
-  <li>
-    <ng-container [ngTemplateOutlet]="itemMenu" [ngTemplateOutletContext]="{ $implicit: opcion }" />
-  </li>
-  }
+<nav class="w-64 sm:w-72 lg:w-64 h-full min-h-full bg-base-100 border-r border-base-300 overflow-y-auto pb-[env(safe-area-inset-bottom)]"
+  aria-label="Menú principal">
+  <!-- En móvil el panel cubre la barra superior: se repite el logo y un botón para cerrarlo -->
+  <div class="lg:hidden flex items-center justify-between px-4 h-14 border-b border-base-300">
+    <img src="logos/logo-oficial-sin-fondo-lb.png" class="w-24" alt="RutaRola" />
+    <label for="drawer-toggle" class="btn btn-ghost btn-sm btn-square" aria-label="Cerrar menú">
+      <i class="fa-solid fa-xmark text-lg"></i>
+    </label>
+  </div>
 
-  <!-- DIVISOR -->
-  <div class="divider before:bg-gray-700 after:bg-gray-700 text-gray-500"></div>
+  <ul class="menu w-full p-3 sm:p-4 text-base lg:text-sm">
+    @for (opcion of menuOperativo; track opcion.etiqueta) {
+      <li>
+        <ng-container [ngTemplateOutlet]="itemMenu" [ngTemplateOutletContext]="{ $implicit: opcion }" />
+      </li>
+    }
 
-  <!-- MENÚ DE INFORMACIÓN DEL SISTEMA -->
-  @for (opcion of menuSistema; track opcion.etiqueta) {
-  <li>
-    <ng-container [ngTemplateOutlet]="itemMenu" [ngTemplateOutletContext]="{ $implicit: opcion }" />
-  </li>
-  }
-</ul>
+    <li class="my-2"><div class="divider my-0 p-0 hover:bg-transparent"></div></li>
+
+    @for (opcion of menuSistema; track opcion.etiqueta) {
+      <li>
+        <ng-container [ngTemplateOutlet]="itemMenu" [ngTemplateOutletContext]="{ $implicit: opcion }" />
+      </li>
+    }
+  </ul>
+</nav>
 
 <!-- Ítem recursivo: grupo desplegable si tiene hijos, enlace si no -->
 <ng-template #itemMenu let-opcion>
   @if (opcion.hijos) {
-  <details [open]="estaAbierto(opcion.etiqueta)">
-    <summary (click)="$event.preventDefault(); alternarMenu(opcion.etiqueta)">
-      <i [class]="opcion.icono"></i>
-      {{ opcion.etiqueta }}
-    </summary>
-    <ul>
-      @for (hijo of opcion.hijos; track hijo.etiqueta) {
-      <li>
-        <ng-container [ngTemplateOutlet]="itemMenu" [ngTemplateOutletContext]="{ $implicit: hijo }" />
-      </li>
-      }
-    </ul>
-  </details>
+    <details [open]="estaAbierto(opcion.etiqueta)">
+      <summary class="py-2.5 lg:py-2" (click)="$event.preventDefault(); alternarMenu(opcion.etiqueta)">
+        <i [class]="opcion.icono" class="w-5 text-center"></i>
+        {{ opcion.etiqueta }}
+      </summary>
+      <ul>
+        @for (hijo of opcion.hijos; track hijo.etiqueta) {
+          <li>
+            <ng-container [ngTemplateOutlet]="itemMenu" [ngTemplateOutletContext]="{ $implicit: hijo }" />
+          </li>
+        }
+      </ul>
+    </details>
   } @else {
-  <a [routerLink]="opcion.ruta" routerLinkActive="bg-blue-800">
-    <i [class]="opcion.icono"></i> {{ opcion.etiqueta }}
-    @if (opcion.esPro) {
-    <span class="badge badge-sm">Pro</span>
-    }
-    @if (opcion.notificaciones) {
-    <span class="badge badge-error badge-sm">{{ opcion.notificaciones }}</span>
-    }
-  </a>
+    <a [routerLink]="opcion.ruta" routerLinkActive="bg-base-300 text-primary font-medium" class="py-2.5 lg:py-2" (click)="cerrarEnMovil()">
+      <i [class]="opcion.icono" class="w-5 text-center"></i> {{ opcion.etiqueta }}
+      @if (opcion.esPro) {
+        <span class="badge badge-sm">Pro</span>
+      }
+      @if (opcion.notificaciones) {
+        <span class="badge badge-error badge-sm">{{ opcion.notificaciones }}</span>
+      }
+    </a>
   }
 </ng-template>

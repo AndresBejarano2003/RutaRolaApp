@@ -1,6 +1,9 @@
 /* Tailwind CSS v4 + DaisyUI 5 */
 @import "tailwindcss";
 
+/* Pantalla "amplia": tablet o mayor y con altura suficiente (excluye teléfonos en horizontal). */
+@custom-variant amplio (@media (width >= 48rem) and (height >= 32rem));
+
 /* Solo se carga el tema propio (antes `themes: all` cargaba 35 temas). */
 @plugin "daisyui" {
   themes: false;
@@ -56,10 +59,19 @@
   --noise: 0;
 }
 
+/* Las páginas públicas hacen scroll normal; el shell (h-dvh) maneja su propio scroll interno. */
 html,
 body {
-  height: 100%;
-  overflow: hidden;
+  min-height: 100%;
+  background-color: var(--color-base-100);
+  -webkit-text-size-adjust: 100%;
+}
+
+/* Tarjetas más compactas en teléfonos para dar espacio a tablas y formularios. */
+@media (width < 40rem) {
+  .card-body {
+    padding: 1rem;
+  }
 }
 
 @keyframes fadeIn {
@@ -97,4 +109,52 @@ body {
 
 ::-webkit-scrollbar-thumb:hover {
   background: #475569;
+}
+/*
+ * Tablas: filas de una sola línea; si no caben, la tabla se desplaza en
+ * horizontal dentro de su tarjeta (nunca la página) y la última columna
+ * (acciones o valor) queda fija a la derecha para no tener que desplazarse.
+ * Las columnas secundarias se muestran según el ANCHO DE LA TARJETA (container
+ * queries): contenedor `@container` y columnas `hidden @3xl:table-cell` (≥768px),
+ * `@5xl:` (≥1024px) o `@6xl:` (≥1152px); así funciona igual con o sin menú lateral.
+ */
+/* En @layer components para que una celda pueda optar por otra cosa con utilidades (p. ej. whitespace-normal). */
+@layer components {
+  .overflow-x-auto > .table :is(th, td) {
+    white-space: nowrap;
+    padding-inline: 0.75rem;
+  }
+  /* Los encabezados largos pueden partirse en dos líneas. */
+  .overflow-x-auto > .table thead th {
+    white-space: normal;
+    vertical-align: bottom;
+  }
+  .overflow-x-auto > .table:has(thead th.text-right:last-child) :is(th, td):last-child {
+    position: sticky;
+    right: 0;
+    z-index: 1;
+    background-color: var(--color-base-200);
+  }
+  .overflow-x-auto > .table:has(thead th.text-right:last-child) thead th:last-child {
+    background-color: var(--color-base-300);
+  }
+  /* Sombra solo cuando la tarjeta es angosta (la tabla puede desplazarse). */
+  @container (width < 48rem) {
+    .overflow-x-auto > .table:has(thead th.text-right:last-child) :is(th, td):last-child {
+      box-shadow: -8px 0 8px -8px oklch(0% 0 0 / 0.6);
+    }
+  }
+}
+
+/* Los badges tienen alto fijo: su texto nunca se parte en dos líneas. */
+.badge {
+  white-space: nowrap;
+}
+
+/*
+ * Las celdas de un grid no se encogen por debajo de su contenido (min-width: auto):
+ * una tabla ancha dentro de un formulario desbordaba el modal en teléfonos.
+ */
+.grid > * {
+  min-width: 0;
 }
