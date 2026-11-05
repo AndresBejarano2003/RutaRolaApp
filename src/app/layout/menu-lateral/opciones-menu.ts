@@ -25,11 +25,11 @@ export const MENU_OPERATIVO: OpcionMenu[] = [
     ],
   },
   {
-    icono: 'fa-solid fa-box',
+    icono: 'fa-solid fa-sack-dollar',
     etiqueta: 'Finanzas',
     hijos: [
       { icono: 'fa-solid fa-file-lines', etiqueta: 'Cotizaciones', ruta: '/finanzas/cotizaciones' },
-      { icono: 'fa-solid fa-file-signature', etiqueta: 'Contrataciones', ruta: '/finanzas/contrataciones' },
+      { icono: 'fa-solid fa-file-invoice-dollar', etiqueta: 'Facturas', ruta: '/finanzas/facturas' },
       { icono: 'fa-solid fa-receipt', etiqueta: 'Recibos', ruta: '/finanzas/recibos' },
       {
         icono: 'fa-solid fa-calendar-check',
@@ -56,7 +56,7 @@ export const MENU_OPERATIVO: OpcionMenu[] = [
     ],
   },
   {
-    icono: 'fa-solid fa-box',
+    icono: 'fa-solid fa-van-shuttle',
     etiqueta: 'Operación',
     hijos: [
       { icono: 'fa-solid fa-school', etiqueta: 'Colegios', ruta: '/operacion/colegios' },
