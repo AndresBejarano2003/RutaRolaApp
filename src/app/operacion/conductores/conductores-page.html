@@ -1,0 +1,148 @@
+<form [formGroup]="filtros" class="card bg-base-200 border border-base-300 shadow-xl">
+  <div class="card-body">
+    <div class="flex items-center justify-between">
+      <h2 class="card-title text-base-content text-base"><i class="fa-solid fa-filter text-base-content/70"></i> Filtros</h2>
+      <button type="button" class="btn btn-ghost btn-sm text-base-content/70" (click)="filtros.reset()">
+        <i class="fa-solid fa-eraser"></i> Limpiar
+      </button>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+      <label class="input input-bordered bg-base-100 border-neutral w-full flex items-center gap-2">
+        <i class="fa-solid fa-magnifying-glass text-base-content/60"></i>
+        <input type="search" formControlName="texto" class="grow" placeholder="Nombre, documento o licencia..." aria-label="Buscar conductor" />
+      </label>
+      <app-selector-busqueda formControlName="licencia" [opciones]="licencias" textoTodos="Todas las licencias" etiqueta="Licencia" />
+      <app-selector-busqueda formControlName="asignacion" [opciones]="asignaciones" textoTodos="Con y sin ruta" etiqueta="Asignación" />
+      <app-selector-busqueda formControlName="estado" [opciones]="estados" textoTodos="Todos los estados" etiqueta="Estado" />
+    </div>
+  </div>
+</form>
+
+<section class="mt-6 card bg-base-200 border border-base-300 shadow-xl">
+  <div class="card-body">
+    <app-encabezado-listado titulo="Conductores" descripcion="Licencias y rutas asignadas. Los datos personales se gestionan en Personas › Empleados."
+      [cargando]="store.cargando()" [total]="store.total()" [modoLocal]="store.modoLocal" [error]="store.error()"
+      (reintentar)="store.recargar()">
+      <a routerLink="/operacion/asignaciones" class="btn bg-base-300 border-neutral hover:bg-neutral">
+        <i class="fa-solid fa-diagram-project"></i> Asignaciones
+      </a>
+      <a routerLink="/personas/empleados" class="btn btn-primary">
+        <i class="fa-solid fa-user-plus"></i> Registrar conductor
+      </a>
+    </app-encabezado-listado>
+
+    <div class="overflow-x-auto rounded-box border border-base-300">
+      <table class="table">
+        <thead>
+          <tr class="bg-base-300 text-base-content/80 text-xs uppercase tracking-wide">
+            <th>Conductor</th>
+            <th>Licencia</th>
+            <th>Vencimiento</th>
+            <th class="hidden md:table-cell">Teléfono</th>
+            <th>Ruta asignada</th>
+            <th class="hidden lg:table-cell">Vehículo</th>
+            <th>Estado</th>
+            <th class="text-right">Acciones</th>
+          </tr>
+        </thead>
+        <tbody class="transition-opacity" [class.opacity-50]="store.cargando() && store.items().length > 0">
+          @if (store.cargando() && store.items().length === 0) {
+            @for (fila of [1, 2, 3, 4]; track fila) {
+              <tr class="border-base-300">
+                @for (col of [1, 2, 3, 4, 5, 6, 7, 8]; track col) {
+                  <td><div class="skeleton bg-base-300 h-4 w-full"></div></td>
+                }
+              </tr>
+            }
+          } @else {
+            @for (c of store.items(); track c.id) {
+              <tr class="border-base-300 hover:bg-base-300/50 cursor-pointer transition-colors" (click)="consultar(c)">
+                <td><app-celda-persona [nombre]="c.nombre" [iniciales]="c.iniciales" [activo]="c.estado === 'ACTIVO'" [detalle]="c.documento" /></td>
+                <td class="whitespace-nowrap">
+                  <span class="badge badge-sm bg-base-300 border-neutral text-base-content/80 font-mono">{{ c.categoriaLicencia || '—' }}</span>
+                  <span class="ml-1 font-mono text-sm">{{ c.numeroLicencia }}</span>
+                </td>
+                <td><app-badge-vencimiento [fecha]="c.vencimientoLicencia" /></td>
+                <td class="hidden md:table-cell whitespace-nowrap" (click)="$event.stopPropagation()">
+                  <a class="link link-hover" [href]="'tel:' + c.telefono">{{ c.telefono }}</a>
+                </td>
+                <td>
+                  @if (c.asignacion; as a) {
+                    <div class="font-medium">{{ a.ruta }}</div>
+                    <div class="text-xs text-base-content/70">Jornada {{ a.jornada }}</div>
+                  } @else {
+                    <span class="badge badge-info badge-soft badge-sm">Disponible</span>
+                  }
+                </td>
+                <td class="hidden lg:table-cell text-sm">{{ c.asignacion?.vehiculo ?? '—' }}</td>
+                <td><app-badge-estado [estado]="c.estado" /></td>
+                <td class="text-right" (click)="$event.stopPropagation()">
+                  <div class="tooltip tooltip-left" data-tip="Consultar">
+                    <button type="button" class="btn btn-sm btn-ghost btn-square text-info hover:bg-info/15" aria-label="Consultar"
+                      (click)="consultar(c)"><i class="fa-solid fa-eye"></i></button>
+                  </div>
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="8">
+                  <app-estado-vacio icono="fa-solid fa-id-badge" mensaje="Aún no hay conductores. Regístralos en Personas › Empleados."
+                    textoCrear="" [hayFiltros]="store.hayFiltros()" />
+                </td>
+              </tr>
+            }
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <app-paginacion [pagina]="store.paginacion().pagina" [tamano]="store.paginacion().tamano" [total]="store.total()"
+      [totalPaginas]="store.totalPaginas()" (cambiarPagina)="store.irAPagina($event)" (cambiarTamano)="store.cambiarTamano($event)" />
+  </div>
+</section>
+
+<app-modal [(abierto)]="detalleAbierto" titulo="Detalle del conductor" [subtitulo]="detalle()?.nombre ?? ''">
+  @if (detalleAbierto() && detalle(); as c) {
+    <div class="space-y-5">
+      <div>
+        <h4 class="text-sm font-semibold uppercase tracking-wide text-info mb-2 border-b border-base-300 pb-1">Datos de contacto</h4>
+        <dl class="grid sm:grid-cols-2 gap-x-4 gap-y-2 text-sm">
+          <div><dt class="text-base-content/70">Documento</dt><dd>{{ c.documento }}</dd></div>
+          <div><dt class="text-base-content/70">Teléfono</dt><dd>{{ c.telefono }}</dd></div>
+          <div><dt class="text-base-content/70">Correo</dt><dd>{{ c.correo || '—' }}</dd></div>
+          <div><dt class="text-base-content/70">Estado</dt><dd><app-badge-estado [estado]="c.estado" /></dd></div>
+        </dl>
+      </div>
+      <div>
+        <h4 class="text-sm font-semibold uppercase tracking-wide text-info mb-2 border-b border-base-300 pb-1">Licencia de conducción</h4>
+        <dl class="grid sm:grid-cols-3 gap-x-4 gap-y-2 text-sm">
+          <div><dt class="text-base-content/70">Número</dt><dd class="font-mono">{{ c.numeroLicencia }}</dd></div>
+          <div><dt class="text-base-content/70">Categoría</dt><dd>{{ c.categoriaLicencia }}</dd></div>
+          <div><dt class="text-base-content/70">Vence</dt><dd><app-badge-vencimiento [fecha]="c.vencimientoLicencia" [mostrarFecha]="false" />
+            {{ fechaCorta(c.vencimientoLicencia) }}</dd></div>
+        </dl>
+      </div>
+      <div>
+        <h4 class="text-sm font-semibold uppercase tracking-wide text-info mb-2 border-b border-base-300 pb-1">Asignación actual</h4>
+        @if (c.asignacion; as a) {
+          <dl class="grid sm:grid-cols-2 gap-x-4 gap-y-2 text-sm">
+            <div><dt class="text-base-content/70">Ruta</dt><dd>{{ a.ruta }} · {{ a.jornada }}</dd></div>
+            <div><dt class="text-base-content/70">Vehículo</dt><dd>{{ a.vehiculo }}</dd></div>
+            <div><dt class="text-base-content/70">Monitora</dt><dd>{{ a.monitora || 'Sin monitora' }}</dd></div>
+          </dl>
+        } @else {
+          <p class="text-sm text-base-content/70"><i class="fa-solid fa-circle-info text-info"></i> No tiene una ruta asignada.</p>
+        }
+      </div>
+    </div>
+  }
+  @if (detalleAbierto()) {
+    <div pie class="flex flex-wrap justify-end gap-2">
+      <button type="button" class="btn btn-ghost" (click)="detalleAbierto.set(false)">Cerrar</button>
+      <a routerLink="/operacion/asignaciones" class="btn bg-base-300 border-neutral hover:bg-neutral">
+        <i class="fa-solid fa-diagram-project"></i> Gestionar asignación
+      </a>
+      <a routerLink="/personas/empleados" class="btn btn-primary"><i class="fa-solid fa-pen"></i> Editar en Empleados</a>
+    </div>
+  }
+</app-modal>

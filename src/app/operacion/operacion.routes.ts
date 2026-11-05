@@ -1,8 +1,6 @@
 import { Routes } from '@angular/router';
 
-/** Página temporal para las secciones que aún no tienen contenido. */
-const enConstruccion = () => import('../shared/en-construccion/en-construccion-page');
-
+// Los repositorios (local / API) se eligen en `core/repositorios.ts`.
 export default [
   {
     path: 'colegios',
@@ -11,23 +9,22 @@ export default [
   },
   {
     path: 'rutas',
-    loadComponent: enConstruccion,
+    loadComponent: () => import('./rutas/rutas-page'),
     data: { breadcrumb: ['Operación', 'Rutas'] },
   },
   {
     path: 'vehiculos',
-    // Lista para conectar: () => import('./vehiculos/vehiculos-page')
-    loadComponent: enConstruccion,
+    loadComponent: () => import('./vehiculos/vehiculos-page'),
     data: { breadcrumb: ['Operación', 'Vehículos'] },
   },
   {
     path: 'conductores',
-    loadComponent: enConstruccion,
+    loadComponent: () => import('./conductores/conductores-page'),
     data: { breadcrumb: ['Operación', 'Conductores'] },
   },
   {
     path: 'asignaciones',
-    loadComponent: enConstruccion,
+    loadComponent: () => import('./asignaciones/asignaciones-page'),
     data: { breadcrumb: ['Operación', 'Asignaciones'] },
   },
   { path: '**', redirectTo: 'colegios' },

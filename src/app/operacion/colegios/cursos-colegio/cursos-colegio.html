@@ -1,0 +1,105 @@
+@if (!deshabilitado()) {
+  <div class="rounded-box border border-base-300 bg-base-100/40 p-4 mb-3" [formGroup]="generador">
+    <p class="text-sm text-base-content/70 mb-3">
+      <i class="fa-solid fa-wand-magic-sparkles text-primary"></i>
+      Elige hasta qué curso llega el colegio y el horario: se llenan <b class="text-base-content">desde Jardín</b>
+      hasta ese curso con las horas indicadas. Luego puedes modificar cada curso.
+    </p>
+    <div class="grid grid-cols-1 sm:grid-cols-4 gap-3 items-end">
+      <div class="flex flex-col sm:col-span-2">
+        <span class="label-text text-base-content/90 mb-1">Hasta el curso <span class="text-error">*</span></span>
+        <app-selector-busqueda formControlName="hasta" [opciones]="grados" etiqueta="Hasta el curso" placeholder="Ej. 11° · Once" />
+      </div>
+      <label class="flex flex-col">
+        <span class="label-text text-base-content/90 mb-1">Hora entrada <span class="text-error">*</span></span>
+        <input type="time" formControlName="horaEntrada" class="input input-bordered bg-base-100 border-neutral w-full" />
+      </label>
+      <label class="flex flex-col">
+        <span class="label-text text-base-content/90 mb-1">Hora salida <span class="text-error">*</span></span>
+        <input type="time" formControlName="horaSalida" class="input input-bordered bg-base-100 border-neutral w-full" />
+      </label>
+    </div>
+    <div class="flex flex-wrap items-center justify-between gap-2 mt-3">
+      @if (errorGenerador(); as mensaje) {
+        <span class="text-xs text-error">{{ mensaje }}</span>
+      } @else {
+        <span></span>
+      }
+      <button type="button" class="btn btn-secondary btn-sm" (click)="agregarCursos()">
+        <i class="fa-solid fa-layer-group"></i>
+        Agregar cursos
+      </button>
+    </div>
+  </div>
+}
+
+<div class="overflow-x-auto rounded-box border border-base-300">
+  <table class="table table-sm">
+    <thead>
+      <tr class="bg-base-300 text-base-content/80 text-xs uppercase tracking-wide">
+        <th>Curso</th>
+        <th>Hora ingreso</th>
+        <th>Hora salida</th>
+        <th>Estado</th>
+        @if (!deshabilitado()) {
+          <th class="text-right">Acciones</th>
+        }
+      </tr>
+    </thead>
+    <tbody>
+      @for (curso of cursos(); track curso.grado) {
+        @if (editando() === curso.grado) {
+          <tr class="border-base-300 bg-base-300/40" [formGroup]="edicion">
+            <td class="font-medium">{{ nombresGrado.get(curso.grado) ?? curso.grado }}</td>
+            <td><input type="time" formControlName="horaEntrada" aria-label="Hora ingreso"
+                class="input input-sm input-bordered bg-base-100 border-neutral w-32" /></td>
+            <td><input type="time" formControlName="horaSalida" aria-label="Hora salida"
+                class="input input-sm input-bordered bg-base-100 border-neutral w-32" />
+              @if (errorEdicion(); as mensaje) {
+                <div class="text-xs text-error mt-1">{{ mensaje }}</div>
+              }
+            </td>
+            <td class="min-w-36">
+              <app-selector-busqueda formControlName="estado" [opciones]="estados" etiqueta="Estado del curso" />
+            </td>
+            <td class="text-right whitespace-nowrap">
+              <button type="button" class="btn btn-sm btn-ghost btn-square text-success" aria-label="Guardar curso"
+                (click)="guardarEdicion()"><i class="fa-solid fa-check"></i></button>
+              <button type="button" class="btn btn-sm btn-ghost btn-square" aria-label="Cancelar edición"
+                (click)="editando.set(null)"><i class="fa-solid fa-xmark"></i></button>
+            </td>
+          </tr>
+        } @else {
+          <tr class="border-base-300 hover:bg-base-300/50">
+            <td class="font-medium">{{ nombresGrado.get(curso.grado) ?? curso.grado }}</td>
+            <td>{{ horaLegible(curso.horaEntrada) }}</td>
+            <td>{{ horaLegible(curso.horaSalida) }}</td>
+            <td><app-badge-estado [estado]="curso.estado" /></td>
+            @if (!deshabilitado()) {
+              <td class="text-right whitespace-nowrap">
+                <div class="tooltip" data-tip="Modificar">
+                  <button type="button" class="btn btn-sm btn-ghost btn-square text-primary hover:bg-primary/15"
+                    aria-label="Modificar curso" (click)="modificar(curso)"><i class="fa-solid fa-pen"></i></button>
+                </div>
+                <div class="tooltip tooltip-left" data-tip="Quitar">
+                  <button type="button" class="btn btn-sm btn-ghost btn-square text-error hover:bg-error/15"
+                    aria-label="Quitar curso" (click)="quitar(curso)"><i class="fa-solid fa-trash"></i></button>
+                </div>
+              </td>
+            }
+          </tr>
+        }
+      } @empty {
+        <tr>
+          <td [attr.colspan]="deshabilitado() ? 4 : 5" class="text-center text-base-content/70 py-6">
+            <i class="fa-solid fa-circle-info text-info"></i>
+            Aún no hay cursos parametrizados.
+          </td>
+        </tr>
+      }
+    </tbody>
+  </table>
+</div>
+@if (cursos().length) {
+  <p class="text-xs text-base-content/70 mt-2">{{ cursos().length }} curso(s), {{ activos() }} activo(s).</p>
+}

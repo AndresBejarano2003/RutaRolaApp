@@ -1,0 +1,43 @@
+<form [id]="idFormulario()" [formGroup]="form" (ngSubmit)="enviar()" novalidate>
+  <div class="grid md:grid-cols-2 gap-x-4 gap-y-3">
+    <app-titulo-seccion>Datos de la ruta</app-titulo-seccion>
+    <label app-campo etiqueta="Código" requerido [error]="error('codigo')">
+      <input type="text" formControlName="codigo" class="input input-bordered bg-base-100 border-neutral w-full font-mono uppercase"
+        [class.input-error]="error('codigo')" placeholder="Ej. R-05" />
+    </label>
+    <label app-campo etiqueta="Nombre" requerido [error]="error('nombre')">
+      <input type="text" formControlName="nombre" class="input input-bordered bg-base-100 border-neutral w-full"
+        [class.input-error]="error('nombre')" placeholder="Ej. Norte" />
+    </label>
+    <div app-campo etiqueta="Colegio" requerido [error]="error('colegioId')">
+      <app-selector-busqueda formControlName="colegioId" [opciones]="colegios()" etiqueta="Colegio"
+        [invalido]="!!error('colegioId')" />
+    </div>
+    <div app-campo etiqueta="Jornada" requerido [error]="error('jornada')">
+      <app-selector-busqueda formControlName="jornada" [opciones]="catalogos.jornadas" etiqueta="Jornada" [invalido]="!!error('jornada')" />
+    </div>
+    <label app-campo class="md:col-span-2" etiqueta="Sector / barrios que recorre" requerido [error]="error('sector')">
+      <input type="text" formControlName="sector" class="input input-bordered bg-base-100 border-neutral w-full"
+        [class.input-error]="error('sector')" placeholder="Ej. Cándido, Las Granjas, Santa Inés" />
+    </label>
+
+    <app-titulo-seccion>Estudiantes de la ruta ({{ form.controls.estudianteIds.value.length }})</app-titulo-seccion>
+    <div class="md:col-span-2">
+      @if (form.controls.colegioId.value) {
+        <app-lista-seleccion formControlName="estudianteIds" [opciones]="estudiantes()" etiqueta="Estudiante"
+          placeholder="Buscar estudiante del colegio..." textoVacio="La ruta aún no tiene estudiantes." />
+      } @else {
+        <p class="text-sm text-base-content/70"><i class="fa-solid fa-circle-info text-info"></i> Elige primero el colegio para agregar sus estudiantes.</p>
+      }
+    </div>
+
+    <app-titulo-seccion>Estado</app-titulo-seccion>
+    <div app-campo etiqueta="Estado" requerido [error]="error('estado')">
+      <app-selector-busqueda formControlName="estado" [opciones]="estados" etiqueta="Estado" [invalido]="!!error('estado')" />
+    </div>
+    <label app-campo class="md:col-span-2" etiqueta="Observaciones" [error]="error('observaciones')">
+      <textarea formControlName="observaciones" rows="2" class="textarea textarea-bordered bg-base-100 border-neutral w-full"
+        placeholder="Puntos de encuentro, recomendaciones..."></textarea>
+    </label>
+  </div>
+</form>

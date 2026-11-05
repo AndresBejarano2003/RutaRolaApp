@@ -1,0 +1,46 @@
+<form [id]="idFormulario()" [formGroup]="form" (ngSubmit)="enviar()" novalidate>
+  <div class="grid md:grid-cols-2 gap-x-4 gap-y-3">
+    @if (!soloLectura()) {
+      <div role="note" class="md:col-span-2 alert alert-info alert-soft text-sm">
+        <i class="fa-solid fa-circle-info"></i>
+        <span>
+          Al guardar se valida que el vehículo tenga puestos para todos los estudiantes de la ruta, que la licencia y los
+          documentos estén vigentes y que nadie quede en dos rutas de la misma jornada.
+        </span>
+      </div>
+    }
+    <app-titulo-seccion>Ruta y vehículo</app-titulo-seccion>
+    <div app-campo etiqueta="Ruta" requerido [error]="error('rutaId')">
+      <app-selector-busqueda formControlName="rutaId" [opciones]="opciones().rutas" etiqueta="Ruta" [invalido]="!!error('rutaId')" />
+    </div>
+    <div app-campo etiqueta="Vehículo" requerido [error]="error('vehiculoId')">
+      <app-selector-busqueda formControlName="vehiculoId" [opciones]="opciones().vehiculos" etiqueta="Vehículo"
+        [invalido]="!!error('vehiculoId')" />
+    </div>
+
+    <app-titulo-seccion>Personal</app-titulo-seccion>
+    <div app-campo etiqueta="Conductor" requerido [error]="error('conductorId')">
+      <app-selector-busqueda formControlName="conductorId" [opciones]="opciones().conductores" etiqueta="Conductor"
+        [invalido]="!!error('conductorId')" />
+    </div>
+    <div app-campo etiqueta="Monitora" [error]="error('monitoraId')">
+      <app-selector-busqueda formControlName="monitoraId" [opciones]="monitoras()" etiqueta="Monitora" />
+    </div>
+
+    <app-titulo-seccion>Vigencia</app-titulo-seccion>
+    <label app-campo etiqueta="Fecha de inicio" requerido [error]="error('fechaInicio')">
+      <input type="date" formControlName="fechaInicio" class="input input-bordered bg-base-100 border-neutral w-full"
+        [class.input-error]="error('fechaInicio')" />
+    </label>
+    <label app-campo etiqueta="Fecha de fin" [error]="error('fechaFin')" ayuda="Vacía = sin fecha de fin.">
+      <input type="date" formControlName="fechaFin" class="input input-bordered bg-base-100 border-neutral w-full"
+        [class.input-error]="error('fechaFin')" />
+    </label>
+    <div app-campo etiqueta="Estado" requerido [error]="error('estado')">
+      <app-selector-busqueda formControlName="estado" [opciones]="estados" etiqueta="Estado" [invalido]="!!error('estado')" />
+    </div>
+    <label app-campo class="md:col-span-2" etiqueta="Observaciones" [error]="error('observaciones')">
+      <textarea formControlName="observaciones" rows="2" class="textarea textarea-bordered bg-base-100 border-neutral w-full"></textarea>
+    </label>
+  </div>
+</form>

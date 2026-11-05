@@ -1,0 +1,38 @@
+<app-asignaciones-filtros [rutas]="opciones().rutas" [vehiculos]="opciones().vehiculos" [empleados]="personal()"
+  (cambiar)="store.buscar($event)" />
+
+<section class="mt-6 card bg-base-200 border border-base-300 shadow-xl">
+  <div class="card-body">
+    <app-encabezado-listado titulo="Asignaciones" descripcion="Qué vehículo, conductor y monitora cubren cada ruta."
+      [cargando]="store.cargando()" [total]="store.total()" [modoLocal]="store.modoLocal" [error]="store.error()"
+      textoNuevo="Nueva asignación" (nuevo)="nuevo()" (reintentar)="store.recargar()" />
+
+    <app-asignaciones-tabla [asignaciones]="store.items()" [nombres]="nombres()" [cargando]="store.cargando()"
+      [hayFiltros]="store.hayFiltros()" (consultar)="abrir('consultar', $event)" (editar)="abrir('editar', $event)"
+      (eliminar)="pedirEliminar($event)" (crear)="nuevo()" />
+
+    <app-paginacion [pagina]="store.paginacion().pagina" [tamano]="store.paginacion().tamano" [total]="store.total()"
+      [totalPaginas]="store.totalPaginas()" (cambiarPagina)="store.irAPagina($event)" (cambiarTamano)="store.cambiarTamano($event)" />
+  </div>
+</section>
+
+<app-modal [(abierto)]="modalAbierto" [titulo]="tituloModal()" [subtitulo]="subtituloModal()" ancho="max-w-3xl">
+  @if (modalAbierto()) {
+    <div class="relative">
+      @if (cargandoDetalle()) {
+        <div class="absolute inset-0 z-10 grid place-items-center bg-base-200/80 rounded-xl">
+          <span class="loading loading-spinner loading-lg text-primary"></span>
+        </div>
+      }
+      <app-asignacion-formulario idFormulario="form-asignacion" [modo]="modo()" [asignacion]="seleccionado()"
+        [opciones]="opciones()" (guardar)="guardar($event)" />
+    </div>
+  }
+  @if (modalAbierto()) {
+    <app-acciones-formulario pie formulario="form-asignacion" [modo]="modo()" [guardando]="store.guardando()"
+      [bloqueado]="cargandoDetalle()" textoCrear="Registrar asignación" (cancelar)="modalAbierto.set(false)" (editar)="modo.set('editar')" />
+  }
+</app-modal>
+
+<app-dialogo-confirmacion [(abierto)]="confirmacionAbierta" titulo="Eliminar asignación" [mensaje]="mensajeEliminar()"
+  [permitirConfirmar]="puedeEliminar()" [procesando]="store.guardando() || verificandoEliminar()" (confirmar)="confirmarEliminar()" />

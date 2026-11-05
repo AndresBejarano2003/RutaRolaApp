@@ -1,0 +1,56 @@
+<form [id]="idFormulario()" [formGroup]="form" (ngSubmit)="enviar()" novalidate>
+  <div class="grid md:grid-cols-2 gap-x-4 gap-y-3">
+    <app-titulo-seccion>Identificación del vehículo</app-titulo-seccion>
+    <label app-campo etiqueta="Placa" requerido [error]="error('placa')">
+      <input type="text" formControlName="placa" maxlength="7"
+        class="input input-bordered bg-base-100 border-neutral w-full font-mono uppercase tracking-wider"
+        [class.input-error]="error('placa')" placeholder="ABC123" />
+    </label>
+    <label app-campo etiqueta="Número interno" requerido [error]="error('numeroInterno')">
+      <input type="text" formControlName="numeroInterno" class="input input-bordered bg-base-100 border-neutral w-full"
+        [class.input-error]="error('numeroInterno')" placeholder="Ej. 101" />
+    </label>
+    <div app-campo etiqueta="Tipo de vehículo" requerido [error]="error('tipo')">
+      <app-selector-busqueda formControlName="tipo" [opciones]="tipos" etiqueta="Tipo de vehículo" [invalido]="!!error('tipo')" />
+    </div>
+    <label app-campo etiqueta="Capacidad (estudiantes)" requerido [error]="error('capacidad')"
+      ayuda="Puestos para estudiantes, sin contar conductor ni monitora.">
+      <input type="number" formControlName="capacidad" min="1" class="input input-bordered bg-base-100 border-neutral w-full"
+        [class.input-error]="error('capacidad')" />
+    </label>
+    <label app-campo etiqueta="Marca" requerido [error]="error('marca')">
+      <input type="text" formControlName="marca" class="input input-bordered bg-base-100 border-neutral w-full"
+        [class.input-error]="error('marca')" placeholder="Ej. Chevrolet" />
+    </label>
+    <label app-campo etiqueta="Línea" [error]="error('linea')">
+      <input type="text" formControlName="linea" class="input input-bordered bg-base-100 border-neutral w-full" placeholder="Ej. NPR" />
+    </label>
+    <label app-campo etiqueta="Modelo (año)" requerido [error]="error('modelo')">
+      <input type="number" formControlName="modelo" min="1990" [max]="anioMaximo"
+        class="input input-bordered bg-base-100 border-neutral w-full" [class.input-error]="error('modelo')" />
+    </label>
+    <label app-campo etiqueta="Color" [error]="error('color')">
+      <input type="text" formControlName="color" class="input input-bordered bg-base-100 border-neutral w-full" placeholder="Ej. Amarillo" />
+    </label>
+
+    <app-titulo-seccion>Documentos (fecha de vencimiento)</app-titulo-seccion>
+    @for (documento of documentos; track documento.campo) {
+      <label app-campo [etiqueta]="documento.nombre" requerido [error]="error(documento.campo)">
+        <div class="flex items-center gap-2">
+          <input type="date" [formControlName]="documento.campo" class="input input-bordered bg-base-100 border-neutral w-full"
+            [class.input-error]="error(documento.campo)" />
+          <app-badge-vencimiento [fecha]="fecha(documento.campo)" [mostrarFecha]="false" />
+        </div>
+      </label>
+    }
+
+    <app-titulo-seccion>Estado</app-titulo-seccion>
+    <div app-campo etiqueta="Estado" requerido [error]="error('estado')">
+      <app-selector-busqueda formControlName="estado" [opciones]="estados" etiqueta="Estado" [invalido]="!!error('estado')" />
+    </div>
+    <label app-campo class="md:col-span-2" etiqueta="Observaciones" [error]="error('observaciones')">
+      <textarea formControlName="observaciones" rows="2" class="textarea textarea-bordered bg-base-100 border-neutral w-full"
+        placeholder="Mantenimientos, novedades..."></textarea>
+    </label>
+  </div>
+</form>

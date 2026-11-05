@@ -1,0 +1,27 @@
+<form [id]="idFormulario()" [formGroup]="form" (ngSubmit)="enviar()" novalidate>
+  <div class="grid md:grid-cols-2 gap-x-4 gap-y-3">
+    <app-titulo-seccion>Datos del colegio</app-titulo-seccion>
+    <label app-campo etiqueta="NIT" requerido [error]="error('nit')">
+      <input type="text" formControlName="nit" class="input input-bordered bg-base-100 border-neutral w-full font-mono"
+        [class.input-error]="error('nit')" placeholder="Ej. 900123456-7" />
+    </label>
+    <label app-campo etiqueta="Razón social" requerido [error]="error('razonSocial')">
+      <input type="text" formControlName="razonSocial" class="input input-bordered bg-base-100 border-neutral w-full"
+        [class.input-error]="error('razonSocial')" placeholder="Ej. Colegio San José" />
+    </label>
+    <label app-campo etiqueta="Dirección" requerido [error]="error('direccion')">
+      <input type="text" formControlName="direccion" class="input input-bordered bg-base-100 border-neutral w-full"
+        [class.input-error]="error('direccion')" placeholder="Ej. Carrera 16 # 18-02" />
+    </label>
+    <label app-campo etiqueta="Teléfono" [error]="error('telefono')">
+      <input type="tel" formControlName="telefono" class="input input-bordered bg-base-100 border-neutral w-full"
+        [class.input-error]="error('telefono')" placeholder="Ej. 608 871 2345" />
+    </label>
+    <div app-campo etiqueta="Estado" requerido [error]="error('estado')">
+      <app-selector-busqueda formControlName="estado" [opciones]="estados" etiqueta="Estado" [invalido]="!!error('estado')" />
+    </div>
+
+    <app-titulo-seccion>Parametrizar cursos</app-titulo-seccion>
+    <app-cursos-colegio formControlName="cursos" />
+  </div>
+</form>
