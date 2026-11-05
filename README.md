@@ -29,9 +29,10 @@ rutas, variables y textos en **español**.
 
 ```
 src/app/
-  core/           servicios globales (auth, whatsapp)
+  core/           servicios globales (auth, whatsapp) y repositorios.ts (fuente de datos de cada módulo)
+  modulos.routes.ts  módulos internos (con layout) cargados de forma diferida junto con los repositorios
   layout/         shell, barra-superior, menu-lateral (opciones-menu.ts)
-  shared/         piezas reutilizables (crud, modal, paginación, notificaciones, formularios, catálogos)
+  shared/         piezas reutilizables (crud, modal, paginación, notificaciones, formularios, catálogos, fechas, exportar, pruebas)
   autenticacion/  login, registro, recuperar
   inicio/         dashboard, perfil, configuración
   personas/  finanzas/  operacion/  sistema/     una carpeta por pantalla + <modulo>.routes.ts
@@ -45,7 +46,8 @@ src/app/
 
 ## 2. Estructura de toda pantalla CRUD
 
-Toda pantalla de registros (estudiantes, acudientes, empleados, colegios, vehículos, cotizaciones…)
+Toda pantalla de registros (estudiantes, acudientes, empleados, colegios, vehículos, rutas, asignaciones,
+cotizaciones, facturas, recibos, programación…)
 tiene **filtros, listado paginado y una ventana modal para registrar, modificar y consultar**, más
 confirmación para eliminar. La implementación de referencia es **`personas/estudiantes/`**.
 
@@ -55,11 +57,14 @@ confirmación para eliminar. La implementación de referencia es **`personas/est
 | `<plural>-repositorio.ts` | Contrato abstracto de acceso a datos (token de inyección) |
 | `<plural>-local.ts` | Almacenamiento **temporal** en el navegador (`localStorage`) con datos de ejemplo y validaciones de negocio |
 | `<plural>-http.ts` | Conexión al API REST, lista para usar |
-| `<plural>-store.ts` | Estado de la pantalla con signals: listado, filtros, paginación, cargando, guardando, errores |
+| `<plural>-store.ts` | Estado de la pantalla con signals: listado, filtros, paginación, cargando, guardando, errores (`extends CrudStore`; listados de solo lectura: `extends ListadoStore`) |
 | `<plural>-filtros/` | Filtros con búsqueda en vivo y botón **Limpiar** |
 | `<plural>-tabla/` | Listado con acciones **Consultar / Editar / Eliminar** |
 | `<entidad>-formulario/` | **Solo los campos** del formulario, con modos **crear / editar / consultar** (solo lectura) y validaciones |
-| `<plural>-page.ts` | Orquesta todo; usa `app-modal`, `app-acciones-formulario`, `app-dialogo-confirmacion` y `app-paginacion` |
+| `<plural>-page.ts` | Orquesta todo; `extends PaginaCrud` (modal, modos, guardar y verificación antes de eliminar ya resueltos) y usa `app-encabezado-listado`, `app-modal`, `app-acciones-formulario`, `app-dialogo-confirmacion` y `app-paginacion` |
+
+La página solo declara su `store`, sus `titulos` (crear/editar/consultar) y `describir(registro)` para el
+diálogo de eliminar; lo demás lo hereda de `shared/crud/pagina-crud.ts`.
 
 Comportamiento obligatorio:
 - Clic en una fila = **consultar**. Desde la consulta se puede pasar a **editar**.
@@ -72,13 +77,25 @@ Comportamiento obligatorio:
 ### Datos temporales y conexión al API
 
 Mientras no exista el backend, los registros se guardan en `localStorage` (clave `rutarola.<recurso>`) y la
-pantalla muestra el indicador **"Modo local"**. Para conectar el API se cambia **una línea** en las rutas
-del módulo:
+pantalla muestra el indicador **"Modo local"**. Para conectar el API se cambia **una línea** en
+`core/repositorios.ts`:
 
 ```ts
-providers: [{ provide: EstudiantesRepositorio, useClass: EstudiantesLocal }]   // hoy
-providers: [{ provide: EstudiantesRepositorio, useClass: EstudiantesHttp }]    // con API
+{ provide: EstudiantesRepositorio, useClass: EstudiantesLocal }   // hoy
+{ provide: EstudiantesRepositorio, useClass: EstudiantesHttp }    // con API
 ```
+
+`RepositorioLocal` simula el servidor y tiene ganchos para que cada módulo declare las mismas reglas que
+deberá aplicar el API:
+
+- `validar(datos, idActual, registros)`: reglas síncronas (duplicados, rangos de fechas…).
+- `validarRelaciones(datos, idActual)`: reglas que consultan **otros módulos** (p. ej. una asignación
+  revisa capacidad del vehículo, licencia del conductor y documentos vencidos).
+- `preparar(datos, registros)`: datos que genera el servidor (consecutivos `FAC-0001`, `REC-0001`, `COT-0001`).
+- `motivoNoEliminar(id)`: integridad referencial (ver abajo).
+- La latencia simulada sale del token `LATENCIA_LOCAL` (300 ms; 0 en pruebas).
+
+Cada `*Http` documenta en su comentario los endpoints y respuestas (409/422) que espera.
 
 Contrato REST que espera `RepositorioHttp` (`environment.apiUrl`):
 
@@ -90,8 +107,144 @@ Contrato REST que espera `RepositorioHttp` (`environment.apiUrl`):
 | Modificar | `PUT /{recurso}/{id}` | registro actualizado |
 | Eliminar | `DELETE /{recurso}/{id}` | vacío |
 
+| Opciones para listas | `GET /{recurso}/opciones?<filtros>` | `[{ id, nombre }]` (p. ej. `/estudiantes/opciones?acudienteId=acu-1`) |
+
+Endpoints adicionales (solo lectura o calculados en el servidor):
+
+| Pantalla | Petición | Respuesta |
+|---|---|---|
+| Conductores | `GET /conductores?<filtros>` | conductores (empleados) con licencia y asignación activa |
+| Historial de envíos | `GET /programaciones/{id}/envios` | envíos del proceso automático |
+| Conteo de envíos | `GET /programaciones/envios/conteo?ids=` | `{ [id]: cantidad }` |
+| Reporte de ingresos | `GET /reportes/ingresos?desde=&hasta=&medioPago=` | totales, por mes, por medio y recibos |
+| Facturas pendientes | `GET /reportes/facturas-pendientes?texto=&acudienteId=&situacion=` | cuotas sin recibo |
+| Morosos | `GET /reportes/morosos?texto=&diasMinimos=` | acudientes con cuotas vencidas |
+
+
 Errores: el API puede responder `{ "mensaje": "..." }` y se mostrará tal cual; si no, se usa un mensaje
-según el código (409 = duplicado, 404 = no existe, 0 = sin conexión…).
+según el código (409 = duplicado o registro en uso, 404 = no existe, 0 = sin conexión…).
+
+### Repositorios: un solo registro para toda la app
+
+Los módulos se enlazan entre sí (estudiantes ↔ colegios ↔ rutas ↔ asignaciones ↔ vehículos/empleados;
+acudientes ↔ facturas ↔ recibos ↔ programación ↔ reportes). Por eso **todos** los repositorios se
+declaran en un único lugar, `core/repositorios.ts` (`proveerRepositorios()`), que se aplica en la ruta
+padre de `modulos.routes.ts`. Así todas las pantallas comparten las mismas instancias, y los
+repositorios se cargan de forma diferida (no inflan el bundle inicial). Ninguna pantalla ni módulo
+declara sus propios repositorios.
+
+Cuando un repositorio local necesita a otro que a su vez lo necesita (p. ej. empleados ↔ asignaciones),
+lo obtiene de forma diferida con `Injector.get()` dentro del método, no con `inject()` en el campo.
+
+### Relaciones entre registros
+
+- Una lista que muestra registros de **otra pantalla** (por ejemplo, el acudiente de un estudiante) se
+  llena con `repositorio.opciones(filtros?)`, **nunca** con datos fijos en `shared/catalogos`. Los
+  catálogos son solo para valores fijos: tipos de documento, grados (Jardín, Transición, 1° … 11°),
+  jornadas… Ejemplos: los estudiantes de un acudiente (`opciones({ acudienteId })`), los cursos del
+  colegio elegido.
+- **Integridad:** no se puede eliminar un registro que otros usan. Por ejemplo, un acudiente con
+  estudiantes a cargo o facturas, un colegio con estudiantes o rutas, un vehículo o empleado con
+  asignaciones, una factura con recibos o programación.
+  - Cada repositorio declara `motivoNoEliminar(id)` (devuelve el motivo o `null`); `eliminar` lanza
+    `ErrorCrud(..., 'EN_USO')` y el API debe responder **409** con `mensaje`.
+  - La pantalla lo verifica antes. El diálogo explica el motivo con `[permitirConfirmar]="false"`, que
+    muestra solo el botón "Entendido".
+  - Se sugiere marcar el registro como **Inactivo** en lugar de eliminarlo.
+- Todo registro tiene `estado: EstadoRegistro` (`'ACTIVO' | 'INACTIVO'`), mostrado con
+  `<app-badge-estado>` (`textoActivo`/`textoInactivo` para "Vigente/Anulada", "Válido/Anulado").
+- **Documentos financieros con copia de datos:** factura, recibo y cotización guardan el nombre del
+  acudiente, del estudiante y el número de factura con que se expidieron (no cambian si luego se edita
+  la persona).
+
+### Reglas de cada módulo
+
+- **Colegios:** NIT único; "Agregar cursos" llena los cursos **desde Jardín hasta el curso elegido** con
+  la hora de entrada y salida indicadas (cada curso se puede modificar o quitar después). El grado de un
+  estudiante se elige entre los cursos activos de su colegio.
+- **Vehículos:** placa e interno únicos; vencimientos de SOAT, tecnomecánica, tarjeta de operación y
+  pólizas con alerta a 30 días (`app-badge-vencimiento`).
+- **Rutas:** código único; estudiantes del colegio de la ruta; un estudiante no puede estar en dos rutas
+  activas de la misma jornada.
+- **Asignaciones (ruta + vehículo + conductor + monitora):** una activa por ruta; conductor de tipo
+  conductor con licencia vigente; vehículo activo, con capacidad suficiente y documentos al día; un
+  vehículo o persona no cubre dos rutas de la misma jornada.
+- **Conductores:** vista de solo lectura de los empleados conductores con su licencia y ruta asignada;
+  se editan en Personas › Empleados y se asignan en Operación › Asignaciones.
+- **Cotizaciones:** acudiente/estudiantes registrados (selectores) o cliente nuevo (texto);
+  total = valor por estudiante × estudiantes.
+- **Facturas (contrataciones):** valor **mensual** por estudiante entre un mes inicial y uno final; el
+  estudiante debe ser del acudiente; un estudiante no tiene dos facturas vigentes que se crucen.
+- **Recibos:** pagan un mes de una factura vigente; un mes no se paga dos veces.
+- **Programación de facturación:** una por factura; día límite (1–31) y días previos (1–10); por cada canal
+  activo (WhatsApp / correo) hay mensajes predefinidos y **exactamente uno "En uso"**; los envíos los
+  hace el servidor y se ven en el historial.
+- **Reportes:** ingresos (recibos válidos por fecha de pago), facturas pendientes (meses sin recibo hasta
+  el mes en curso) y morosos (cuotas vencidas según el día límite de la programación, o el día 5).
+
+### Piezas compartidas de personas (`personas/compartido/`)
+
+Estudiantes, acudientes y empleados comparten los datos de identificación.
+
+- **`DatosPersona`:** tipo y número de documento, primer y segundo nombre, primer y segundo apellido.
+- **`controlesPersona(fb)`:** los controles del formulario con sus validaciones:
+  - documento alfanumérico de 5 a 15 caracteres;
+  - nombres de máximo 50 caracteres.
+- **`limpiarPersona(datos)`:** limpia los datos antes de guardar.
+- **`<app-campos-persona />`:** las secciones "Identificación" y "Datos personales". Se pone dentro del
+  `<form>`, y `[tiposDocumento]` restringe los tipos permitidos (por ejemplo, empleados no usan RC/TI).
+- **Funciones auxiliares:**
+  - `nombreCompleto`, `iniciales`;
+  - `coincideTexto`: filtro por nombre o documento;
+  - `compararPorApellido`: orden del listado;
+  - `validarDocumentoUnico`: no permite documentos repetidos.
+- **`<app-celda-persona>`:** primera columna de la tabla, con avatar de iniciales, nombre y detalle.
+
+### Archivos adjuntos
+
+Se usa `<app-archivo-adjunto formControlName="contrato" aceptar=".pdf,image/*" [tamanoMaximoMb]="2" />`
+(varios archivos: `<app-archivos-adjuntos [maximo]="3" />`, valor `ArchivoAdjunto[]`).
+
+- Valida el tipo y el tamaño del archivo.
+- Permite ver o descargar, reemplazar y quitar el archivo.
+- En consulta queda en solo lectura.
+- En modo local el archivo se guarda dentro del registro (data URL), por eso el límite es de **2 MB**.
+  Si el navegador se queda sin espacio, se muestra el error `SIN_ESPACIO`.
+- Con API, el archivo viaja en el JSON (base64), o se sobrescribe `crear`/`actualizar` en el `*Http`
+  para enviarlo como `multipart/form-data`.
+
+### Formato colombiano
+
+La app usa `LOCALE_ID = 'es-CO'`. Los valores en dinero se muestran con
+`{{ valor | currency: 'COP' : 'symbol-narrow' : '1.0-0' }}` (ejemplo: $ 2.200.000).
+
+### Utilidades compartidas
+
+- `shared/fechas`: `fechaIso`, `periodoDe`, `sumarMeses`, `periodosEntre`, `nombrePeriodo`,
+  `diaDelPeriodo`, `diasEntre`, `fechaCorta`, `horaLegible` (meses como `YYYY-MM`).
+- `shared/exportar/csv.ts`: `descargarCsv()` (separador `;` y BOM para Excel en español).
+- `shared/formularios`: validadores `nit`, `placa`, `posteriorA(inicio, fin)` y `emitirEnVivo(form, salida)`
+  para filtros con búsqueda en vivo.
+- `shared/paginacion/paginacion-local.ts`: `PaginacionLocal` para paginar en el cliente (reportes) con
+  `<app-paginacion>`.
+
+### Pruebas
+
+`shared/pruebas/pruebas.ts` ofrece lo necesario para probar las pantallas:
+
+- `repositoriosDePrueba()`: todos los repositorios de `core/repositorios.ts`, sin latencia;
+- `simularDialogos()`: simula los diálogos del navegador (y `ResizeObserver` para las gráficas);
+- `estabilizar()`, `pantalla(el)`: escribir en campos, elegir en selectores y pulsar botones.
+
+Toda pantalla nueva incluye su `*-page.spec.ts` con estos casos:
+
+- listar;
+- filtrar;
+- crear con validación;
+- eliminar.
+
+Las reglas de negocio que cruzan módulos se prueban sobre los repositorios
+(`operacion/reglas-operacion.spec.ts`, `finanzas/reglas-finanzas.spec.ts`).
 
 ## 3. Diseño y colores
 
@@ -142,19 +295,24 @@ tarjeta = 13.3:1; texto secundario `/70` = 7.3:1. No se permite `gray-500` sobre
 
   ```html
   <!-- Filtro -->
-  <app-selector-busqueda formControlName="colegioId" [opciones]="catalogos.colegios()"
+  <app-selector-busqueda formControlName="colegioId" [opciones]="colegios()"
     textoTodos="Todos los colegios" etiqueta="Colegio" />
 
   <!-- Formulario -->
   <div class="flex flex-col w-full">
     <span class="label-text text-base-content/90 mb-1">Colegio <span class="text-error">*</span></span>
-    <app-selector-busqueda formControlName="colegioId" [opciones]="catalogos.colegios()"
+    <app-selector-busqueda formControlName="colegioId" [opciones]="colegios()"
       etiqueta="Colegio" [invalido]="!!error('colegioId')" />
   </div>
   ```
 - **Paginación:** siempre `<app-paginacion>`: números de página, la actual en amarillo (`btn-primary`),
   "Mostrando a–b de n" y selector de filas por página (10/25/50).
 - **Modal:** `<app-modal>`; eliminar con `<app-dialogo-confirmacion>`. Ver la regla de modales abajo.
+- **Piezas de pantalla:** `<app-encabezado-listado>` (título, total, "Modo local", botón Nuevo, error con
+  Reintentar), `<app-acciones-fila>` (Consultar / Editar / Eliminar), `<app-estado-vacio>`,
+  `<label app-campo etiqueta requerido [error]>` (o `<div app-campo>` alrededor de un selector) y
+  `<app-titulo-seccion>` para las secciones del formulario; `<app-lista-seleccion>` para elegir varios
+  registros (p. ej. estudiantes de una ruta).
 - **Botón principal:** `btn btn-primary` (amarillo con texto oscuro).
 
 ### Regla de modales: botones siempre visibles
@@ -208,5 +366,9 @@ Las pantallas que aún usan grises fijos se migran a estas clases cuando se modi
 ## 5. Pendientes conocidos
 
 - **Autenticación provisional:** `core/auth.ts` acepta cualquier usuario y contraseña no vacíos.
-- **Catálogos de ejemplo:** colegios y acudientes en `shared/catalogos` son de ejemplo hasta tener sus APIs.
-- **Datos fijos:** el dashboard y las demás pantallas (excepto estudiantes) muestran datos fijos.
+- **Modo local:** todas las pantallas de Personas, Operación y Finanzas funcionan con `localStorage`
+  hasta que exista el API (cambiar `useClass` en `core/repositorios.ts`).
+- **Envíos automáticos:** la programación de facturación solo guarda la configuración; el envío por
+  WhatsApp/correo y su historial los debe hacer el servidor (`WhatsappService` apunta a
+  `${apiUrl}/whatsapp/enviar.php`, que no existe aún).
+- **Datos fijos:** el dashboard, la barra superior y el módulo Sistema siguen con datos de ejemplo.
