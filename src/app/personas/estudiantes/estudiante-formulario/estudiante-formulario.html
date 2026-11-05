@@ -1,50 +1,6 @@
 <form [id]="idFormulario()" [formGroup]="form" (ngSubmit)="enviar()" novalidate>
   <div class="grid md:grid-cols-2 gap-x-4 gap-y-3">
-    <h4 class="md:col-span-2 text-sm font-semibold uppercase tracking-wide text-info mt-2 border-b border-base-300 pb-1">Identificación</h4>
-    <div class="flex flex-col w-full">
-      <span class="label-text text-base-content/90 mb-1">Tipo de documento <span class="text-error">*</span></span>
-      <app-selector-busqueda formControlName="tipoDocumento" [opciones]="catalogos.tiposDocumento" etiqueta="Tipo de documento"
-        [invalido]="!!error('tipoDocumento')" />
-      @if (error('tipoDocumento'); as mensaje) {
-        <span class="text-xs text-error mt-1">{{ mensaje }}</span>
-      }
-    </div>
-    <label class="flex flex-col w-full">
-      <span class="label-text text-base-content/90 mb-1">Número de documento <span class="text-error">*</span></span>
-      <input type="text" formControlName="numeroDocumento" class="input input-bordered bg-base-100 border-neutral w-full" [class.input-error]="error('numeroDocumento')" placeholder="Ej. 1020304050" />
-      @if (error('numeroDocumento'); as mensaje) {
-        <span class="text-xs text-error mt-1">{{ mensaje }}</span>
-      }
-    </label>
-    <h4 class="md:col-span-2 text-sm font-semibold uppercase tracking-wide text-info mt-2 border-b border-base-300 pb-1">Datos personales</h4>
-    <label class="flex flex-col w-full">
-      <span class="label-text text-base-content/90 mb-1">Primer nombre <span class="text-error">*</span></span>
-      <input type="text" formControlName="primerNombre" class="input input-bordered bg-base-100 border-neutral w-full" [class.input-error]="error('primerNombre')" />
-      @if (error('primerNombre'); as mensaje) {
-        <span class="text-xs text-error mt-1">{{ mensaje }}</span>
-      }
-    </label>
-    <label class="flex flex-col w-full">
-      <span class="label-text text-base-content/90 mb-1">Segundo nombre</span>
-      <input type="text" formControlName="segundoNombre" class="input input-bordered bg-base-100 border-neutral w-full" [class.input-error]="error('segundoNombre')" />
-      @if (error('segundoNombre'); as mensaje) {
-        <span class="text-xs text-error mt-1">{{ mensaje }}</span>
-      }
-    </label>
-    <label class="flex flex-col w-full">
-      <span class="label-text text-base-content/90 mb-1">Primer apellido <span class="text-error">*</span></span>
-      <input type="text" formControlName="primerApellido" class="input input-bordered bg-base-100 border-neutral w-full" [class.input-error]="error('primerApellido')" />
-      @if (error('primerApellido'); as mensaje) {
-        <span class="text-xs text-error mt-1">{{ mensaje }}</span>
-      }
-    </label>
-    <label class="flex flex-col w-full">
-      <span class="label-text text-base-content/90 mb-1">Segundo apellido</span>
-      <input type="text" formControlName="segundoApellido" class="input input-bordered bg-base-100 border-neutral w-full" [class.input-error]="error('segundoApellido')" />
-      @if (error('segundoApellido'); as mensaje) {
-        <span class="text-xs text-error mt-1">{{ mensaje }}</span>
-      }
-    </label>
+    <app-campos-persona />
     <label class="flex flex-col w-full">
       <span class="label-text text-base-content/90 mb-1">Fecha de nacimiento <span class="text-error">*</span></span>
       <input type="date" formControlName="fechaNacimiento" class="input input-bordered bg-base-100 border-neutral w-full" [class.input-error]="error('fechaNacimiento')" [max]="hoy" />
@@ -62,7 +18,7 @@
     <h4 class="md:col-span-2 text-sm font-semibold uppercase tracking-wide text-info mt-2 border-b border-base-300 pb-1">Información escolar</h4>
     <div class="flex flex-col w-full">
       <span class="label-text text-base-content/90 mb-1">Acudiente <span class="text-error">*</span></span>
-      <app-selector-busqueda formControlName="acudienteId" [opciones]="catalogos.acudientes()" etiqueta="Acudiente"
+      <app-selector-busqueda formControlName="acudienteId" [opciones]="acudientes()" etiqueta="Acudiente"
         [invalido]="!!error('acudienteId')" />
       @if (error('acudienteId'); as mensaje) {
         <span class="text-xs text-error mt-1">{{ mensaje }}</span>
@@ -70,7 +26,7 @@
     </div>
     <div class="flex flex-col w-full">
       <span class="label-text text-base-content/90 mb-1">Colegio <span class="text-error">*</span></span>
-      <app-selector-busqueda formControlName="colegioId" [opciones]="catalogos.colegios()" etiqueta="Colegio"
+      <app-selector-busqueda formControlName="colegioId" [opciones]="colegios()" etiqueta="Colegio"
         [invalido]="!!error('colegioId')" />
       @if (error('colegioId'); as mensaje) {
         <span class="text-xs text-error mt-1">{{ mensaje }}</span>
@@ -78,7 +34,7 @@
     </div>
     <div class="flex flex-col w-full">
       <span class="label-text text-base-content/90 mb-1">Grado <span class="text-error">*</span></span>
-      <app-selector-busqueda formControlName="grado" [opciones]="catalogos.grados" etiqueta="Grado"
+      <app-selector-busqueda formControlName="grado" [opciones]="grados()" etiqueta="Grado"
         [invalido]="!!error('grado')" />
       @if (error('grado'); as mensaje) {
         <span class="text-xs text-error mt-1">{{ mensaje }}</span>

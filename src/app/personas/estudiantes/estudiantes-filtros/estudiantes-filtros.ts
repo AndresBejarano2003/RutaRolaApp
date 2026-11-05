@@ -1,10 +1,11 @@
-import { ChangeDetectionStrategy, Component, inject, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, input, output } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NonNullableFormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { debounceTime, distinctUntilChanged } from 'rxjs';
-import { CatalogosService } from 'src/app/shared/catalogos/catalogos';
+import { CatalogosService, OpcionCatalogo } from 'src/app/shared/catalogos/catalogos';
+import { ESTADOS_REGISTRO, EstadoRegistro } from 'src/app/shared/crud/crud';
 import { SelectorBusqueda } from 'src/app/shared/selector-busqueda/selector-busqueda';
-import { ESTADOS_ESTUDIANTE, EstadoEstudiante, FILTROS_ESTUDIANTE_VACIOS, FiltrosEstudiante } from '../estudiante';
+import { FILTROS_ESTUDIANTE_VACIOS, FiltrosEstudiante } from '../estudiante';
 
 /** Filtros con búsqueda en vivo (300 ms después de dejar de escribir). */
 @Component({
@@ -14,16 +15,21 @@ import { ESTADOS_ESTUDIANTE, EstadoEstudiante, FILTROS_ESTUDIANTE_VACIOS, Filtro
   templateUrl: './estudiantes-filtros.html',
 })
 export class EstudiantesFiltros {
+  /** Opciones del módulo de acudientes. */
+  readonly acudientes = input<OpcionCatalogo[]>([]);
+  /** Opciones del módulo de colegios. */
+  readonly colegios = input<OpcionCatalogo[]>([]);
   readonly cambiar = output<FiltrosEstudiante>();
 
   protected readonly catalogos = inject(CatalogosService);
-  protected readonly estados = ESTADOS_ESTUDIANTE;
+  protected readonly estados = ESTADOS_REGISTRO;
 
   protected readonly form = inject(NonNullableFormBuilder).group({
     texto: FILTROS_ESTUDIANTE_VACIOS.texto,
+    acudienteId: FILTROS_ESTUDIANTE_VACIOS.acudienteId,
     colegioId: FILTROS_ESTUDIANTE_VACIOS.colegioId,
     grado: FILTROS_ESTUDIANTE_VACIOS.grado,
-    estado: FILTROS_ESTUDIANTE_VACIOS.estado as EstadoEstudiante | '',
+    estado: FILTROS_ESTUDIANTE_VACIOS.estado as EstadoRegistro | '',
   });
 
   constructor() {

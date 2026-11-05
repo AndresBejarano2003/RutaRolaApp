@@ -1,0 +1,127 @@
+<div class="overflow-x-auto rounded-box border border-base-300">
+  <table class="table">
+    <thead>
+      <tr class="bg-base-300 text-base-content/80 text-xs uppercase tracking-wide">
+        <th>Empleado</th>
+        <th>Documento</th>
+        <th>Tipo</th>
+        <th class="hidden lg:table-cell">Contrato</th>
+        <th class="text-right">Sueldo</th>
+        <th class="hidden md:table-cell">Licencia</th>
+        <th>Estado</th>
+        <th class="text-right">Acciones</th>
+      </tr>
+    </thead>
+
+    <tbody class="transition-opacity" [class.opacity-50]="cargando() && empleados().length > 0">
+      @if (cargando() && empleados().length === 0) {
+        @for (fila of filasEsqueleto; track fila) {
+          <tr class="border-base-300">
+            @for (col of columnasEsqueleto; track col) {
+              <td><div class="skeleton bg-base-300 h-4 w-full"></div></td>
+            }
+          </tr>
+        }
+      } @else {
+        @for (empleado of empleados(); track empleado.id) {
+          @let tipo = tipos.get(empleado.tipoEmpleado);
+          @let licencia = estadoLicencia(empleado.vencimientoLicencia);
+          <tr class="border-base-300 hover:bg-base-300/50 cursor-pointer transition-colors"
+            (click)="consultar.emit(empleado)">
+            <td>
+              <app-celda-persona [nombre]="nombreCompleto(empleado)" [iniciales]="iniciales(empleado)"
+                [activo]="empleado.estado === 'ACTIVO'" [detalle]="empleado.telefono" />
+            </td>
+            <td class="whitespace-nowrap">
+              <span class="badge badge-sm bg-base-300 border-neutral text-base-content/80 font-mono">
+                {{ empleado.tipoDocumento }}
+              </span>
+              <span class="ml-1 font-mono">{{ empleado.numeroDocumento }}</span>
+            </td>
+            <td class="whitespace-nowrap">
+              <span class="badge badge-sm bg-base-300 border-neutral gap-1">
+                <i [class]="tipo?.icono" [class.text-primary]="empleado.tipoEmpleado === 'CONDUCTOR'"
+                  [class.text-info]="empleado.tipoEmpleado === 'MONITORA'"></i>
+                {{ tipo?.nombre }}
+              </span>
+            </td>
+            <td class="hidden lg:table-cell whitespace-nowrap">
+              <div class="text-base-content/90">{{ contratos.get(empleado.tipoContrato) }}</div>
+              @if (empleado.contrato) {
+                <span class="text-xs text-success"><i class="fa-solid fa-paperclip"></i> Adjunto</span>
+              } @else {
+                <span class="text-xs text-warning"><i class="fa-solid fa-triangle-exclamation"></i> Sin adjunto</span>
+              }
+            </td>
+            <td class="text-right font-mono whitespace-nowrap">
+              {{ empleado.sueldo | currency: 'COP' : 'symbol-narrow' : '1.0-0' }}
+            </td>
+            <td class="hidden md:table-cell whitespace-nowrap">
+              @switch (licencia) {
+                @case ('VIGENTE') {
+                  <span class="badge badge-success badge-soft badge-sm">{{ empleado.categoriaLicencia }} · Vigente</span>
+                }
+                @case ('POR_VENCER') {
+                  <span class="badge badge-warning badge-soft badge-sm gap-1">
+                    <i class="fa-solid fa-clock"></i> {{ empleado.categoriaLicencia }} · Por vencer
+                  </span>
+                }
+                @case ('VENCIDA') {
+                  <span class="badge badge-error badge-soft badge-sm gap-1">
+                    <i class="fa-solid fa-circle-exclamation"></i> {{ empleado.categoriaLicencia }} · Vencida
+                  </span>
+                }
+                @default {
+                  <span class="text-base-content/70">—</span>
+                }
+              }
+            </td>
+            <td><app-badge-estado [estado]="empleado.estado" /></td>
+            <td class="text-right whitespace-nowrap" (click)="$event.stopPropagation()">
+              <div class="inline-flex gap-1">
+                <div class="tooltip" data-tip="Consultar">
+                  <button type="button" class="btn btn-sm btn-ghost btn-square text-info hover:bg-info/15"
+                    aria-label="Consultar" (click)="consultar.emit(empleado)">
+                    <i class="fa-solid fa-eye"></i>
+                  </button>
+                </div>
+                <div class="tooltip" data-tip="Editar">
+                  <button type="button" class="btn btn-sm btn-ghost btn-square text-primary hover:bg-primary/15"
+                    aria-label="Editar" (click)="editar.emit(empleado)">
+                    <i class="fa-solid fa-pen"></i>
+                  </button>
+                </div>
+                <div class="tooltip tooltip-left" data-tip="Eliminar">
+                  <button type="button" class="btn btn-sm btn-ghost btn-square text-error hover:bg-error/15"
+                    aria-label="Eliminar" (click)="eliminar.emit(empleado)">
+                    <i class="fa-solid fa-trash"></i>
+                  </button>
+                </div>
+              </div>
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="8">
+              <div class="flex flex-col items-center gap-3 py-12 text-center">
+                <div class="rounded-full bg-base-300 w-16 h-16 grid place-items-center">
+                  <i class="fa-solid fa-user-tie text-2xl text-base-content/70"></i>
+                </div>
+                @if (hayFiltros()) {
+                  <p class="font-semibold">Ningún empleado coincide con los filtros.</p>
+                  <p class="text-sm text-base-content/70">Prueba con otros criterios o limpia los filtros.</p>
+                } @else {
+                  <p class="font-semibold">Aún no hay empleados registrados.</p>
+                  <button type="button" class="btn btn-primary btn-sm" (click)="crear.emit()">
+                    <i class="fa-solid fa-plus"></i>
+                    Registrar el primero
+                  </button>
+                }
+              </div>
+            </td>
+          </tr>
+        }
+      }
+    </tbody>
+  </table>
+</div>

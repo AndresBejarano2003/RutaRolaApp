@@ -11,14 +11,17 @@
       </button>
     </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+    <div class="grid grid-cols-1 md:grid-cols-3 xl:grid-cols-5 gap-4">
       <label class="input input-bordered bg-base-100 border-neutral w-full flex items-center gap-2">
         <i class="fa-solid fa-magnifying-glass text-base-content/60"></i>
         <input type="search" formControlName="texto" class="grow" placeholder="Nombre o documento..."
           aria-label="Buscar por nombre o documento" />
       </label>
 
-      <app-selector-busqueda formControlName="colegioId" [opciones]="catalogos.colegios()"
+      <app-selector-busqueda formControlName="acudienteId" [opciones]="acudientes()"
+        textoTodos="Todos los acudientes" etiqueta="Acudiente" />
+
+      <app-selector-busqueda formControlName="colegioId" [opciones]="colegios()"
         textoTodos="Todos los colegios" etiqueta="Colegio" />
 
       <app-selector-busqueda formControlName="grado" [opciones]="catalogos.grados"

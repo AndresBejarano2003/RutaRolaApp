@@ -1,0 +1,44 @@
+<form [id]="idFormulario()" [formGroup]="form" (ngSubmit)="enviar()" novalidate>
+  <div class="grid md:grid-cols-2 gap-x-4 gap-y-3">
+    <app-campos-persona />
+    <h4 class="md:col-span-2 text-sm font-semibold uppercase tracking-wide text-info mt-2 border-b border-base-300 pb-1">Contacto</h4>
+    <label class="flex flex-col w-full">
+      <span class="label-text text-base-content/90 mb-1">Teléfono celular <span class="text-error">*</span></span>
+      <input type="tel" formControlName="telefono" class="input input-bordered bg-base-100 border-neutral w-full"
+        [class.input-error]="error('telefono')" placeholder="Ej. 300 123 4567" />
+      @if (error('telefono'); as mensaje) {
+        <span class="text-xs text-error mt-1">{{ mensaje }}</span>
+      }
+    </label>
+    <label class="flex flex-col w-full">
+      <span class="label-text text-base-content/90 mb-1">Teléfono alterno</span>
+      <input type="tel" formControlName="telefonoAlterno" class="input input-bordered bg-base-100 border-neutral w-full"
+        [class.input-error]="error('telefonoAlterno')" />
+      @if (error('telefonoAlterno'); as mensaje) {
+        <span class="text-xs text-error mt-1">{{ mensaje }}</span>
+      }
+    </label>
+    <label class="flex flex-col w-full">
+      <span class="label-text text-base-content/90 mb-1">Correo electrónico</span>
+      <input type="email" formControlName="correo" class="input input-bordered bg-base-100 border-neutral w-full"
+        [class.input-error]="error('correo')" placeholder="nombre@correo.com" />
+      @if (error('correo'); as mensaje) {
+        <span class="text-xs text-error mt-1">{{ mensaje }}</span>
+      }
+    </label>
+    <label class="flex flex-col w-full">
+      <span class="label-text text-base-content/90 mb-1">Dirección</span>
+      <input type="text" formControlName="direccion" class="input input-bordered bg-base-100 border-neutral w-full"
+        [class.input-error]="error('direccion')" placeholder="Ej. Calle 10 # 5-23" />
+      @if (error('direccion'); as mensaje) {
+        <span class="text-xs text-error mt-1">{{ mensaje }}</span>
+      }
+    </label>
+    <h4 class="md:col-span-2 text-sm font-semibold uppercase tracking-wide text-info mt-2 border-b border-base-300 pb-1">Estado</h4>
+    <div class="flex flex-col w-full">
+      <span class="label-text text-base-content/90 mb-1">Estado <span class="text-error">*</span></span>
+      <app-selector-busqueda formControlName="estado" [opciones]="estados" etiqueta="Estado"
+        [invalido]="!!error('estado')" />
+    </div>
+  </div>
+</form>

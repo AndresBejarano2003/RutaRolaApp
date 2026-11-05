@@ -1,0 +1,113 @@
+<form [id]="idFormulario()" [formGroup]="form" (ngSubmit)="enviar()" novalidate>
+  <div class="grid md:grid-cols-2 gap-x-4 gap-y-3">
+    <app-campos-persona [tiposDocumento]="tiposDocumento" />
+    <h4 class="md:col-span-2 text-sm font-semibold uppercase tracking-wide text-info mt-2 border-b border-base-300 pb-1">Información laboral</h4>
+    <div class="flex flex-col w-full">
+      <span class="label-text text-base-content/90 mb-1">Tipo de empleado <span class="text-error">*</span></span>
+      <app-selector-busqueda formControlName="tipoEmpleado" [opciones]="tipos" etiqueta="Tipo de empleado"
+        [invalido]="!!error('tipoEmpleado')" />
+      @if (error('tipoEmpleado'); as mensaje) {
+        <span class="text-xs text-error mt-1">{{ mensaje }}</span>
+      }
+    </div>
+    <label class="flex flex-col w-full">
+      <span class="label-text text-base-content/90 mb-1">Fecha de ingreso <span class="text-error">*</span></span>
+      <input type="date" formControlName="fechaIngreso" class="input input-bordered bg-base-100 border-neutral w-full"
+        [class.input-error]="error('fechaIngreso')" [max]="hoy" />
+      @if (error('fechaIngreso'); as mensaje) {
+        <span class="text-xs text-error mt-1">{{ mensaje }}</span>
+      }
+    </label>
+    <div class="flex flex-col w-full">
+      <span class="label-text text-base-content/90 mb-1">Tipo de contrato <span class="text-error">*</span></span>
+      <app-selector-busqueda formControlName="tipoContrato" [opciones]="contratos" etiqueta="Tipo de contrato"
+        [invalido]="!!error('tipoContrato')" />
+      @if (error('tipoContrato'); as mensaje) {
+        <span class="text-xs text-error mt-1">{{ mensaje }}</span>
+      }
+    </div>
+    <label class="flex flex-col w-full">
+      <span class="label-text text-base-content/90 mb-1">Sueldo mensual (COP) <span class="text-error">*</span></span>
+      <input type="number" formControlName="sueldo" class="input input-bordered bg-base-100 border-neutral w-full"
+        [class.input-error]="error('sueldo')" placeholder="Ej. 1800000" min="0" step="1000" />
+      @if (form.controls.sueldo.value; as sueldo) {
+        <span class="text-xs text-base-content/70 mt-1">{{ sueldo | currency: 'COP' : 'symbol-narrow' : '1.0-0' }} al mes</span>
+      }
+      @if (error('sueldo'); as mensaje) {
+        <span class="text-xs text-error mt-1">{{ mensaje }}</span>
+      }
+    </label>
+    <div class="flex flex-col w-full md:col-span-2">
+      <span class="label-text text-base-content/90 mb-1">Contrato firmado</span>
+      <app-archivo-adjunto formControlName="contrato" aceptar=".pdf,image/*" [tamanoMaximoMb]="tamanoMaximoContrato" />
+    </div>
+    @if (tipoSeleccionado() === 'CONDUCTOR') {
+    <h4 class="md:col-span-2 text-sm font-semibold uppercase tracking-wide text-info mt-2 border-b border-base-300 pb-1">Licencia de conducción</h4>
+    <label class="flex flex-col w-full">
+      <span class="label-text text-base-content/90 mb-1">Número de licencia <span class="text-error">*</span></span>
+      <input type="text" formControlName="numeroLicencia" class="input input-bordered bg-base-100 border-neutral w-full"
+        [class.input-error]="error('numeroLicencia')" placeholder="Ej. 1075212345" />
+      @if (error('numeroLicencia'); as mensaje) {
+        <span class="text-xs text-error mt-1">{{ mensaje }}</span>
+      }
+    </label>
+    <div class="flex flex-col w-full">
+      <span class="label-text text-base-content/90 mb-1">Categoría <span class="text-error">*</span></span>
+      <app-selector-busqueda formControlName="categoriaLicencia" [opciones]="categorias" etiqueta="Categoría"
+        [invalido]="!!error('categoriaLicencia')" />
+      @if (error('categoriaLicencia'); as mensaje) {
+        <span class="text-xs text-error mt-1">{{ mensaje }}</span>
+      }
+    </div>
+    <label class="flex flex-col w-full">
+      <span class="label-text text-base-content/90 mb-1">Fecha de vencimiento <span class="text-error">*</span></span>
+      <input type="date" formControlName="vencimientoLicencia" class="input input-bordered bg-base-100 border-neutral w-full"
+        [class.input-error]="error('vencimientoLicencia')" />
+      @switch (alertaLicencia()) {
+        @case ('VENCIDA') {
+          <span class="text-xs text-error mt-1"><i class="fa-solid fa-circle-exclamation"></i> La licencia está vencida.</span>
+        }
+        @case ('POR_VENCER') {
+          <span class="text-xs text-warning mt-1"><i class="fa-solid fa-clock"></i> Vence en menos de {{ diasAlerta }} días.</span>
+        }
+      }
+      @if (error('vencimientoLicencia'); as mensaje) {
+        <span class="text-xs text-error mt-1">{{ mensaje }}</span>
+      }
+    </label>
+    }
+    <h4 class="md:col-span-2 text-sm font-semibold uppercase tracking-wide text-info mt-2 border-b border-base-300 pb-1">Contacto</h4>
+    <label class="flex flex-col w-full">
+      <span class="label-text text-base-content/90 mb-1">Teléfono celular <span class="text-error">*</span></span>
+      <input type="tel" formControlName="telefono" class="input input-bordered bg-base-100 border-neutral w-full"
+        [class.input-error]="error('telefono')" placeholder="Ej. 300 123 4567" />
+      @if (error('telefono'); as mensaje) {
+        <span class="text-xs text-error mt-1">{{ mensaje }}</span>
+      }
+    </label>
+    <label class="flex flex-col w-full">
+      <span class="label-text text-base-content/90 mb-1">Correo electrónico</span>
+      <input type="email" formControlName="correo" class="input input-bordered bg-base-100 border-neutral w-full"
+        [class.input-error]="error('correo')" placeholder="nombre@correo.com" />
+      @if (error('correo'); as mensaje) {
+        <span class="text-xs text-error mt-1">{{ mensaje }}</span>
+      }
+    </label>
+    <label class="flex flex-col w-full">
+      <span class="label-text text-base-content/90 mb-1">Dirección</span>
+      <input type="text" formControlName="direccion" class="input input-bordered bg-base-100 border-neutral w-full"
+        [class.input-error]="error('direccion')" placeholder="Ej. Carrera 5 # 12-40" />
+      @if (error('direccion'); as mensaje) {
+        <span class="text-xs text-error mt-1">{{ mensaje }}</span>
+      }
+    </label>
+    <div class="flex flex-col w-full">
+      <span class="label-text text-base-content/90 mb-1">Estado <span class="text-error">*</span></span>
+      <app-selector-busqueda formControlName="estado" [opciones]="estados" etiqueta="Estado"
+        [invalido]="!!error('estado')" />
+      @if (error('estado'); as mensaje) {
+        <span class="text-xs text-error mt-1">{{ mensaje }}</span>
+      }
+    </div>
+  </div>
+</form>

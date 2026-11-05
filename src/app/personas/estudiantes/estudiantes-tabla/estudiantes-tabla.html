@@ -24,24 +24,11 @@
       } @else {
         @for (estudiante of estudiantes(); track estudiante.id) {
           @let edad = calcularEdad(estudiante.fechaNacimiento);
-          @let activo = estudiante.estado === 'ACTIVO';
           <tr class="border-base-300 hover:bg-base-300/50 cursor-pointer transition-colors"
             (click)="consultar.emit(estudiante)">
             <td>
-              <div class="flex items-center gap-3">
-                <div class="avatar avatar-placeholder">
-                  <div class="w-9 rounded-full text-xs font-bold"
-                    [class]="activo ? 'bg-primary text-primary-content' : 'bg-base-300 text-base-content/70'">
-                    {{ estudiante.primerNombre[0] }}{{ estudiante.primerApellido[0] }}
-                  </div>
-                </div>
-                <div>
-                  <div class="font-semibold text-base-content">{{ nombreCompleto(estudiante) }}</div>
-                  @if (edad !== null) {
-                    <div class="text-xs text-base-content/70">{{ edad }} años</div>
-                  }
-                </div>
-              </div>
+              <app-celda-persona [nombre]="nombreCompleto(estudiante)" [iniciales]="iniciales(estudiante)"
+                [activo]="estudiante.estado === 'ACTIVO'" [detalle]="edad !== null ? edad + ' años' : ''" />
             </td>
             <td class="whitespace-nowrap">
               <span class="badge badge-sm bg-base-300 border-neutral text-base-content/80 font-mono">
@@ -50,26 +37,16 @@
               <span class="ml-1 font-mono">{{ estudiante.numeroDocumento }}</span>
             </td>
             <td class="hidden lg:table-cell text-base-content/90">
-              {{ catalogos.nombresAcudiente().get(estudiante.acudienteId) ?? '—' }}
+              {{ nombresAcudiente().get(estudiante.acudienteId) ?? '—' }}
             </td>
             <td class="hidden md:table-cell text-base-content/90">
-              {{ catalogos.nombresColegio().get(estudiante.colegioId) ?? '—' }}
+              {{ nombresColegio().get(estudiante.colegioId) ?? '—' }}
             </td>
             <td class="whitespace-nowrap">
               <div class="font-medium">{{ estudiante.grado }}</div>
               <div class="text-xs text-base-content/70">{{ estudiante.jornada }}</div>
             </td>
-            <td>
-              @if (activo) {
-                <span class="badge badge-success badge-soft badge-sm gap-1">
-                  <i class="fa-solid fa-circle text-[6px]"></i> Activo
-                </span>
-              } @else {
-                <span class="badge badge-sm bg-base-300 border-neutral text-base-content/70 gap-1">
-                  <i class="fa-solid fa-circle text-[6px]"></i> Inactivo
-                </span>
-              }
-            </td>
+            <td><app-badge-estado [estado]="estudiante.estado" /></td>
             <td class="text-right whitespace-nowrap" (click)="$event.stopPropagation()">
               <div class="inline-flex gap-1">
                 <div class="tooltip" data-tip="Consultar">

@@ -1,8 +1,12 @@
-import { Injectable } from '@angular/core';
-import { DatosRegistro, ErrorCrud } from 'src/app/shared/crud/crud';
+import { Injectable, Injector, inject } from '@angular/core';
+import { Observable, forkJoin, map } from 'rxjs';
+import { FILTROS_FACTURA_VACIOS } from 'src/app/finanzas/facturas/factura';
+import { FacturasRepositorio } from 'src/app/finanzas/facturas/facturas-repositorio';
+import { RutasRepositorio } from 'src/app/operacion/rutas/rutas-repositorio';
+import { DatosRegistro } from 'src/app/shared/crud/crud';
 import { RepositorioLocal } from 'src/app/shared/crud/repositorio-local';
-import { normalizar } from 'src/app/shared/formularios/formularios';
-import { Estudiante, FiltrosEstudiante, nombreCompleto } from './estudiante';
+import { coincideTexto, compararPorApellido, nombreCompleto, validarDocumentoUnico } from '../compartido/persona';
+import { Estudiante, FILTROS_ESTUDIANTE_VACIOS, FiltrosEstudiante } from './estudiante';
 import { EstudiantesRepositorio } from './estudiantes-repositorio';
 
 /** Almacenamiento TEMPORAL en `localStorage` mientras se construye el API. */
@@ -12,34 +16,47 @@ export class EstudiantesLocal
   implements EstudiantesRepositorio
 {
   protected readonly clave = 'rutarola.estudiantes';
+  protected readonly filtrosVacios = FILTROS_ESTUDIANTE_VACIOS;
+  private readonly injector = inject(Injector);
+
+  /** No se elimina un estudiante que va en una ruta o tiene facturas. */
+  override motivoNoEliminar(id: string): Observable<string | null> {
+    return forkJoin([
+      this.injector.get(RutasRepositorio).opciones({ estudianteId: id }),
+      this.injector.get(FacturasRepositorio).listar({ ...FILTROS_FACTURA_VACIOS, estudianteId: id }, { pagina: 1, tamano: 1 }),
+    ]).pipe(
+      map(([rutas, facturas]) => {
+        if (rutas.length) {
+          return `No se puede eliminar: está en la ruta ${rutas.map((r) => r.nombre).join(', ')}. Quítalo de la ruta o cámbialo a Inactivo.`;
+        }
+        if (facturas.total) {
+          return `No se puede eliminar: tiene ${facturas.total} factura(s) registradas. Cámbialo a Inactivo para conservar el historial.`;
+        }
+        return null;
+      }),
+    );
+  }
 
   protected coincide(e: Estudiante, f: FiltrosEstudiante): boolean {
-    const texto = normalizar(f.texto);
     return (
-      (!texto || normalizar(`${nombreCompleto(e)} ${e.numeroDocumento}`).includes(texto)) &&
+      coincideTexto(e, f.texto) &&
+      (!f.acudienteId || e.acudienteId === f.acudienteId) &&
       (!f.colegioId || e.colegioId === f.colegioId) &&
       (!f.grado || e.grado === f.grado) &&
       (!f.estado || e.estado === f.estado)
     );
   }
 
+  protected etiquetaOpcion(e: Estudiante): string {
+    return nombreCompleto(e);
+  }
+
   protected override ordenar(a: Estudiante, b: Estudiante): number {
-    return `${a.primerApellido} ${a.primerNombre}`.localeCompare(`${b.primerApellido} ${b.primerNombre}`, 'es');
+    return compararPorApellido(a, b);
   }
 
   protected override validar(datos: DatosRegistro<Estudiante>, idActual: string | null, registros: Estudiante[]): void {
-    const duplicado = registros.some(
-      (e) =>
-        e.id !== idActual &&
-        e.tipoDocumento === datos.tipoDocumento &&
-        e.numeroDocumento === datos.numeroDocumento,
-    );
-    if (duplicado) {
-      throw new ErrorCrud(
-        `Ya existe un estudiante con el documento ${datos.tipoDocumento} ${datos.numeroDocumento}.`,
-        'DUPLICADO',
-      );
-    }
+    validarDocumentoUnico(datos, idActual, registros, 'un estudiante');
   }
 
   protected datosIniciales(): Estudiante[] {

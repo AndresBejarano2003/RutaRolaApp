@@ -1,49 +1,18 @@
-<app-estudiantes-filtros (cambiar)="store.buscar($event)" />
+<app-estudiantes-filtros [acudientes]="acudientes()" [colegios]="colegios()" (cambiar)="store.buscar($event)" />
 
 <section class="mt-6 card bg-base-200 border border-base-300 shadow-xl">
   <div class="card-body">
-    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-      <div>
-        <h2 class="card-title text-base-content text-xl">
-          Lista de estudiantes
-          @if (store.cargando()) {
-            <span class="loading loading-spinner loading-sm text-base-content/70"></span>
-          }
-        </h2>
-        <p class="text-base-content/70 text-sm">Administra los estudiantes registrados en el sistema.</p>
-      </div>
-
-      <div class="flex flex-wrap items-center gap-2">
-        @if (store.modoLocal) {
-          <div class="tooltip tooltip-bottom" data-tip="Los datos se guardan en este navegador hasta conectar el API">
-            <span class="badge badge-warning badge-soft gap-1">
-              <i class="fa-solid fa-database text-xs"></i>
-              Modo local
-            </span>
-          </div>
-        }
-        <span class="badge badge-primary">{{ store.total() }} {{ store.total() === 1 ? 'registro' : 'registros' }}</span>
-        <button type="button" class="btn btn-primary" (click)="nuevo()">
-          <i class="fa-solid fa-plus"></i>
-          Nuevo estudiante
-        </button>
-      </div>
-    </div>
-
-    <div class="divider my-2"></div>
-
-    @if (store.error(); as error) {
-      <div role="alert" class="alert alert-error mb-4">
-        <i class="fa-solid fa-circle-exclamation"></i>
-        <span>{{ error }}</span>
-        <button type="button" class="btn btn-sm" (click)="store.recargar()">Reintentar</button>
-      </div>
-    }
+    <app-encabezado-listado titulo="Lista de estudiantes" descripcion="Administra los estudiantes registrados en el sistema."
+      [cargando]="store.cargando()" [total]="store.total()" [modoLocal]="store.modoLocal" [error]="store.error()"
+      textoNuevo="Nuevo estudiante" (nuevo)="nuevo()" (reintentar)="store.recargar()" />
 
     <app-estudiantes-tabla
       [estudiantes]="store.items()"
       [cargando]="store.cargando()"
       [hayFiltros]="store.hayFiltros()"
+      [nombresAcudiente]="nombresAcudiente()"
+      [nombresColegio]="nombresColegio()"
+      [nombresColegio]="nombresColegio()"
       (consultar)="abrir('consultar', $event)"
       (editar)="abrir('editar', $event)"
       (eliminar)="pedirEliminar($event)"
@@ -69,6 +38,10 @@
       }
       <app-estudiante-formulario
         idFormulario="form-estudiante"
+        [acudientes]="acudientes()"
+        [colegios]="colegios()"
+        [cursos]="cursos()"
+        (colegioCambiado)="colegioFormulario.set($event)"
         [modo]="modo()"
         [estudiante]="seleccionado()"
         (guardar)="guardar($event)" />
@@ -91,5 +64,6 @@
   [(abierto)]="confirmacionAbierta"
   titulo="Eliminar estudiante"
   [mensaje]="mensajeEliminar()"
-  [procesando]="store.guardando()"
+  [permitirConfirmar]="puedeEliminar()"
+  [procesando]="store.guardando() || verificandoEliminar()"
   (confirmar)="confirmarEliminar()" />

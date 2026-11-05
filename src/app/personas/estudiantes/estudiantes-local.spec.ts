@@ -2,7 +2,8 @@ import { TestBed } from '@angular/core/testing';
 import { firstValueFrom } from 'rxjs';
 import { DatosRegistro, ErrorCrud } from 'src/app/shared/crud/crud';
 import { Estudiante, FILTROS_ESTUDIANTE_VACIOS } from './estudiante';
-import { EstudiantesLocal } from './estudiantes-local';
+import { repositoriosDePrueba } from 'src/app/shared/pruebas/pruebas';
+import { EstudiantesRepositorio } from './estudiantes-repositorio';
 
 const NUEVO: DatosRegistro<Estudiante> = {
   tipoDocumento: 'TI',
@@ -22,14 +23,13 @@ const NUEVO: DatosRegistro<Estudiante> = {
 };
 
 describe('EstudiantesLocal', () => {
-  let repo: EstudiantesLocal;
+  let repo: EstudiantesRepositorio;
   const todos = { pagina: 1, tamano: 100 };
 
   beforeEach(() => {
     localStorage.clear();
-    TestBed.configureTestingModule({ providers: [EstudiantesLocal] });
-    repo = TestBed.inject(EstudiantesLocal);
-    (repo as unknown as { latenciaMs: number }).latenciaMs = 0;
+    TestBed.configureTestingModule({ providers: repositoriosDePrueba() });
+    repo = TestBed.inject(EstudiantesRepositorio);
   });
 
   it('carga los datos de ejemplo y pagina', async () => {
