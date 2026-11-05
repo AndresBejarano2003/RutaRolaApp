@@ -1,0 +1,38 @@
+<section class="space-y-4">
+  <header>
+    <h1 class="text-2xl font-bold">Cotizaciones</h1>
+    <p class="text-base-content/70">Propuestas de servicio que te hemos enviado.</p>
+  </header>
+
+  @if (!datos() && estado.cargando()) {
+    <div class="skeleton h-40"></div>
+  }
+  <div class="grid gap-3 md:grid-cols-2">
+    @for (c of datos()?.cotizaciones ?? []; track c.id) {
+      @let e = estadoDe(c.estado);
+      <article class="card bg-base-200 border border-base-300">
+        <div class="card-body p-4 sm:p-5 gap-3">
+          <div class="flex items-start justify-between gap-2">
+            <div>
+              <h2 class="font-bold">{{ c.numero }}</h2>
+              <p class="text-sm text-base-content/70">{{ fechaCorta(c.fecha) }}</p>
+            </div>
+            <span class="badge badge-soft" [class]="e.clase">{{ e.nombre }}</span>
+          </div>
+          <p class="text-sm"><span class="text-base-content/70">Estudiantes:</span> {{ c.estudiantes.join(', ') }}</p>
+          <div class="flex flex-wrap items-end justify-between gap-2 border-t border-base-300 pt-3">
+            <p class="text-sm text-base-content/70">{{ c.valorPorEstudiante | currency: 'COP' : 'symbol-narrow' : '1.0-0' }} por estudiante</p>
+            <p class="text-xl font-bold">{{ c.valorTotal | currency: 'COP' : 'symbol-narrow' : '1.0-0' }}</p>
+          </div>
+        </div>
+      </article>
+    } @empty {
+      @if (datos()) {
+        <div class="md:col-span-2 card bg-base-200 border border-base-300 p-8 text-center items-center gap-2">
+          <i class="fa-solid fa-file-lines text-3xl text-base-content/60" aria-hidden="true"></i>
+          <p class="text-base-content/70">No tienes cotizaciones.</p>
+        </div>
+      }
+    }
+  </div>
+</section>

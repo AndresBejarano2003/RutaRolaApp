@@ -1,7 +1,17 @@
+import { diaDelPeriodo } from 'src/app/shared/fechas/fechas';
 import { MedioPago, Recibo } from '../recibos/recibo';
 
 /** Día límite de pago cuando la factura no tiene programación. */
 export const DIA_LIMITE_PREDETERMINADO = 5;
+
+/**
+ * Fecha límite de la cuota de un mes: el día límite de la programación de la factura
+ * (o `DIA_LIMITE_PREDETERMINADO`); si el mes es más corto, su último día.
+ * La usan los reportes, el inicio y el portal del acudiente (el API debe aplicar la misma regla).
+ */
+export function fechaLimiteCuota(periodo: string, diaLimitePago?: number): string {
+  return diaDelPeriodo(periodo, diaLimitePago ?? DIA_LIMITE_PREDETERMINADO);
+}
 
 export interface FiltrosIngresos {
   /** Meses `YYYY-MM` (por fecha de pago). */

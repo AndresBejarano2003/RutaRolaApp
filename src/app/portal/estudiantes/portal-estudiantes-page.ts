@@ -1,0 +1,26 @@
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { Trayecto } from 'src/app/ruta-del-dia/recorrido';
+import { horaLegible } from 'src/app/shared/fechas/fechas';
+import { EstudiantePortal, situacionRecorrido } from '../portal';
+import { PortalEstado } from '../portal-estado';
+
+/** Estudiantes a cargo: colegio y horario, ruta, vehículo, personal (con contacto) y cómo van hoy. */
+@Component({
+  selector: 'app-portal-estudiantes-page',
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  templateUrl: './portal-estudiantes-page.html',
+})
+export default class PortalEstudiantesPage {
+  protected readonly estado = inject(PortalEstado);
+  protected readonly datos = this.estado.datos;
+  protected readonly horaLegible = horaLegible;
+  protected readonly trayectos: Trayecto[] = ['RECOGIDA', 'ENTREGA'];
+
+  protected situacion(e: EstudiantePortal, trayecto: Trayecto) {
+    return situacionRecorrido(e.hoy.find((r) => r.trayecto === trayecto), trayecto);
+  }
+
+  protected telefono(numero: string): string {
+    return `tel:${numero.replace(/\D/g, '')}`;
+  }
+}

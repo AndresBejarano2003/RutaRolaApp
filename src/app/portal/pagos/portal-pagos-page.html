@@ -1,0 +1,134 @@
+<section class="space-y-5">
+  <header>
+    <h1 class="text-2xl font-bold">Facturas y pagos</h1>
+    <p class="text-base-content/70">Tus contratos de transporte, el estado de cada mes y los recibos de pago.</p>
+  </header>
+
+  @if (!datos() && estado.cargando()) {
+    <div class="skeleton h-24"></div>
+    <div class="skeleton h-64"></div>
+  }
+  @if (datos(); as d) {
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-3">
+      <div class="rounded-box bg-base-200 border border-base-300 p-3 flex flex-row-reverse sm:flex-col items-center justify-between gap-2 sm:text-center" [class.border-error]="d.resumen.vencido > 0">
+        <p class="text-lg sm:text-2xl font-bold whitespace-nowrap" [class.text-error]="d.resumen.vencido > 0">{{ d.resumen.vencido | currency: 'COP' : 'symbol-narrow' : '1.0-0' }}</p>
+        <p class="text-sm sm:text-xs text-base-content/70">Vencido</p>
+      </div>
+      <div class="rounded-box bg-base-200 border border-base-300 p-3 flex flex-row-reverse sm:flex-col items-center justify-between gap-2 sm:text-center">
+        <p class="text-lg sm:text-2xl font-bold whitespace-nowrap">{{ d.resumen.porPagar | currency: 'COP' : 'symbol-narrow' : '1.0-0' }}</p>
+        <p class="text-sm sm:text-xs text-base-content/70">Por pagar este mes</p>
+      </div>
+      <div class="rounded-box bg-base-200 border border-base-300 p-3 flex flex-row-reverse sm:flex-col items-center justify-between gap-2 sm:text-center">
+        <p class="text-lg sm:text-2xl font-bold whitespace-nowrap text-success">{{ d.resumen.pagadoAnio | currency: 'COP' : 'symbol-narrow' : '1.0-0' }}</p>
+        <p class="text-sm sm:text-xs text-base-content/70">Pagado este año</p>
+      </div>
+    </div>
+
+    <!-- Facturas -->
+    <section class="space-y-3" aria-labelledby="titulo-facturas">
+      <h2 id="titulo-facturas" class="text-sm text-info font-semibold uppercase tracking-wide">Facturas vigentes</h2>
+      @for (f of vigentes(); track f.id) {
+        <details class="card bg-base-200 border border-base-300 group" [open]="f.vencido > 0">
+          <summary class="card-body p-4 sm:p-5 gap-3 cursor-pointer list-none">
+            <div class="flex flex-wrap items-start justify-between gap-2">
+              <div class="min-w-0">
+                <p class="font-bold">{{ f.numero }} · {{ f.estudiante }}</p>
+                <p class="text-sm text-base-content/70">
+                  {{ nombrePeriodo(f.periodoInicio) }} a {{ nombrePeriodo(f.periodoFin) }} ·
+                  {{ f.valorMensual | currency: 'COP' : 'symbol-narrow' : '1.0-0' }} al mes
+                </p>
+              </div>
+              <div class="flex items-center gap-2">
+                @if (f.vencido > 0) {
+                  <span class="badge badge-soft badge-error">{{ cuenta(f, 'VENCIDA') }} vencida(s)</span>
+                } @else {
+                  <span class="badge badge-soft badge-success">Al día</span>
+                }
+                <i class="fa-solid fa-chevron-down text-base-content/60 transition-transform group-open:rotate-180" aria-hidden="true"></i>
+              </div>
+            </div>
+            <div>
+              <div class="flex justify-between text-xs text-base-content/70 mb-1">
+                <span>Pagado {{ f.pagado | currency: 'COP' : 'symbol-narrow' : '1.0-0' }} de {{ f.total | currency: 'COP' : 'symbol-narrow' : '1.0-0' }}</span>
+                <span>{{ avance(f) }} %</span>
+              </div>
+              <progress class="progress progress-success w-full" [value]="avance(f)" max="100" [attr.aria-label]="'Pagado ' + avance(f) + '%'"></progress>
+            </div>
+          </summary>
+          <div class="px-4 pb-4 sm:px-5 sm:pb-5">
+            <ul class="grid gap-2 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+              @for (c of f.cuotas; track c.periodo) {
+                <li class="rounded-box bg-base-100 border border-base-300 p-3 flex items-center gap-3">
+                  <div class="min-w-0 flex-1">
+                    <p class="font-medium first-letter:uppercase">{{ nombrePeriodo(c.periodo, true) }}</p>
+                    <p class="text-sm sm:text-xs text-base-content/70">
+                      @if (c.recibo; as r) {
+                        {{ r.numero }} · {{ fechaCorta(r.fechaPago) }}
+                      } @else {
+                        Límite {{ fechaCorta(c.fechaLimite) }}@if (c.estado === 'VENCIDA') { · {{ c.diasMora }} días de mora }
+                      }
+                    </p>
+                  </div>
+                  <span class="badge badge-sm gap-1 whitespace-nowrap" [class]="estadosCuota[c.estado].badge">
+                    <i [class]="estadosCuota[c.estado].icono" aria-hidden="true"></i> {{ estadosCuota[c.estado].nombre }}
+                  </span>
+                </li>
+              }
+            </ul>
+          </div>
+        </details>
+      } @empty {
+        <p class="text-sm text-base-content/70 card bg-base-200 border border-base-300 p-4">No tienes facturas vigentes.</p>
+      }
+      @if (anuladas().length) {
+        <p class="text-sm sm:text-xs text-base-content/70">
+          Facturas anuladas: @for (f of anuladas(); track f.id) { {{ f.numero }} ({{ f.estudiante }}){{ $last ? '' : ', ' }} }
+        </p>
+      }
+    </section>
+
+    <!-- Recibos -->
+    <section class="card bg-base-200 border border-base-300" aria-labelledby="titulo-recibos">
+      <div class="card-body p-4 sm:p-5 gap-3">
+        <h2 id="titulo-recibos" class="text-sm text-info font-semibold uppercase tracking-wide">Recibos de pago</h2>
+        <div class="@container overflow-x-auto rounded-box border border-base-300">
+          <table class="table">
+            <thead>
+              <tr class="bg-base-300 text-base-content/80 text-xs uppercase tracking-wide">
+                <th>Recibo</th>
+                <th>Mes pagado</th>
+                <th class="hidden @3xl:table-cell">Estudiante</th>
+                <th class="hidden @3xl:table-cell">Medio</th>
+                <th class="text-right">Valor</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (r of d.recibos; track r.id) {
+                <tr class="border-base-300" [class.opacity-70]="r.estado !== 'ACTIVO'">
+                  <td>
+                    <div class="font-medium">{{ r.numero }}</div>
+                    <div class="text-xs text-base-content/70">{{ fechaCorta(r.fechaPago) }}</div>
+                  </td>
+                  <td>
+                    <div class="first-letter:uppercase">{{ nombrePeriodo(r.periodo, true) }}</div>
+                    <div class="text-xs text-base-content/70 @3xl:hidden">{{ r.estudiante }}</div>
+                  </td>
+                  <td class="hidden @3xl:table-cell">{{ r.estudiante }}<div class="text-xs text-base-content/70">{{ r.numeroFactura }}</div></td>
+                  <td class="hidden @3xl:table-cell">{{ medio(r.medioPago) }}@if (r.referencia) { <div class="text-xs text-base-content/70">Ref. {{ r.referencia }}</div> }</td>
+                  <td class="text-right whitespace-nowrap">
+                    <span class="font-semibold" [class.line-through]="r.estado !== 'ACTIVO'">{{ r.valor | currency: 'COP' : 'symbol-narrow' : '1.0-0' }}</span>
+                    @if (r.estado !== 'ACTIVO') {
+                      <div><span class="badge badge-sm bg-base-300 border-neutral">Anulado</span></div>
+                    }
+                  </td>
+                </tr>
+              } @empty {
+                <tr><td colspan="5" class="text-center text-base-content/70 py-6">Aún no hay pagos registrados.</td></tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  }
+</section>

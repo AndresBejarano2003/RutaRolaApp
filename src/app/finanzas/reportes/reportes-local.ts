@@ -4,7 +4,7 @@ import { nombreCompleto } from 'src/app/personas/compartido/persona';
 import { FILTROS_ACUDIENTE_VACIOS } from 'src/app/personas/acudientes/acudiente';
 import { AcudientesRepositorio } from 'src/app/personas/acudientes/acudientes-repositorio';
 import { FuenteLocal, SIN_PAGINAR } from 'src/app/shared/crud/repositorio-local';
-import { diaDelPeriodo, diasEntre, fechaIso, periodoDe, periodosEntre } from 'src/app/shared/fechas/fechas';
+import { diasEntre, fechaIso, periodoDe, periodosEntre } from 'src/app/shared/fechas/fechas';
 import { normalizar } from 'src/app/shared/formularios/formularios';
 import { FILTROS_FACTURA_VACIOS, mesesFactura } from '../facturas/factura';
 import { FacturasRepositorio } from '../facturas/facturas-repositorio';
@@ -14,7 +14,7 @@ import { FILTROS_RECIBO_VACIOS, MEDIOS_PAGO } from '../recibos/recibo';
 import { RecibosRepositorio } from '../recibos/recibos-repositorio';
 import {
   CuotaPendiente,
-  DIA_LIMITE_PREDETERMINADO,
+  fechaLimiteCuota,
   FiltrosIngresos,
   FiltrosMorosos,
   FiltrosPendientes,
@@ -121,7 +121,7 @@ export class ReportesLocal extends ReportesRepositorio implements FuenteLocal {
             mesesFactura(factura)
               .filter((periodo) => periodo <= mesActual && !pagados.has(`${factura.id}|${periodo}`))
               .map((periodo): CuotaPendiente => {
-                const fechaLimite = diaDelPeriodo(periodo, diaLimite.get(factura.id) ?? DIA_LIMITE_PREDETERMINADO);
+                const fechaLimite = fechaLimiteCuota(periodo, diaLimite.get(factura.id));
                 return {
                   facturaId: factura.id,
                   numeroFactura: factura.numero,

@@ -1,6 +1,8 @@
 import { Provider } from '@angular/core';
 import { AutenticacionLocal } from '../autenticacion/autenticacion-local';
 import { AutenticacionRepositorio } from '../autenticacion/autenticacion-repositorio';
+import { PortalLocal } from '../portal/portal-local';
+import { PortalRepositorio } from '../portal/portal-repositorio';
 import { RecorridosLocal } from '../ruta-del-dia/recorridos-local';
 import { RecorridosRepositorio } from '../ruta-del-dia/recorridos-repositorio';
 import { TableroLocal } from '../inicio/dashboard/tablero-local';
@@ -76,5 +78,7 @@ export function proveerRepositorios(): Provider[] {
     // Acceso (el login local resuelve el rol con los empleados) y ruta del día de conductores/monitoras
     { provide: AutenticacionRepositorio, useClass: AutenticacionLocal },
     { provide: RecorridosRepositorio, useClass: RecorridosLocal },
+    // Portal del acudiente (lee todos los módulos)
+    { provide: PortalRepositorio, useClass: PortalLocal },
   ];
 }

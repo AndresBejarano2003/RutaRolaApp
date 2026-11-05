@@ -1,0 +1,108 @@
+<section class="space-y-5">
+  <header>
+    <h1 class="text-2xl font-bold">{{ saludo() }}</h1>
+    <p class="text-base-content/70 first-letter:uppercase">{{ fechaHoy }}</p>
+  </header>
+
+  @if (!datos()) {
+    @if (estado.cargando()) {
+      <div class="grid gap-3 sm:grid-cols-3">
+        @for (i of [1, 2, 3]; track i) { <div class="skeleton h-32"></div> }
+      </div>
+      <div class="skeleton h-40"></div>
+    }
+  } @else {
+    @let d = datos()!;
+    @if (d.resumen.vencido > 0) {
+      <div role="alert" class="alert alert-error alert-soft">
+        <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
+        <span>
+          Tienes {{ d.resumen.cuotasVencidas }} {{ d.resumen.cuotasVencidas === 1 ? 'cuota vencida' : 'cuotas vencidas' }} por
+          <b>{{ d.resumen.vencido | currency: 'COP' : 'symbol-narrow' : '1.0-0' }}</b>.
+        </span>
+        <a routerLink="/portal/pagos" class="btn btn-sm">Ver detalle</a>
+      </div>
+    }
+
+    <!-- Estado de cuenta -->
+    <div class="grid gap-3 sm:grid-cols-3">
+      <a routerLink="/portal/pagos" class="card bg-base-200 border border-base-300 p-4 hover:border-base-content/30 transition"
+        [class.border-error]="d.resumen.vencido > 0">
+        <p class="text-sm text-base-content/70 flex items-center gap-2"><i class="fa-solid fa-scale-unbalanced text-error" aria-hidden="true"></i> Saldo vencido</p>
+        <p class="text-2xl font-bold mt-1" [class.text-error]="d.resumen.vencido > 0">{{ d.resumen.vencido | currency: 'COP' : 'symbol-narrow' : '1.0-0' }}</p>
+        <p class="text-xs text-base-content/70 mt-1">{{ d.resumen.vencido ? d.resumen.cuotasVencidas + ' en mora' : 'Estás al día' }}</p>
+      </a>
+      <a routerLink="/portal/pagos" class="card bg-base-200 border border-base-300 p-4 hover:border-base-content/30 transition">
+        <p class="text-sm text-base-content/70 flex items-center gap-2"><i class="fa-solid fa-calendar-day text-warning" aria-hidden="true"></i> Próximo pago</p>
+        @if (d.resumen.proximoPago; as p) {
+          <p class="text-2xl font-bold mt-1">{{ p.valor | currency: 'COP' : 'symbol-narrow' : '1.0-0' }}</p>
+          <p class="text-xs text-base-content/70 mt-1">{{ nombrePeriodo(p.periodo, true) }} · {{ p.estudiante }}</p>
+          <p class="text-xs mt-1" [class.text-error]="p.estado === 'VENCIDA'" [class.text-warning]="p.estado === 'PENDIENTE'">{{ plazo(p.fechaLimite) }}</p>
+        } @else {
+          <p class="text-2xl font-bold mt-1 text-success">Al día</p>
+          <p class="text-xs text-base-content/70 mt-1">No tienes cuotas por pagar.</p>
+        }
+      </a>
+      <a routerLink="/portal/pagos" class="card bg-base-200 border border-base-300 p-4 hover:border-base-content/30 transition">
+        <p class="text-sm text-base-content/70 flex items-center gap-2"><i class="fa-solid fa-receipt text-success" aria-hidden="true"></i> Pagado este año</p>
+        <p class="text-2xl font-bold mt-1">{{ d.resumen.pagadoAnio | currency: 'COP' : 'symbol-narrow' : '1.0-0' }}</p>
+        <p class="text-xs text-base-content/70 mt-1">{{ d.resumen.pagosAnio }} {{ d.resumen.pagosAnio === 1 ? 'pago' : 'pagos' }}</p>
+      </a>
+    </div>
+
+    <!-- Hoy en la ruta -->
+    <section class="card bg-base-200 border border-base-300">
+      <div class="card-body p-4 sm:p-5 gap-3">
+        <div class="flex items-center justify-between gap-2">
+          <h2 class="text-sm text-info font-semibold uppercase tracking-wide">Hoy en la ruta</h2>
+          <a routerLink="/portal/estudiantes" class="link link-secondary text-sm">Mis estudiantes</a>
+        </div>
+        @for (e of activos(); track e.id) {
+          <div class="flex flex-wrap items-center gap-3 rounded-box bg-base-100 p-3">
+            <div class="avatar avatar-placeholder">
+              <div class="w-10 rounded-full bg-primary/15 text-primary font-semibold"><span>{{ e.iniciales }}</span></div>
+            </div>
+            <div class="min-w-0 flex-1 basis-40">
+              <p class="font-medium truncate">{{ e.nombre }}</p>
+              <p class="text-xs text-base-content/70 truncate">{{ e.transporte?.ruta ?? 'Sin ruta asignada' }}</p>
+            </div>
+            @if (e.transporte) {
+              <ul class="text-sm space-y-0.5 w-full sm:w-auto">
+                @for (t of trayectos; track t) {
+                  @let s = situacion(e, t);
+                  <li class="flex items-center gap-2" [class]="s.clase"><i [class]="s.icono + ' w-4'" aria-hidden="true"></i> {{ s.texto }}</li>
+                }
+              </ul>
+            }
+          </div>
+        } @empty {
+          <p class="text-base-content/70 text-sm">No tienes estudiantes activos registrados.</p>
+        }
+      </div>
+    </section>
+
+    <!-- Últimos pagos -->
+    <section class="card bg-base-200 border border-base-300">
+      <div class="card-body p-4 sm:p-5 gap-3">
+        <div class="flex items-center justify-between gap-2">
+          <h2 class="text-sm text-info font-semibold uppercase tracking-wide">Últimos pagos</h2>
+          <a routerLink="/portal/pagos" class="link link-secondary text-sm">Ver todos</a>
+        </div>
+        <ul class="divide-y divide-base-300">
+          @for (r of ultimosPagos(); track r.id) {
+            <li class="py-2 flex items-center gap-3">
+              <i class="fa-solid fa-receipt text-success" aria-hidden="true"></i>
+              <div class="min-w-0 flex-1">
+                <p class="font-medium truncate">{{ nombrePeriodo(r.periodo, true) }} · {{ r.estudiante }}</p>
+                <p class="text-xs text-base-content/70">{{ r.numero }} · {{ fechaCorta(r.fechaPago) }} · {{ medio(r.medioPago) }}</p>
+              </div>
+              <span class="font-semibold whitespace-nowrap">{{ r.valor | currency: 'COP' : 'symbol-narrow' : '1.0-0' }}</span>
+            </li>
+          } @empty {
+            <li class="py-2 text-sm text-base-content/70">Aún no hay pagos registrados.</li>
+          }
+        </ul>
+      </div>
+    </section>
+  }
+</section>

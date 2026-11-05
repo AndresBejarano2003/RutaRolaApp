@@ -1,0 +1,92 @@
+<section class="space-y-4">
+  <header>
+    <h1 class="text-2xl font-bold">Mis estudiantes</h1>
+    <p class="text-base-content/70">Colegio, ruta y personal que los transporta.</p>
+  </header>
+
+  @if (!datos() && estado.cargando()) {
+    <div class="skeleton h-64"></div>
+  }
+  @for (e of datos()?.estudiantes ?? []; track e.id) {
+    <article class="card bg-base-200 border border-base-300 shadow-xl">
+      <div class="card-body p-4 sm:p-5 gap-4">
+        <div class="flex items-center gap-3">
+          <div class="avatar avatar-placeholder">
+            <div class="w-12 rounded-full bg-primary/15 text-primary font-semibold text-lg"><span>{{ e.iniciales }}</span></div>
+          </div>
+          <div class="min-w-0 flex-1">
+            <h2 class="text-lg font-bold truncate">{{ e.nombre }}</h2>
+            <p class="text-sm text-base-content/70">{{ e.grado }} · Jornada {{ e.jornada }}</p>
+          </div>
+          @if (e.estado !== 'ACTIVO') {
+            <span class="badge bg-base-300 border-neutral">Inactivo</span>
+          }
+        </div>
+
+        <div class="grid gap-4 md:grid-cols-2">
+          <div>
+            <h3 class="text-sm text-info font-semibold uppercase tracking-wide mb-2">Colegio</h3>
+            <dl class="text-sm space-y-1">
+              <div><dt class="sr-only">Colegio</dt><dd class="font-medium">{{ e.colegio || '—' }}</dd></div>
+              <div><dt class="sr-only">Dirección del colegio</dt><dd class="text-base-content/70">{{ e.direccionColegio }}</dd></div>
+              @if (e.horario; as h) {
+                <div class="flex gap-2"><dt class="text-base-content/70">Horario:</dt><dd>{{ horaLegible(h.entrada) }} – {{ horaLegible(h.salida) }}</dd></div>
+              }
+              <div class="flex gap-2"><dt class="text-base-content/70">Recoger en:</dt><dd>{{ e.direccion }}</dd></div>
+            </dl>
+          </div>
+
+          <div>
+            <h3 class="text-sm text-info font-semibold uppercase tracking-wide mb-2">Transporte</h3>
+            @if (e.transporte; as t) {
+              <dl class="text-sm space-y-1">
+                <div><dt class="sr-only">Ruta</dt><dd class="font-medium">{{ t.ruta }} · {{ t.jornada }}</dd></div>
+                <div><dt class="sr-only">Sector</dt><dd class="text-base-content/70">{{ t.sector }}</dd></div>
+                @if (t.vehiculo) {
+                  <div class="flex gap-2"><dt class="text-base-content/70">Vehículo:</dt><dd class="font-mono">{{ t.vehiculo }}</dd></div>
+                }
+                @for (p of [{ rol: 'Conductor', nombre: t.conductor, tel: t.telefonoConductor }, { rol: 'Monitora', nombre: t.monitora, tel: t.telefonoMonitora }]; track p.rol) {
+                  @if (p.nombre) {
+                    <div class="flex flex-wrap items-center gap-x-2">
+                      <dt class="text-base-content/70">{{ p.rol }}:</dt>
+                      <dd>{{ p.nombre }}</dd>
+                      @if (p.tel) {
+                        <a class="link link-secondary" [href]="telefono(p.tel)" [attr.aria-label]="'Llamar a ' + p.nombre">
+                          <i class="fa-solid fa-phone" aria-hidden="true"></i> Llamar
+                        </a>
+                      }
+                    </div>
+                  }
+                }
+                @if (!t.conductor) {
+                  <div class="text-warning"><i class="fa-solid fa-circle-info" aria-hidden="true"></i> La ruta aún no tiene conductor asignado.</div>
+                }
+              </dl>
+            } @else {
+              <p class="text-sm text-base-content/70"><i class="fa-solid fa-circle-info text-info" aria-hidden="true"></i> Aún no tiene una ruta asignada.</p>
+            }
+          </div>
+        </div>
+
+        @if (e.transporte && e.estado === 'ACTIVO') {
+          <div class="rounded-box bg-base-100 p-3">
+            <h3 class="text-xs text-base-content/70 uppercase tracking-wide mb-1">Hoy</h3>
+            <ul class="text-sm grid gap-1 sm:grid-cols-2">
+              @for (tr of trayectos; track tr) {
+                @let s = situacion(e, tr);
+                <li class="flex items-center gap-2" [class]="s.clase"><i [class]="s.icono + ' w-4'" aria-hidden="true"></i> {{ s.texto }}</li>
+              }
+            </ul>
+          </div>
+        }
+      </div>
+    </article>
+  } @empty {
+    @if (datos()) {
+      <div class="card bg-base-200 border border-base-300 p-8 text-center items-center gap-2">
+        <i class="fa-solid fa-children text-3xl text-base-content/60" aria-hidden="true"></i>
+        <p class="text-base-content/70">No tienes estudiantes registrados.</p>
+      </div>
+    }
+  }
+</section>
