@@ -1,0 +1,47 @@
+<ul class="menu p-4 w-64 min-h-full bg-gray-900 text-white border-r border-gray-700">
+  <!-- MENÚ OPERATIVO -->
+  @for (opcion of menuOperativo; track opcion.etiqueta) {
+  <li>
+    <ng-container [ngTemplateOutlet]="itemMenu" [ngTemplateOutletContext]="{ $implicit: opcion }" />
+  </li>
+  }
+
+  <!-- DIVISOR -->
+  <div class="divider before:bg-gray-700 after:bg-gray-700 text-gray-500"></div>
+
+  <!-- MENÚ DE INFORMACIÓN DEL SISTEMA -->
+  @for (opcion of menuSistema; track opcion.etiqueta) {
+  <li>
+    <ng-container [ngTemplateOutlet]="itemMenu" [ngTemplateOutletContext]="{ $implicit: opcion }" />
+  </li>
+  }
+</ul>
+
+<!-- Ítem recursivo: grupo desplegable si tiene hijos, enlace si no -->
+<ng-template #itemMenu let-opcion>
+  @if (opcion.hijos) {
+  <details [open]="estaAbierto(opcion.etiqueta)">
+    <summary (click)="$event.preventDefault(); alternarMenu(opcion.etiqueta)">
+      <i [class]="opcion.icono"></i>
+      {{ opcion.etiqueta }}
+    </summary>
+    <ul>
+      @for (hijo of opcion.hijos; track hijo.etiqueta) {
+      <li>
+        <ng-container [ngTemplateOutlet]="itemMenu" [ngTemplateOutletContext]="{ $implicit: hijo }" />
+      </li>
+      }
+    </ul>
+  </details>
+  } @else {
+  <a [routerLink]="opcion.ruta" routerLinkActive="bg-blue-800">
+    <i [class]="opcion.icono"></i> {{ opcion.etiqueta }}
+    @if (opcion.esPro) {
+    <span class="badge badge-sm">Pro</span>
+    }
+    @if (opcion.notificaciones) {
+    <span class="badge badge-error badge-sm">{{ opcion.notificaciones }}</span>
+    }
+  </a>
+  }
+</ng-template>
