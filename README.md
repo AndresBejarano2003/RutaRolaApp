@@ -230,7 +230,9 @@ App para el celular del conductor y la monitora, dentro del vehículo.
   con botón de llamar. El empleado sale de la sesión/token, nunca de un parámetro.
 - **Trayectos:** `RECOGIDA` (casa → colegio, en el orden de la ruta) y `ENTREGA` (colegio → casa, en orden
   inverso). Un recorrido por asignación, fecha y trayecto; uno solo `EN_CURSO` por asignación. Conductor
-  y monitora comparten el mismo recorrido.
+  y monitora comparten el mismo recorrido: si uno toca "Iniciar" en un trayecto que el otro ya inició,
+  **se une a ese recorrido** donde va (no es un error; aviso informativo) y "Mis rutas" se actualiza sola
+  cuando el compañero inicia (`observarRutasDelDia`), mostrando "Continuar".
 - **Snapshot:** al iniciar se guardan ruta, colegio, vehículo, personal y, por estudiante activo de la
   ruta, nombre, grado, dirección y acudiente con teléfono.
 - **Estados por estudiante:** `PENDIENTE → A_BORDO → ENTREGADO` o `PENDIENTE → AUSENTE` ("No asistió"),
@@ -238,6 +240,17 @@ App para el celular del conductor y la monitora, dentro del vehículo.
 - **Siguiente paso** (`siguientePaso`): recogida = recoger al siguiente pendiente y luego "Entregar en el
   colegio" a todos los que van a bordo; entrega = abordaje en el colegio y luego cada casa. Cada parada
   ofrece "Cómo llegar" (Google Maps), llamar y avisar por WhatsApp al acudiente.
+- **Orden de visita (monitora):** durante el recorrido, la monitora arrastra a un estudiante que falta
+  (manija ⠿, o ↑/↓ con botones o teclado) a otra posición: si el 2 pasa al 6, los del 3 al 6 suben una.
+  Solo se reordenan los que faltan por visitar (recogida: PENDIENTES; entrega: PENDIENTES y A BORDO); los
+  ya resueltos quedan arriba. Solo la monitora de la asignación (el conductor si la ruta no tiene
+  monitora) — `puedeReordenar`; la lista enviada debe ser EXACTAMENTE la de los que faltan
+  (`reordenarParadas`, si cambió mientras arrastraba → 409 y se recarga). Se guarda `ordenActualizado`
+  (quién y cuándo). `PUT /recorridos/{id}/orden {estudianteIds}`.
+- **Sincronización conductor ↔ monitora:** la pantalla del recorrido escucha los cambios del compañero
+  (`observar`: en modo local, el evento `storage` de otra pestaña al instante; además consulta cada 10 s,
+  como `RecorridosHttp` hasta que haya SSE/WebSocket). Si la monitora cambió el orden, el conductor ve el
+  aviso "… cambió el orden · Ahora sigue: …" (con vibración) y el siguiente paso actualizado.
 - **Finalizar** solo con todos ENTREGADOS o AUSENTES: **ningún estudiante puede quedar a bordo**.
   Un recorrido finalizado no se modifica. Si se cierra la app, el recorrido en curso se retoma desde "Mis rutas".
 - **Historial** (Operación › Recorridos, solo lectura, administrador): todos los recorridos del más
