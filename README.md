@@ -142,7 +142,7 @@ usan HTTP cuando `environment.usarApi` es `true` (desarrollo, `npm start`) y loc
 (`environment.local.ts`), en producción mientras no se despliegue el API y en las pruebas
 (`repositoriosDePrueba()` siempre es local). Para pasar otro módulo basta con cambiar su línea a `api(...)`.
 
-- **Con API hoy:** colegios, vehículos, empleados, acudientes, estudiantes, la vista de conductores y el login.
+- **Con API hoy:** colegios, vehículos, empleados, acudientes, estudiantes, la vista de conductores, rutas, asignaciones, la Ruta del día, el historial de recorridos y el login.
 - `RepositorioHttp.motivoNoEliminar` consulta `GET /x/{id}/motivo-no-eliminar` → `{ motivo }` antes de pedir
   confirmación (el `DELETE` igual responde 409 con el mensaje).
 - `listar` con `SIN_PAGINAR` trae como máximo 1000 registros por petición.
@@ -620,16 +620,17 @@ Las pantallas que aún usan grises fijos se migran a estas clases cuando se modi
   demo) y el administrador es fijo (`admin`). Con API (`npm start`) el login ya es `AutenticacionHttp`. Falta el
   módulo de usuarios administrativos.
   Datos locales creados antes de este cambio no tienen usuario: editar el empleado o limpiar los datos.
-- **Modo mixto (desarrollo con API):** Personas, colegios y vehículos vienen del API, pero rutas, asignaciones,
-  recorridos y Finanzas siguen en `localStorage` con sus datos de ejemplo, que apuntan a ids locales
-  (`est-1`, `veh-1`…): esas pantallas muestran referencias sin resolver hasta migrarlas (fases 4 y 6). La
-  Ruta del día de un conductor del API sale vacía (sus asignaciones son locales) y el Portal del acudiente
-  no carga (lee estudiantes, que el acudiente no puede consultar) hasta que existan `/recorridos` y `GET /portal`.
+- **Modo mixto (desarrollo con API):** Personas y Operación (colegios, vehículos, rutas, asignaciones,
+  conductores, Ruta del día e historial de recorridos) vienen del API, pero Finanzas, el inicio, las
+  notificaciones y el portal siguen en `localStorage` con sus datos de ejemplo, que apuntan a ids locales
+  (`est-1`, `acu-1`…): esas pantallas muestran referencias sin resolver hasta migrarlas (fases 6 y 7). El
+  Portal del acudiente no carga (lee estudiantes, que el acudiente no puede consultar) hasta que exista `GET /portal`.
   Para la demo completa sin API: `npm run start:local`.
 - **Portal del acudiente:** se calcula en el navegador (`PortalLocal`) hasta que exista `GET /portal`.
-- **Ruta del día:** los recorridos se guardan en `localStorage` (`RecorridosLocal`). Falta que el servidor
-  avise al acudiente (recogido, entregado, no asistió).
-- **Modo local:** rutas, asignaciones, recorridos y Finanzas funcionan con `localStorage` hasta que exista su
+- **Ruta del día:** con API los recorridos viven en el servidor (`RecorridosHttp`, sincronización por consulta
+  cada 10 s); en modo local en `localStorage` (`RecorridosLocal`). Falta que el servidor avise al acudiente
+  (recogido, entregado, no asistió).
+- **Modo local:** Finanzas, el inicio, las notificaciones y el portal funcionan con `localStorage` hasta que exista su
   API (cambiar su línea a `api(...)` en `core/repositorios.ts`). En producción todo sigue local hasta desplegar
   el API (`environment.ts` → `usarApi: true`).
 - **Envíos automáticos:** la programación de facturación solo guarda la configuración; el envío por

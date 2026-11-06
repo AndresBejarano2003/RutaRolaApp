@@ -7,8 +7,12 @@ import { AutenticacionHttp } from '../autenticacion/autenticacion-http';
 import { AutenticacionRepositorio } from '../autenticacion/autenticacion-repositorio';
 import { ColegiosHttp } from '../operacion/colegios/colegios-http';
 import { ColegiosRepositorio } from '../operacion/colegios/colegios-repositorio';
-import { RutasLocal } from '../operacion/rutas/rutas-local';
+import { FacturasLocal } from '../finanzas/facturas/facturas-local';
+import { FacturasRepositorio } from '../finanzas/facturas/facturas-repositorio';
+import { RutasHttp } from '../operacion/rutas/rutas-http';
 import { RutasRepositorio } from '../operacion/rutas/rutas-repositorio';
+import { RecorridosHttp } from '../ruta-del-dia/recorridos-http';
+import { RecorridosRepositorio } from '../ruta-del-dia/recorridos-repositorio';
 import { EstudiantesLocal } from '../personas/estudiantes/estudiantes-local';
 import { EstudiantesRepositorio } from '../personas/estudiantes/estudiantes-repositorio';
 import { proveerRepositorios } from './repositorios';
@@ -24,7 +28,9 @@ describe('Registro de repositorios', () => {
 
     expect(TestBed.inject(ColegiosRepositorio)).toBeInstanceOf(ColegiosHttp);
     expect(TestBed.inject(AutenticacionRepositorio)).toBeInstanceOf(AutenticacionHttp);
-    expect(TestBed.inject(RutasRepositorio)).toBeInstanceOf(RutasLocal);
+    expect(TestBed.inject(RutasRepositorio)).toBeInstanceOf(RutasHttp);
+    expect(TestBed.inject(RecorridosRepositorio)).toBeInstanceOf(RecorridosHttp);
+    expect(TestBed.inject(FacturasRepositorio)).toBeInstanceOf(FacturasLocal);
   });
 
   it('sin API todo es local', () => {

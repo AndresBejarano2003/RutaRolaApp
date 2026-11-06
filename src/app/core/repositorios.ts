@@ -5,6 +5,7 @@ import { AutenticacionLocal } from "../autenticacion/autenticacion-local";
 import { AutenticacionRepositorio } from "../autenticacion/autenticacion-repositorio";
 import { PortalLocal } from "../portal/portal-local";
 import { PortalRepositorio } from "../portal/portal-repositorio";
+import { RecorridosHttp } from "../ruta-del-dia/recorridos-http";
 import { RecorridosLocal } from "../ruta-del-dia/recorridos-local";
 import { RecorridosRepositorio } from "../ruta-del-dia/recorridos-repositorio";
 import { TableroLocal } from "../inicio/dashboard/tablero-local";
@@ -22,6 +23,7 @@ import { RecibosLocal } from "../finanzas/recibos/recibos-local";
 import { RecibosRepositorio } from "../finanzas/recibos/recibos-repositorio";
 import { ReportesLocal } from "../finanzas/reportes/reportes-local";
 import { ReportesRepositorio } from "../finanzas/reportes/reportes-repositorio";
+import { AsignacionesHttp } from "../operacion/asignaciones/asignaciones-http";
 import { AsignacionesLocal } from "../operacion/asignaciones/asignaciones-local";
 import { AsignacionesRepositorio } from "../operacion/asignaciones/asignaciones-repositorio";
 import { ColegiosLocal } from "../operacion/colegios/colegios-local";
@@ -30,8 +32,10 @@ import { ColegiosRepositorio } from "../operacion/colegios/colegios-repositorio"
 import { ConductoresLocal } from "../operacion/conductores/conductores-local";
 import { ConductoresHttp } from "../operacion/conductores/conductores-http";
 import { ConductoresRepositorio } from "../operacion/conductores/conductores-repositorio";
+import { HistorialRecorridosHttp } from "../operacion/recorridos/historial-recorridos-http";
 import { HistorialRecorridosLocal } from "../operacion/recorridos/historial-recorridos-local";
 import { HistorialRecorridosRepositorio } from "../operacion/recorridos/historial-recorridos-repositorio";
+import { RutasHttp } from "../operacion/rutas/rutas-http";
 import { RutasLocal } from "../operacion/rutas/rutas-local";
 import { RutasRepositorio } from "../operacion/rutas/rutas-repositorio";
 import { VehiculosLocal } from "../operacion/vehiculos/vehiculos-local";
@@ -79,13 +83,14 @@ export function proveerRepositorios({
     // Operación
     api(ColegiosRepositorio, ColegiosLocal, ColegiosHttp),
     api(VehiculosRepositorio, VehiculosLocal, VehiculosHttp),
-    { provide: RutasRepositorio, useClass: RutasLocal },
-    { provide: AsignacionesRepositorio, useClass: AsignacionesLocal },
+    api(RutasRepositorio, RutasLocal, RutasHttp),
+    api(AsignacionesRepositorio, AsignacionesLocal, AsignacionesHttp),
     api(ConductoresRepositorio, ConductoresLocal, ConductoresHttp),
-    {
-      provide: HistorialRecorridosRepositorio,
-      useClass: HistorialRecorridosLocal,
-    },
+    api(
+      HistorialRecorridosRepositorio,
+      HistorialRecorridosLocal,
+      HistorialRecorridosHttp,
+    ),
     // Finanzas
     { provide: CotizacionesRepositorio, useClass: CotizacionesLocal },
     { provide: FacturasRepositorio, useClass: FacturasLocal },
@@ -100,7 +105,7 @@ export function proveerRepositorios({
     CentroNotificaciones,
     // Acceso (el login local resuelve el rol con los empleados) y ruta del día de conductores/monitoras
     api(AutenticacionRepositorio, AutenticacionLocal, AutenticacionHttp),
-    { provide: RecorridosRepositorio, useClass: RecorridosLocal },
+    api(RecorridosRepositorio, RecorridosLocal, RecorridosHttp),
     // Portal del acudiente (lee todos los módulos)
     { provide: PortalRepositorio, useClass: PortalLocal },
   ];
