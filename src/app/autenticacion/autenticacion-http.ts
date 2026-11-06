@@ -1,25 +1,41 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { Observable } from 'rxjs';
+import { Observable, map } from 'rxjs';
 import { environment } from '@environments/environment';
-import { Credenciales, Sesion } from 'src/app/core/auth';
+import { Credenciales, ROLES_USUARIO, RolUsuario, Sesion, TokensSesion } from 'src/app/core/auth';
+import { ErrorCrud } from 'src/app/shared/crud/crud';
 import { AutenticacionRepositorio } from './autenticacion-repositorio';
 
+/** Respuesta de `POST /auth/login`. */
+export interface RespuestaLogin {
+  /** `rol` puede ser también `SUPER_ADMIN` (plataforma), que no entra a esta aplicación. */
+  sesion: Omit<Sesion, 'tokens' | 'rol'> & { rol: string };
+  tokens: TokensSesion;
+}
+
 /**
- * `POST {apiUrl}/auth/login` `{usuario, contrasena}` → `Sesion` (+ token cuando se defina el
- * esquema de autorización). El SERVIDOR decide el rol:
- * - usuario y contraseña de un empleado activo (definidos en Personas › Empleados) → `rol` igual a su
- *   tipo (CONDUCTOR/MONITORA) y `empleadoId`;
- * - usuario y contraseña de un acudiente activo (Personas › Acudientes) → `ACUDIENTE` y `acudienteId`;
- * - usuario administrativo → `ADMINISTRADOR`, `empleadoId: null`.
- * El usuario es único en todo el sistema (empleados, acudientes y administradores).
- * Credenciales inválidas o usuario inactivo → 401/422 con `{mensaje}`.
+ * `POST {apiUrl}/auth/login` `{usuario, contrasena}` → `{ sesion, tokens }` (ver `api/README.md`).
+ * `usuario` puede ser el usuario de ingreso o el correo. El SERVIDOR decide el rol:
+ * - empleado activo (Personas › Empleados) → CONDUCTOR/MONITORA y `empleadoId`;
+ * - acudiente activo (Personas › Acudientes) → ACUDIENTE y `acudienteId`;
+ * - administrador de la empresa → ADMINISTRADOR.
+ * 401 `Usuario o contraseña incorrectos.`; 403 usuario, empresa o persona inactivos (con `{mensaje}`).
+ * Los tokens viajan dentro de la sesión; `interceptorAutenticacion` los usa y los renueva.
  */
 @Injectable()
 export class AutenticacionHttp extends AutenticacionRepositorio {
   private readonly http = inject(HttpClient);
 
   iniciarSesion({ usuario, contrasena }: Credenciales): Observable<Sesion> {
-    return this.http.post<Sesion>(`${environment.apiUrl}/auth/login`, { usuario: usuario.trim(), contrasena });
+    return this.http
+      .post<RespuestaLogin>(`${environment.apiUrl}/auth/login`, { usuario: usuario.trim(), contrasena })
+      .pipe(
+        map(({ sesion, tokens }) => {
+          if (!ROLES_USUARIO.some((r) => r.id === sesion.rol)) {
+            throw new ErrorCrud('Este usuario no tiene acceso a esta aplicación.', 'VALIDACION');
+          }
+          return { ...sesion, rol: sesion.rol as RolUsuario, tokens };
+        }),
+      );
   }
 }

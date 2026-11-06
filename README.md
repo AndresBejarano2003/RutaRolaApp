@@ -126,6 +126,18 @@ Endpoints adicionales (solo lectura o calculados en el servidor):
 Errores: el API puede responder `{ "mensaje": "..." }` y se mostrará tal cual; si no, se usa un mensaje
 según el código (409 = duplicado o registro en uso, 404 = no existe, 0 = sin conexión…).
 
+### Backend (API)
+
+El API está en `../api` (ASP.NET Core .NET 10 + PostgreSQL, multiempresa). Su documentación está en `api/README.md`.
+Implementa los contratos que documenta cada `<plural>-http.ts`:
+
+- recursos bajo `{apiUrl}` = `https://<host>/api/v1`;
+- listados `{ items, total, pagina, tamano }` y `GET /x/opciones`;
+- errores ProblemDetails con `mensaje`;
+- enums en `UPPER_SNAKE`, fechas `YYYY-MM-DD`, horas `HH:mm` e ids UUID como texto.
+
+Para pasar un módulo a la base de datos real basta con cambiar su `useClass` a `XHttp` en `core/repositorios.ts`.
+
 ### Repositorios: un solo registro para toda la app
 
 Los módulos se enlazan entre sí (estudiantes ↔ colegios ↔ rutas ↔ asignaciones ↔ vehículos/empleados;
@@ -203,6 +215,21 @@ Cada tipo de usuario entra a SU sistema; el rol lo decide el servidor al iniciar
 - `AutenticacionRepositorio` (`AutenticacionLocal` → `AutenticacionHttp`, `POST /auth/login` → `Sesion`)
   valida las credenciales; `AuthService` guarda la sesión (`rutarola.sesion`: `localStorage` con
   "Recordarme", si no `sessionStorage`). **Cerrar sesión borra solo la sesión**, nunca los datos.
+- **Con API** (`AutenticacionHttp`): `POST {apiUrl}/auth/login` responde `{ sesion, tokens }`. Los tokens
+  quedan dentro de la sesión (`Sesion.tokens`) y `interceptorAutenticacion` (`core/interceptor-autenticacion.ts`,
+  registrado en `app.config.ts`) los usa así:
+  - agrega `Authorization: Bearer <accessToken>` solo a las peticiones a `environment.apiUrl`, salvo
+    `/auth/login`, `/auth/refresh` y `/auth/logout`;
+  - ante un 401 renueva con `/auth/refresh` UNA sola vez para todas las peticiones que fallaron a la vez
+    (`RenovacionSesion`), guarda los tokens nuevos donde estaba la sesión y repite cada petición;
+  - si otra pestaña ya renovó, adopta sus tokens en lugar de reusar el refresh token viejo (el servidor
+    trata ese reuso como robo y cierra todas las sesiones);
+  - si la renovación falla, cierra la sesión y lleva a `/login?volver=<url>`.
+
+  Cerrar sesión también revoca el refresh token (`POST /auth/logout`). En modo local no hay tokens y el
+  interceptor no hace nada.
+  Se pasa a `AutenticacionHttp` en `core/repositorios.ts` junto con Personas, porque los usuarios de
+  conductores, monitoras y acudientes se crean desde sus formularios.
 - **El login pide "Usuario"** (no correo): cada quien decide si es su correo, documento u otro texto.
 - **Credenciales de empleados y acudientes:** los formularios de Personas › Empleados y Personas ›
   Acudientes tienen la sección "Acceso a la app" (`<app-campos-acceso>` y `controlesAcceso`/
@@ -577,8 +604,9 @@ Las pantallas que aún usan grises fijos se migran a estas clases cuando se modi
 ## 5. Pendientes conocidos
 
 - **Autenticación provisional:** `AutenticacionLocal` guarda las contraseñas sin hash en el navegador (solo
-  demo) y el administrador es fijo (`admin`). Con API: cambiar a `AutenticacionHttp`, agregar el token
-  (interceptor) del que el servidor saca el usuario en cada petición y un módulo de usuarios administrativos.
+  demo) y el administrador es fijo (`admin`). El API ya tiene login, refresh y logout, y el frontend ya
+  tiene el interceptor y `AutenticacionHttp` listos. Falta cambiar el provider (junto con Personas) y crear
+  el módulo de usuarios administrativos.
   Datos locales creados antes de este cambio no tienen usuario: editar el empleado o limpiar los datos.
 - **Portal del acudiente:** se calcula en el navegador (`PortalLocal`) hasta que exista `GET /portal`.
 - **Ruta del día:** los recorridos se guardan en `localStorage` (`RecorridosLocal`). Falta que el servidor
