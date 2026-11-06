@@ -1,0 +1,115 @@
+<form [formGroup]="filtros" class="card bg-base-200 border border-base-300 shadow-xl">
+  <app-panel-filtros (limpiar)="filtros.reset()">
+    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+      <label class="input input-bordered bg-base-100 border-neutral w-full flex items-center gap-2 md:col-span-2">
+        <i class="fa-solid fa-magnifying-glass text-base-content/60" aria-hidden="true"></i>
+        <input type="search" formControlName="texto" class="grow" placeholder="Teléfono, texto o acudiente..." aria-label="Buscar mensaje" />
+      </label>
+      <app-selector-busqueda formControlName="acudienteId" [opciones]="acudientes()" textoTodos="Todos los acudientes" etiqueta="Acudiente" />
+      <app-selector-busqueda formControlName="estado" [opciones]="estados" textoTodos="Todos los estados" etiqueta="Estado" />
+      <label class="input input-bordered bg-base-100 border-neutral w-full flex items-center gap-2">
+        <span class="text-base-content/70 text-sm">Desde</span>
+        <input type="date" formControlName="desde" class="grow" aria-label="Desde" />
+      </label>
+      <label class="input input-bordered bg-base-100 border-neutral w-full flex items-center gap-2">
+        <span class="text-base-content/70 text-sm">Hasta</span>
+        <input type="date" formControlName="hasta" class="grow" [min]="filtros.controls.desde.value" aria-label="Hasta" />
+      </label>
+    </div>
+  </app-panel-filtros>
+</form>
+
+<section class="mt-6 card bg-base-200 border border-base-300 shadow-xl">
+  <div class="card-body">
+    <app-encabezado-listado titulo="Mensajes de WhatsApp"
+      descripcion="Recordatorios de cobro que envió el sistema. Se configuran en Programación de facturación."
+      [cargando]="store.cargando()" [total]="store.total()" [modoLocal]="store.modoLocal" [error]="store.error()"
+      (reintentar)="store.recargar()">
+      <a routerLink="/finanzas/programacion-facturacion" class="btn btn-primary">
+        <i class="fa-solid fa-calendar-check" aria-hidden="true"></i> Programación
+      </a>
+    </app-encabezado-listado>
+
+    <div class="@container overflow-x-auto rounded-box border border-base-300">
+      <table class="table">
+        <thead>
+          <tr class="bg-base-300 text-base-content/80 text-xs uppercase tracking-wide">
+            <th>Fecha</th>
+            <th>Acudiente</th>
+            <th class="hidden @3xl:table-cell">Estudiante</th>
+            <th class="hidden @5xl:table-cell">Teléfono</th>
+            <th class="hidden @6xl:table-cell">Mensaje</th>
+            <th>Estado</th>
+            <th class="text-right">Acciones</th>
+          </tr>
+        </thead>
+        <tbody class="transition-opacity" [class.opacity-50]="store.cargando() && store.items().length > 0">
+          @if (store.cargando() && store.items().length === 0) {
+            @for (fila of [1, 2, 3, 4]; track fila) {
+              <tr class="border-base-300">
+                @for (col of [1, 2, 3, 4, 5, 6, 7]; track col) {
+                  <td><div class="skeleton bg-base-300 h-4 w-full"></div></td>
+                }
+              </tr>
+            }
+          } @else {
+            @for (m of store.items(); track m.id) {
+              <tr class="border-base-300 hover:bg-base-300/50 cursor-pointer transition-colors" (click)="consultar(m)">
+                <td class="text-sm">{{ fechaHora(m.fechaCreacion) }}</td>
+                <td class="font-medium">{{ m.nombreAcudiente }}</td>
+                <td class="hidden @3xl:table-cell text-sm">{{ m.nombreEstudiante || '—' }}</td>
+                <td class="hidden @5xl:table-cell font-mono text-sm">{{ m.telefono || '—' }}</td>
+                <td class="hidden @6xl:table-cell text-sm max-w-80 truncate">{{ m.mensaje }}</td>
+                <td><span class="badge badge-sm" [class]="estado(m.estado).badge">{{ estado(m.estado).nombre }}</span></td>
+                <td class="text-right" (click)="$event.stopPropagation()">
+                  <div class="tooltip tooltip-left" data-tip="Consultar">
+                    <button type="button" class="btn btn-sm btn-ghost btn-square text-info hover:bg-info/15" aria-label="Consultar"
+                      (click)="consultar(m)"><i class="fa-solid fa-eye" aria-hidden="true"></i></button>
+                  </div>
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="7">
+                  <app-estado-vacio icono="fa-brands fa-whatsapp"
+                    [mensaje]="store.modoLocal ? 'En modo local no se envían mensajes: los envía el servidor con el API.' : 'Aún no se han enviado recordatorios por WhatsApp.'"
+                    textoCrear="" [hayFiltros]="store.hayFiltros()" />
+                </td>
+              </tr>
+            }
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <app-paginacion [pagina]="store.paginacion().pagina" [tamano]="store.paginacion().tamano" [total]="store.total()"
+      [totalPaginas]="store.totalPaginas()" (cambiarPagina)="store.irAPagina($event)" (cambiarTamano)="store.cambiarTamano($event)" />
+  </div>
+</section>
+
+<app-modal [(abierto)]="detalleAbierto" titulo="Mensaje de WhatsApp" [subtitulo]="detalle()?.nombreAcudiente ?? ''">
+  @if (detalleAbierto() && detalle(); as m) {
+    <div class="space-y-5">
+      <dl class="grid sm:grid-cols-2 gap-x-4 gap-y-2 text-sm">
+        <div><dt class="text-base-content/70">Acudiente</dt><dd>{{ m.nombreAcudiente }}</dd></div>
+        <div><dt class="text-base-content/70">Estudiante</dt><dd>{{ m.nombreEstudiante || '—' }}</dd></div>
+        <div><dt class="text-base-content/70">Teléfono</dt><dd class="font-mono">{{ m.telefono || '—' }}</dd></div>
+        <div><dt class="text-base-content/70">Estado</dt><dd><span class="badge badge-sm" [class]="estado(m.estado).badge">{{ estado(m.estado).nombre }}</span></dd></div>
+        <div><dt class="text-base-content/70">Creado</dt><dd>{{ fechaHora(m.fechaCreacion) }}</dd></div>
+        <div><dt class="text-base-content/70">Enviado</dt><dd>{{ fechaHora(m.fechaEnvio) }}</dd></div>
+        @if (m.respuesta) {
+          <div class="sm:col-span-2"><dt class="text-base-content/70">Respuesta del proveedor</dt><dd>{{ m.respuesta }}</dd></div>
+        }
+      </dl>
+      <div>
+        <h4 class="text-sm font-semibold uppercase tracking-wide text-info mb-2 border-b border-base-300 pb-1">Mensaje</h4>
+        <p class="whitespace-pre-line rounded-box bg-base-100 p-3 text-sm">{{ m.mensaje }}</p>
+      </div>
+    </div>
+  }
+  @if (detalleAbierto()) {
+    <div pie class="flex justify-end">
+      <button type="button" class="btn bg-base-300 border-neutral hover:bg-neutral" (click)="detalleAbierto.set(false)">Cerrar</button>
+    </div>
+  }
+</app-modal>

@@ -68,6 +68,8 @@ export interface FacturaPortal {
 
 /** Cómo va hoy el estudiante en su ruta (de la Ruta del día del conductor). */
 export interface RecorridoHoy {
+  /** Para ver el vehículo en el mapa mientras `enCurso`. */
+  recorridoId: string;
   trayecto: Trayecto;
   enCurso: boolean;
   estado: EstadoParada;

@@ -12,6 +12,7 @@ import { descargarCsv } from 'src/app/shared/exportar/csv';
 import { fechaCorta, fechaIso } from 'src/app/shared/fechas/fechas';
 import { emitirEnVivo } from 'src/app/shared/formularios/formularios';
 import { Modal } from 'src/app/shared/modal/modal';
+import { MapaTrayecto } from './mapa-trayecto/mapa-trayecto';
 import { NotificacionesService } from 'src/app/shared/notificaciones/notificaciones';
 import { Paginacion } from 'src/app/shared/paginacion/paginacion';
 import { PanelFiltros } from 'src/app/shared/panel-filtros/panel-filtros';
@@ -36,7 +37,7 @@ import { HistorialRecorridosStore } from './historial-recorridos-store';
 @Component({
   selector: 'app-recorridos-page',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [PanelFiltros, ReactiveFormsModule, RouterLink, SelectorBusqueda, EncabezadoListado, Paginacion, Modal, EstadoVacio],
+  imports: [PanelFiltros, ReactiveFormsModule, RouterLink, SelectorBusqueda, EncabezadoListado, Paginacion, Modal, EstadoVacio, MapaTrayecto],
   providers: [HistorialRecorridosStore],
   templateUrl: './recorridos-page.html',
 })

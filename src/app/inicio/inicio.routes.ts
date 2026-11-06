@@ -9,7 +9,7 @@ export default [
   },
   {
     path: 'perfil',
-    loadComponent: () => import('./perfil/perfil-page'),
+    loadComponent: () => import('../autenticacion/cuenta/cuenta-page'),
     data: { breadcrumb: ['Inicio', 'Perfil'] },
   },
   {

@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { Observable, defer, forkJoin, map } from 'rxjs';
+import { Observable, defer, filter, forkJoin, fromEvent, interval, map, merge } from 'rxjs';
 import { AuthService } from 'src/app/core/auth';
 import { FILTROS_COTIZACION_VACIOS } from 'src/app/finanzas/cotizaciones/cotizacion';
 import { CotizacionesRepositorio } from 'src/app/finanzas/cotizaciones/cotizaciones-repositorio';
@@ -25,7 +25,7 @@ import { FILTROS_EMPLEADO_VACIOS } from 'src/app/personas/empleados/empleado';
 import { EmpleadosRepositorio } from 'src/app/personas/empleados/empleados-repositorio';
 import { FILTROS_ESTUDIANTE_VACIOS } from 'src/app/personas/estudiantes/estudiante';
 import { EstudiantesRepositorio } from 'src/app/personas/estudiantes/estudiantes-repositorio';
-import { vigenteEn } from 'src/app/ruta-del-dia/recorridos-local';
+import { CLAVE_RECORRIDOS, vigenteEn } from 'src/app/ruta-del-dia/recorridos-local';
 import { GRADOS } from 'src/app/shared/catalogos/catalogos';
 import { ErrorCrud } from 'src/app/shared/crud/crud';
 import { FuenteLocal, SIN_PAGINAR } from 'src/app/shared/crud/repositorio-local';
@@ -87,7 +87,7 @@ export class PortalLocal extends PortalRepositorio implements FuenteLocal {
               .flatMap((r): RecorridoHoy[] => {
                 const parada = r.paradas.find((p) => p.estudianteId === e.id);
                 return parada
-                  ? [{ trayecto: r.trayecto, enCurso: r.estado === 'EN_CURSO', estado: parada.estado, horaAbordo: parada.horaAbordo, horaEntrega: parada.horaEntrega }]
+                  ? [{ recorridoId: r.id, trayecto: r.trayecto, enCurso: r.estado === 'EN_CURSO', estado: parada.estado, horaAbordo: parada.horaAbordo, horaEntrega: parada.horaEntrega }]
                   : [];
               })
               .sort((a, b) => a.trayecto.localeCompare(b.trayecto)).reverse(); // RECOGIDA antes que ENTREGA
@@ -141,5 +141,10 @@ export class PortalLocal extends PortalRepositorio implements FuenteLocal {
         }),
       );
     });
+  }
+
+  /** Otra pestaña cambió los recorridos (la Ruta del día), o pasó el intervalo de consulta. */
+  observarCambios(): Observable<unknown> {
+    return merge(fromEvent<StorageEvent>(window, 'storage').pipe(filter((e) => e.key === CLAVE_RECORRIDOS)), interval(30_000));
   }
 }

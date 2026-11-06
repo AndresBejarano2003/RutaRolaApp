@@ -9,7 +9,8 @@ import { LATENCIA_LOCAL } from 'src/app/shared/crud/repositorio-local';
 
 /** Repositorios locales sin latencia. Llamar `localStorage.clear()` antes de cada prueba. */
 export function repositoriosDePrueba(): Provider[] {
-  return [...proveerRepositorios(), { provide: LATENCIA_LOCAL, useValue: 0 }];
+  // Las pruebas siempre usan los repositorios locales, sin importar el entorno.
+  return [...proveerRepositorios({ usarApi: false }), { provide: LATENCIA_LOCAL, useValue: 0 }];
 }
 
 /** jsdom no implementa `<dialog>.showModal/close`. */

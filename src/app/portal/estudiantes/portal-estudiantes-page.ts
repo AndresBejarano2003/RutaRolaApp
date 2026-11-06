@@ -3,11 +3,13 @@ import { Trayecto } from 'src/app/ruta-del-dia/recorrido';
 import { horaLegible } from 'src/app/shared/fechas/fechas';
 import { EstudiantePortal, situacionRecorrido } from '../portal';
 import { PortalEstado } from '../portal-estado';
+import { MapaRuta } from '../mapa-ruta/mapa-ruta';
 
 /** Estudiantes a cargo: colegio y horario, ruta, vehículo, personal (con contacto) y cómo van hoy. */
 @Component({
   selector: 'app-portal-estudiantes-page',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [MapaRuta],
   templateUrl: './portal-estudiantes-page.html',
 })
 export default class PortalEstudiantesPage {

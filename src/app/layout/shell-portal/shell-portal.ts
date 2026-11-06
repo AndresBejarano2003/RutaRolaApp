@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, OnInit, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, inject } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { AuthService } from 'src/app/core/auth';
 import { PortalEstado } from 'src/app/portal/portal-estado';
@@ -22,6 +22,7 @@ export const SECCIONES_PORTAL = [
 export default class ShellPortal implements OnInit {
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
+  private readonly destroyRef = inject(DestroyRef);
   protected readonly estado = inject(PortalEstado);
 
   protected readonly sesion = this.auth.sesion;
@@ -29,6 +30,7 @@ export default class ShellPortal implements OnInit {
 
   ngOnInit(): void {
     void this.estado.cargar();
+    this.estado.escuchar(this.destroyRef);
   }
 
   protected salir(): void {

@@ -25,6 +25,11 @@ export default [
     data: { breadcrumb: ['Finanzas', 'Programación de facturación'] },
   },
   {
+    path: 'mensajes-whatsapp',
+    loadComponent: () => import('./mensajes-whatsapp/mensajes-whatsapp-page'),
+    data: { breadcrumb: ['Finanzas', 'Mensajes de WhatsApp'] },
+  },
+  {
     path: 'reportes-financieros',
     children: [
       {

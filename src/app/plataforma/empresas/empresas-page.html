@@ -1,0 +1,143 @@
+<form [formGroup]="filtros" class="card bg-base-200 border border-base-300 shadow-xl">
+  <app-panel-filtros (limpiar)="filtros.reset()">
+    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+      <label class="input input-bordered bg-base-100 border-neutral w-full flex items-center gap-2 md:col-span-2 xl:col-span-3">
+        <i class="fa-solid fa-magnifying-glass text-base-content/60" aria-hidden="true"></i>
+        <input type="search" formControlName="texto" class="grow" placeholder="Nombre o NIT..." aria-label="Buscar empresa" />
+      </label>
+      <app-selector-busqueda formControlName="estado" [opciones]="estados" textoTodos="Todos los estados" etiqueta="Estado" />
+    </div>
+  </app-panel-filtros>
+</form>
+
+<section class="mt-6 card bg-base-200 border border-base-300 shadow-xl">
+  <div class="card-body">
+    <app-encabezado-listado titulo="Empresas de transporte" descripcion="Cada empresa ve solo sus datos. Inactivarla impide el ingreso de sus usuarios."
+      [cargando]="store.cargando()" [total]="store.total()" [modoLocal]="store.modoLocal" [error]="store.error()"
+      (reintentar)="store.recargar()">
+      <button type="button" class="btn btn-primary" (click)="nueva()">
+        <i class="fa-solid fa-plus" aria-hidden="true"></i> Nueva empresa
+      </button>
+    </app-encabezado-listado>
+
+    <div class="@container overflow-x-auto rounded-box border border-base-300">
+      <table class="table">
+        <thead>
+          <tr class="bg-base-300 text-base-content/80 text-xs uppercase tracking-wide">
+            <th>Empresa</th>
+            <th class="hidden @3xl:table-cell">NIT</th>
+            <th class="hidden @5xl:table-cell">Ciudad</th>
+            <th class="hidden @6xl:table-cell">Correo</th>
+            <th>Estado</th>
+            <th class="text-right">Acciones</th>
+          </tr>
+        </thead>
+        <tbody class="transition-opacity" [class.opacity-50]="store.cargando() && store.items().length > 0">
+          @if (store.cargando() && store.items().length === 0) {
+            @for (fila of [1, 2, 3]; track fila) {
+              <tr class="border-base-300">
+                @for (col of [1, 2, 3, 4, 5, 6]; track col) {
+                  <td><div class="skeleton bg-base-300 h-4 w-full"></div></td>
+                }
+              </tr>
+            }
+          } @else {
+            @for (e of store.items(); track e.id) {
+              <tr class="border-base-300 hover:bg-base-300/50 cursor-pointer transition-colors" (click)="abrir(e)">
+                <td>
+                  <div class="font-medium">{{ e.nombre }}</div>
+                  <div class="text-xs text-base-content/70">Desde {{ fecha(e.fechaCreacion) }}</div>
+                </td>
+                <td class="hidden @3xl:table-cell font-mono text-sm">{{ e.nit }}</td>
+                <td class="hidden @5xl:table-cell text-sm">{{ e.ciudad || '—' }}</td>
+                <td class="hidden @6xl:table-cell text-sm">{{ e.email || '—' }}</td>
+                <td><app-badge-estado [estado]="e.estado" textoActivo="Activa" textoInactivo="Inactiva" /></td>
+                <td class="text-right whitespace-nowrap" (click)="$event.stopPropagation()">
+                  <div class="tooltip tooltip-left" data-tip="Consultar">
+                    <button type="button" class="btn btn-sm btn-ghost btn-square text-info hover:bg-info/15" aria-label="Consultar"
+                      (click)="abrir(e)"><i class="fa-solid fa-eye" aria-hidden="true"></i></button>
+                  </div>
+                  <div class="tooltip tooltip-left" data-tip="Editar">
+                    <button type="button" class="btn btn-sm btn-ghost btn-square text-primary hover:bg-primary/15" aria-label="Editar"
+                      (click)="abrir(e, 'editar')"><i class="fa-solid fa-pen" aria-hidden="true"></i></button>
+                  </div>
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="6">
+                  <app-estado-vacio icono="fa-solid fa-building" mensaje="Aún no hay empresas registradas." textoCrear="Registrar la primera"
+                    [hayFiltros]="store.hayFiltros()" (crear)="nueva()" />
+                </td>
+              </tr>
+            }
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <app-paginacion [pagina]="store.paginacion().pagina" [tamano]="store.paginacion().tamano" [total]="store.total()"
+      [totalPaginas]="store.totalPaginas()" (cambiarPagina)="store.irAPagina($event)" (cambiarTamano)="store.cambiarTamano($event)" />
+  </div>
+</section>
+
+<app-modal [(abierto)]="modalAbierto" [titulo]="titulo()" [subtitulo]="seleccionada()?.nombre ?? ''">
+  @if (modalAbierto()) {
+    <form id="form-empresa" [formGroup]="form" (ngSubmit)="guardar()" class="grid grid-cols-1 md:grid-cols-2 gap-4" novalidate>
+      <app-titulo-seccion>Empresa</app-titulo-seccion>
+      <label app-campo etiqueta="Nombre" requerido [error]="error('nombre')">
+        <input formControlName="nombre" class="input input-bordered bg-base-100 border-neutral w-full" [class.input-error]="!!error('nombre')" />
+      </label>
+      <label app-campo etiqueta="NIT" requerido [error]="error('nit')">
+        <input formControlName="nit" placeholder="900123456-7" class="input input-bordered bg-base-100 border-neutral w-full font-mono" [class.input-error]="!!error('nit')" />
+      </label>
+      <label app-campo etiqueta="Dirección" [error]="error('direccion')">
+        <input formControlName="direccion" class="input input-bordered bg-base-100 border-neutral w-full" />
+      </label>
+      <label app-campo etiqueta="Ciudad" [error]="error('ciudad')">
+        <input formControlName="ciudad" class="input input-bordered bg-base-100 border-neutral w-full" />
+      </label>
+      <label app-campo etiqueta="Teléfono" [error]="error('telefono')">
+        <input formControlName="telefono" type="tel" class="input input-bordered bg-base-100 border-neutral w-full" />
+      </label>
+      <label app-campo etiqueta="Correo" [error]="error('email')">
+        <input formControlName="email" type="email" class="input input-bordered bg-base-100 border-neutral w-full" [class.input-error]="!!error('email')" />
+      </label>
+      <label app-campo etiqueta="URL del logo" [error]="error('logoUrl')">
+        <input formControlName="logoUrl" type="url" class="input input-bordered bg-base-100 border-neutral w-full" />
+      </label>
+      <div app-campo etiqueta="Estado" requerido>
+        <app-selector-busqueda formControlName="estado" [opciones]="estados" etiqueta="Estado" />
+      </div>
+
+      @if (modo() === 'crear') {
+        <app-titulo-seccion>Primer administrador</app-titulo-seccion>
+        <label class="md:col-span-2 label cursor-pointer justify-start gap-2">
+          <input type="checkbox" formControlName="conAdministrador" class="checkbox checkbox-sm" />
+          <span class="text-sm">Crear el usuario administrador de la empresa ahora</span>
+        </label>
+        @if (form.controls.conAdministrador.value) {
+          <ng-container formGroupName="administrador">
+            <label app-campo etiqueta="Nombre" requerido [error]="error('administrador.nombre')">
+              <input formControlName="nombre" class="input input-bordered bg-base-100 border-neutral w-full" [class.input-error]="!!error('administrador.nombre')" />
+            </label>
+            <label app-campo etiqueta="Usuario" requerido [error]="error('administrador.usuario')" ayuda="4 a 40 caracteres, sin espacios.">
+              <input formControlName="usuario" autocomplete="off" class="input input-bordered bg-base-100 border-neutral w-full" [class.input-error]="!!error('administrador.usuario')" />
+            </label>
+            <label app-campo etiqueta="Correo" [error]="error('administrador.email')">
+              <input formControlName="email" type="email" class="input input-bordered bg-base-100 border-neutral w-full" />
+            </label>
+            <label app-campo etiqueta="Contraseña" requerido [error]="error('administrador.contrasena')" ayuda="Mínimo 6 caracteres. Compártela por un canal seguro.">
+              <input formControlName="contrasena" type="password" autocomplete="new-password" class="input input-bordered bg-base-100 border-neutral w-full"
+                [class.input-error]="!!error('administrador.contrasena')" />
+            </label>
+          </ng-container>
+        }
+      }
+    </form>
+  }
+  @if (modalAbierto()) {
+    <app-acciones-formulario pie formulario="form-empresa" [modo]="modo()" [guardando]="guardando()" textoCrear="Registrar empresa"
+      (cancelar)="modalAbierto.set(false)" (editar)="editar()" />
+  }
+</app-modal>

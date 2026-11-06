@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, computed, effect, inject, signal, untracked } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NgTemplateOutlet } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -24,6 +24,8 @@ import {
   siguientePaso,
 } from '../recorrido';
 import { RecorridosRepositorio } from '../recorridos-repositorio';
+import { EmisorGps } from '../gps/emisor-gps';
+import { haceCuanto } from '../gps/gps';
 
 /** Estado al que vuelve cada uno con "Deshacer". */
 const DESHACER: Partial<Record<EstadoParada, EstadoParada>> = { A_BORDO: 'PENDIENTE', ENTREGADO: 'A_BORDO', AUSENTE: 'PENDIENTE' };
@@ -43,11 +45,14 @@ const MARGEN_DESPLAZAMIENTO = 72;
  * con acceso a la dirección y al acudiente, y la lista completa para marcar fuera de orden o deshacer.
  * La monitora (o el conductor si la ruta no tiene monitora) cambia el orden de los que faltan
  * arrastrándolos; el compañero ve el cambio al instante (`observar`) con un aviso.
+ * Mientras está EN CURSO, el teléfono de esa misma persona comparte la ubicación (`EmisorGps`):
+ * uno solo por vehículo para que el mapa no salte entre dos señales.
  */
 @Component({
   selector: 'app-recorrido-page',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [RouterLink, FormsModule, NgTemplateOutlet],
+  providers: [EmisorGps],
   templateUrl: './recorrido-page.html',
 })
 export default class RecorridoPage implements OnInit {
@@ -56,6 +61,8 @@ export default class RecorridoPage implements OnInit {
   private readonly id = inject(ActivatedRoute).snapshot.paramMap.get('id') ?? '';
   private readonly sesion = inject(AuthService).sesion;
   private readonly destroyRef = inject(DestroyRef);
+  protected readonly gps = inject(EmisorGps);
+  protected readonly haceCuanto = haceCuanto;
 
   protected readonly estados = ESTADOS_PARADA;
   protected readonly enlaceMapa = enlaceMapa;
@@ -92,6 +99,18 @@ export default class RecorridoPage implements OnInit {
   /** El compañero cambió el orden mientras este usuario tenía abierto el recorrido. */
   protected readonly avisoOrden = signal<CambioOrden | null>(null);
   protected readonly anuncio = signal('');
+
+  /** Este teléfono es el que comparte la ubicación del vehículo (monitora, o el conductor si no hay). */
+  protected readonly reportaUbicacion = this.ordenable;
+
+  constructor() {
+    effect(() => {
+      const r = this.recorrido();
+      if (!r) return;
+      const reporta = r.estado === 'EN_CURSO' && this.reportaUbicacion();
+      untracked(() => (reporta ? this.gps.iniciar(r.id) : void this.gps.detenerYEnviar()));
+    });
+  }
 
   ngOnInit(): void {
     void this.cargar().then(() => this.sincronizar());

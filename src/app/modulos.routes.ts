@@ -18,6 +18,7 @@ const administrador = [soloRoles('ADMINISTRADOR')];
  * - ADMINISTRADOR → `/inicio` y los módulos administrativos.
  * - CONDUCTOR / MONITORA → `/ruta-del-dia`.
  * - ACUDIENTE → `/portal` (layout `shell-portal`).
+ * - SUPER_ADMIN → `/plataforma` (layout `shell-plataforma`): empresas de transporte.
  * Los guards (`core/guardias.ts`) llevan a cada quien a su sistema si entra a una URL de otro rol.
  */
 export default [
@@ -38,6 +39,12 @@ export default [
         loadChildren: () => import('./ruta-del-dia/ruta-del-dia.routes'),
       },
       { path: 'portal', canActivate: [soloRoles('ACUDIENTE')], loadChildren: () => import('./portal/portal.routes') },
+      {
+        path: 'plataforma',
+        canActivate: [soloRoles('SUPER_ADMIN')],
+        loadComponent: () => import('./layout/shell-plataforma/shell-plataforma'),
+        loadChildren: () => import('./plataforma/plataforma.routes'),
+      },
     ],
   },
 ] satisfies Routes;

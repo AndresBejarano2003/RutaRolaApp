@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
-import { Observable, forkJoin, map, throwError } from 'rxjs';
-import { Credenciales, Sesion, USUARIO_DEMO } from 'src/app/core/auth';
+import { Observable, defer, forkJoin, map, of, throwError } from 'rxjs';
+import { AuthService, Credenciales, Sesion, USUARIO_DEMO } from 'src/app/core/auth';
 import { FILTROS_ACUDIENTE_VACIOS } from 'src/app/personas/acudientes/acudiente';
 import { AcudientesRepositorio } from 'src/app/personas/acudientes/acudientes-repositorio';
 import { nombreCompleto } from 'src/app/personas/compartido/persona';
@@ -9,7 +9,7 @@ import { EmpleadosRepositorio } from 'src/app/personas/empleados/empleados-repos
 import { ErrorCrud } from 'src/app/shared/crud/crud';
 import { FuenteLocal, SIN_PAGINAR } from 'src/app/shared/crud/repositorio-local';
 import { AutenticacionRepositorio } from './autenticacion-repositorio';
-import { ADMIN_LOCAL, contrasenaDe, normalizarUsuario } from './credenciales-local';
+import { ADMIN_LOCAL, contrasenaDe, guardarCredencial, normalizarUsuario } from './credenciales-local';
 
 export const MENSAJE_CREDENCIALES_INVALIDAS = 'Usuario o contraseña incorrectos.';
 
@@ -25,6 +25,7 @@ export class AutenticacionLocal extends AutenticacionRepositorio implements Fuen
   readonly modoLocal = true as const;
   private readonly empleados = inject(EmpleadosRepositorio);
   private readonly acudientes = inject(AcudientesRepositorio);
+  private readonly auth = inject(AuthService);
 
   iniciarSesion({ usuario, contrasena }: Credenciales): Observable<Sesion> {
     const limpio = normalizarUsuario(usuario);
@@ -60,5 +61,24 @@ export class AutenticacionLocal extends AutenticacionRepositorio implements Fuen
         throw invalidas();
       }),
     );
+  }
+
+  /** Cambia la contraseña local del empleado o acudiente de la sesión (`rutarola.credenciales`). */
+  cambiarContrasena(actual: string, nueva: string): Observable<void> {
+    return defer(() => {
+      const sesion = this.auth.sesion();
+      if (!sesion) return throwError(() => new ErrorCrud('Tu sesión expiró. Inicia sesión de nuevo.', 'VALIDACION'));
+      if (normalizarUsuario(sesion.usuario) === ADMIN_LOCAL.usuario) {
+        return throwError(() => new ErrorCrud('El administrador de demostración del modo local no cambia su contraseña.', 'VALIDACION'));
+      }
+      const titular = sesion.rol === 'ACUDIENTE' ? 'ACUDIENTE' : 'EMPLEADO';
+      if (contrasenaDe(sesion.usuario, titular) !== actual) {
+        return throwError(() => new ErrorCrud('La contraseña actual no es correcta.', 'VALIDACION'));
+      }
+      if (nueva.length < 6) return throwError(() => new ErrorCrud('La nueva contraseña debe tener al menos 6 caracteres.', 'VALIDACION'));
+      if (nueva === actual) return throwError(() => new ErrorCrud('La nueva contraseña debe ser distinta de la actual.', 'VALIDACION'));
+      guardarCredencial(sesion.usuario, nueva, titular);
+      return of(undefined);
+    });
   }
 }

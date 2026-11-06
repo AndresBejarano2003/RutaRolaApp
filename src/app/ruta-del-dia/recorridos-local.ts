@@ -135,7 +135,8 @@ export class RecorridosLocal extends RecorridosRepositorio implements FuenteLoca
           // El compañero ya lo inició: se une al mismo recorrido (no se crea otro ni es un error).
           const existente = this.leer().find((r) => r.asignacionId === asignacionId && r.fecha === fecha && r.trayecto === trayecto);
           if (existente) return responderLocal(() => existente, this.latenciaMs);
-          if (this.leer().some((r) => r.asignacionId === asignacionId && r.estado === 'EN_CURSO')) {
+          // Solo cuenta el de HOY: uno que quedó abierto otro día ya no aparece en la Ruta del día y no debe bloquearla.
+          if (this.leer().some((r) => r.asignacionId === asignacionId && r.fecha === fecha && r.estado === 'EN_CURSO')) {
             throw new ErrorCrud(`Hay un recorrido en curso en ${asignada.ruta}. Finalízalo antes de iniciar otro.`, 'DUPLICADO');
           }
           return forkJoin({
@@ -242,7 +243,7 @@ export class RecorridosLocal extends RecorridosRepositorio implements FuenteLoca
 
   /**
    * En modo local el "otro dispositivo" es otra pestaña del navegador: el evento `storage` avisa al
-   * instante; además se consulta cada `INTERVALO_SINCRONIZACION_MS`, como lo hará `RecorridosHttp`.
+   * instante; además se consulta cada `INTERVALO_SINCRONIZACION_MS` (`RecorridosHttp` usa el hub).
    */
   observar(id: string): Observable<Recorrido> {
     return this.cambios().pipe(
