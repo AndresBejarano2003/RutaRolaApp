@@ -8,19 +8,25 @@ import { PortalRepositorio } from "../portal/portal-repositorio";
 import { RecorridosHttp } from "../ruta-del-dia/recorridos-http";
 import { RecorridosLocal } from "../ruta-del-dia/recorridos-local";
 import { RecorridosRepositorio } from "../ruta-del-dia/recorridos-repositorio";
+import { TableroHttp } from "../inicio/dashboard/tablero-http";
 import { TableroLocal } from "../inicio/dashboard/tablero-local";
 import { TableroRepositorio } from "../inicio/dashboard/tablero-repositorio";
 import { CentroNotificaciones } from "../inicio/notificaciones/centro-notificaciones";
 import { NotificacionesLocal } from "../inicio/notificaciones/notificaciones-local";
 import { NotificacionesRepositorio } from "../inicio/notificaciones/notificaciones-repositorio";
+import { CotizacionesHttp } from "../finanzas/cotizaciones/cotizaciones-http";
 import { CotizacionesLocal } from "../finanzas/cotizaciones/cotizaciones-local";
 import { CotizacionesRepositorio } from "../finanzas/cotizaciones/cotizaciones-repositorio";
+import { FacturasHttp } from "../finanzas/facturas/facturas-http";
 import { FacturasLocal } from "../finanzas/facturas/facturas-local";
 import { FacturasRepositorio } from "../finanzas/facturas/facturas-repositorio";
+import { ProgramacionesHttp } from "../finanzas/programacion/programaciones-http";
 import { ProgramacionesLocal } from "../finanzas/programacion/programaciones-local";
 import { ProgramacionesRepositorio } from "../finanzas/programacion/programaciones-repositorio";
+import { RecibosHttp } from "../finanzas/recibos/recibos-http";
 import { RecibosLocal } from "../finanzas/recibos/recibos-local";
 import { RecibosRepositorio } from "../finanzas/recibos/recibos-repositorio";
+import { ReportesHttp } from "../finanzas/reportes/reportes-http";
 import { ReportesLocal } from "../finanzas/reportes/reportes-local";
 import { ReportesRepositorio } from "../finanzas/reportes/reportes-repositorio";
 import { AsignacionesHttp } from "../operacion/asignaciones/asignaciones-http";
@@ -92,13 +98,13 @@ export function proveerRepositorios({
       HistorialRecorridosHttp,
     ),
     // Finanzas
-    { provide: CotizacionesRepositorio, useClass: CotizacionesLocal },
-    { provide: FacturasRepositorio, useClass: FacturasLocal },
-    { provide: RecibosRepositorio, useClass: RecibosLocal },
-    { provide: ProgramacionesRepositorio, useClass: ProgramacionesLocal },
-    { provide: ReportesRepositorio, useClass: ReportesLocal },
+    api(CotizacionesRepositorio, CotizacionesLocal, CotizacionesHttp),
+    api(FacturasRepositorio, FacturasLocal, FacturasHttp),
+    api(RecibosRepositorio, RecibosLocal, RecibosHttp),
+    api(ProgramacionesRepositorio, ProgramacionesLocal, ProgramacionesHttp),
+    api(ReportesRepositorio, ReportesLocal, ReportesHttp),
     // Inicio (resumen de todos los módulos)
-    { provide: TableroRepositorio, useClass: TableroLocal },
+    api(TableroRepositorio, TableroLocal, TableroHttp),
     // Notificaciones (leen datos de todos los módulos). `CentroNotificaciones` es el estado
     // compartido de la campana y la página; va aquí porque necesita estos repositorios.
     { provide: NotificacionesRepositorio, useClass: NotificacionesLocal },

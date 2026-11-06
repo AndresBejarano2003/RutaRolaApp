@@ -620,10 +620,10 @@ Las pantallas que aún usan grises fijos se migran a estas clases cuando se modi
   demo) y el administrador es fijo (`admin`). Con API (`npm start`) el login ya es `AutenticacionHttp`. Falta el
   módulo de usuarios administrativos.
   Datos locales creados antes de este cambio no tienen usuario: editar el empleado o limpiar los datos.
-- **Modo mixto (desarrollo con API):** Personas y Operación (colegios, vehículos, rutas, asignaciones,
-  conductores, Ruta del día e historial de recorridos) vienen del API, pero Finanzas, el inicio, las
-  notificaciones y el portal siguen en `localStorage` con sus datos de ejemplo, que apuntan a ids locales
-  (`est-1`, `acu-1`…): esas pantallas muestran referencias sin resolver hasta migrarlas (fases 6 y 7). El
+- **Modo mixto (desarrollo con API):** Personas, Operación (colegios, vehículos, rutas, asignaciones,
+  conductores, Ruta del día e historial de recorridos), Finanzas (cotizaciones, facturas, recibos, programación
+  y reportes) y el tablero de inicio vienen del API. Solo las notificaciones y el portal siguen calculándose en
+  el navegador (leen los demás módulos por HTTP) hasta la fase 7. El
   Portal del acudiente no carga (lee estudiantes, que el acudiente no puede consultar) hasta que exista `GET /portal`.
   Para la demo completa sin API: `npm run start:local`.
 - **Portal del acudiente:** se calcula en el navegador (`PortalLocal`) hasta que exista `GET /portal`.
@@ -635,7 +635,9 @@ Las pantallas que aún usan grises fijos se migran a estas clases cuando se modi
   posición y el trayecto, y emite `posicion`/`recorridoActualizado` por el hub SignalR `/hubs/recorridos`
   (contrato en `recorridos-http.ts`). Falta que la Ruta del día envíe la ubicación del teléfono, que la
   sincronización use el hub en vez de consultar cada 10 s y el mapa del administrador / del acudiente.
-- **Modo local:** Finanzas, el inicio, las notificaciones y el portal funcionan con `localStorage` hasta que exista su
+- **Programación de cobro:** el historial de envíos viene del API, pero los envíos automáticos (WhatsApp/correo)
+  todavía no se hacen: los creará el proceso del servidor (fase 7).
+- **Modo local:** las notificaciones, el portal y el Centro de Ayuda funcionan con `localStorage` hasta que exista su
   API (cambiar su línea a `api(...)` en `core/repositorios.ts`). En producción todo sigue local hasta desplegar
   el API (`environment.ts` → `usarApi: true`).
 - **Envíos automáticos:** la programación de facturación solo guarda la configuración; el envío por

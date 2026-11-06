@@ -7,8 +7,14 @@ import { AutenticacionHttp } from '../autenticacion/autenticacion-http';
 import { AutenticacionRepositorio } from '../autenticacion/autenticacion-repositorio';
 import { ColegiosHttp } from '../operacion/colegios/colegios-http';
 import { ColegiosRepositorio } from '../operacion/colegios/colegios-repositorio';
-import { FacturasLocal } from '../finanzas/facturas/facturas-local';
+import { FacturasHttp } from '../finanzas/facturas/facturas-http';
 import { FacturasRepositorio } from '../finanzas/facturas/facturas-repositorio';
+import { NotificacionesLocal } from '../inicio/notificaciones/notificaciones-local';
+import { NotificacionesRepositorio } from '../inicio/notificaciones/notificaciones-repositorio';
+import { PortalLocal } from '../portal/portal-local';
+import { PortalRepositorio } from '../portal/portal-repositorio';
+import { TableroHttp } from '../inicio/dashboard/tablero-http';
+import { TableroRepositorio } from '../inicio/dashboard/tablero-repositorio';
 import { RutasHttp } from '../operacion/rutas/rutas-http';
 import { RutasRepositorio } from '../operacion/rutas/rutas-repositorio';
 import { RecorridosHttp } from '../ruta-del-dia/recorridos-http';
@@ -30,7 +36,11 @@ describe('Registro de repositorios', () => {
     expect(TestBed.inject(AutenticacionRepositorio)).toBeInstanceOf(AutenticacionHttp);
     expect(TestBed.inject(RutasRepositorio)).toBeInstanceOf(RutasHttp);
     expect(TestBed.inject(RecorridosRepositorio)).toBeInstanceOf(RecorridosHttp);
-    expect(TestBed.inject(FacturasRepositorio)).toBeInstanceOf(FacturasLocal);
+    expect(TestBed.inject(FacturasRepositorio)).toBeInstanceOf(FacturasHttp);
+    expect(TestBed.inject(TableroRepositorio)).toBeInstanceOf(TableroHttp);
+    // Pendientes de la fase 7 (comunicación).
+    expect(TestBed.inject(NotificacionesRepositorio)).toBeInstanceOf(NotificacionesLocal);
+    expect(TestBed.inject(PortalRepositorio)).toBeInstanceOf(PortalLocal);
   });
 
   it('sin API todo es local', () => {
