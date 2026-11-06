@@ -75,7 +75,16 @@ export interface Recorrido extends Entidad {
   fin: string | null;
   /** Empleado que inició el recorrido. */
   iniciadoPor: string;
+  /** Último cambio del orden de visita (lo hace la monitora durante el recorrido). */
+  ordenActualizado?: CambioOrden | null;
   observaciones: string;
+}
+
+export interface CambioOrden {
+  empleadoId: string;
+  nombre: string;
+  /** ISO */
+  hora: string;
 }
 
 export interface ConteoParadas {
@@ -163,6 +172,53 @@ export function siguientePaso(r: Pick<Recorrido, 'trayecto' | 'paradas'>): PasoR
     if (aBordo.length) return { tipo: 'ENTREGAR', parada: aBordo[0] };
   }
   return { tipo: 'FINALIZAR' };
+}
+
+/**
+ * ¿Falta visitar esta parada? Solo esas se pueden reordenar:
+ * - RECOGIDA: las PENDIENTES (las que van a bordo ya se recogieron).
+ * - ENTREGA: las PENDIENTES y las A BORDO (aún no se entregan en su casa).
+ */
+export function porVisitar(p: Parada, trayecto: Trayecto): boolean {
+  return p.estado === 'PENDIENTE' || (trayecto === 'ENTREGA' && p.estado === 'A_BORDO');
+}
+
+/** Orden en pantalla: primero las ya visitadas (en su orden) y luego las que faltan, en el orden de visita. */
+export function paradasEnOrden(r: Pick<Recorrido, 'trayecto' | 'paradas'>): { visitadas: Parada[]; pendientes: Parada[] } {
+  return {
+    visitadas: r.paradas.filter((p) => !porVisitar(p, r.trayecto)),
+    pendientes: r.paradas.filter((p) => porVisitar(p, r.trayecto)),
+  };
+}
+
+/** Mueve un elemento de `desde` a `hasta`; los que están entre ambos se corren una posición. */
+export function moverEnLista<T>(lista: T[], desde: number, hasta: number): T[] {
+  const copia = [...lista];
+  const [elemento] = copia.splice(desde, 1);
+  copia.splice(Math.max(0, Math.min(hasta, copia.length)), 0, elemento);
+  return copia;
+}
+
+/**
+ * Nuevo orden de visita: `ordenIds` son EXACTAMENTE las paradas por visitar en el orden deseado.
+ * Lanza `Error` si no coinciden (p. ej. el conductor marcó a alguien mientras la monitora arrastraba).
+ */
+export function reordenarParadas(r: Pick<Recorrido, 'trayecto' | 'paradas'>, ordenIds: string[]): Parada[] {
+  const { visitadas, pendientes } = paradasEnOrden(r);
+  const porId = new Map(pendientes.map((p) => [p.estudianteId, p]));
+  if (ordenIds.length !== pendientes.length || new Set(ordenIds).size !== ordenIds.length || ordenIds.some((id) => !porId.has(id))) {
+    throw new Error('El recorrido cambió mientras ordenabas. Revisa la lista e inténtalo de nuevo.');
+  }
+  return [...visitadas, ...ordenIds.map((id) => porId.get(id) as Parada)];
+}
+
+/**
+ * Quién puede cambiar el orden de visita: la monitora de la asignación (el conductor va manejando).
+ * Si la asignación no tiene monitora, el conductor.
+ */
+export function puedeReordenar(r: Pick<Recorrido, 'estado' | 'conductorId' | 'monitoraId'>, empleadoId: string | null | undefined): boolean {
+  if (r.estado !== 'EN_CURSO' || !empleadoId) return false;
+  return r.monitoraId ? empleadoId === r.monitoraId : empleadoId === r.conductorId;
 }
 
 /** Un recorrido solo se finaliza con TODOS entregados o ausentes: nadie puede quedar a bordo. */

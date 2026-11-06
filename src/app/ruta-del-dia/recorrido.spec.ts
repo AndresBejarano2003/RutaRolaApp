@@ -3,7 +3,7 @@ import { firstValueFrom } from 'rxjs';
 import { AuthService } from 'src/app/core/auth';
 import { repositoriosDePrueba } from 'src/app/shared/pruebas/pruebas';
 import { fechaIso } from 'src/app/shared/fechas/fechas';
-import { Parada, cambiarEstado, motivoNoFinalizar, siguientePaso } from './recorrido';
+import { Parada, cambiarEstado, motivoNoFinalizar, moverEnLista, puedeReordenar, reordenarParadas, siguientePaso } from './recorrido';
 import { RecorridosRepositorio } from './recorridos-repositorio';
 
 const parada = (id: string, estado: Parada['estado'] = 'PENDIENTE'): Parada => ({
@@ -34,6 +34,33 @@ describe('Reglas del recorrido', () => {
     expect(cambiarEstado(abordo, 'ENTREGADO', 'T2')).toMatchObject({ horaAbordo: 'T1', horaEntrega: 'T2' });
     expect(() => cambiarEstado(parada('a'), 'ENTREGADO', 'T')).toThrow('no se puede pasar');
     expect(() => cambiarEstado(parada('a', 'AUSENTE'), 'A_BORDO', 'T')).toThrow();
+  });
+});
+
+describe('Orden de visita', () => {
+  it('mover: el estudiante 2 pasa al puesto 6 y los del 3 al 6 suben una posición', () => {
+    expect(moverEnLista([1, 2, 3, 4, 5, 6], 1, 5)).toEqual([1, 3, 4, 5, 6, 2]);
+    expect(moverEnLista([1, 2, 3], 2, 0)).toEqual([3, 1, 2]);
+  });
+
+  it('solo se reordenan los que faltan; los visitados quedan primero', () => {
+    const r = { trayecto: 'RECOGIDA' as const, paradas: [parada('a'), parada('b', 'A_BORDO'), parada('c'), parada('d')] };
+    expect(reordenarParadas(r, ['d', 'a', 'c']).map((p) => p.estudianteId)).toEqual(['b', 'd', 'a', 'c']);
+    expect(siguientePaso({ ...r, paradas: reordenarParadas(r, ['d', 'a', 'c']) })).toMatchObject({ parada: { estudianteId: 'd' } });
+    // Lista desactualizada (alguien marcó a "a" mientras tanto) o con extraños → rechazo.
+    expect(() => reordenarParadas(r, ['d', 'c'])).toThrow('cambió');
+    expect(() => reordenarParadas(r, ['d', 'a', 'b'])).toThrow('cambió');
+    // En la entrega también se reordenan los que van a bordo (aún no llegan a su casa).
+    const entrega = { trayecto: 'ENTREGA' as const, paradas: [parada('a', 'ENTREGADO'), parada('b', 'A_BORDO'), parada('c', 'A_BORDO')] };
+    expect(reordenarParadas(entrega, ['c', 'b']).map((p) => p.estudianteId)).toEqual(['a', 'c', 'b']);
+  });
+
+  it('ordena la monitora; el conductor solo si la ruta no tiene monitora', () => {
+    const r = { estado: 'EN_CURSO' as const, conductorId: 'c', monitoraId: 'm' };
+    expect(puedeReordenar(r, 'm')).toBe(true);
+    expect(puedeReordenar(r, 'c')).toBe(false);
+    expect(puedeReordenar({ ...r, monitoraId: '' }, 'c')).toBe(true);
+    expect(puedeReordenar({ ...r, estado: 'FINALIZADO' }, 'm')).toBe(false);
   });
 });
 
@@ -82,13 +109,42 @@ describe('RecorridosLocal', () => {
     r = await firstValueFrom(repo.finalizar(r.id, ' Sin novedad '));
     expect(r).toMatchObject({ estado: 'FINALIZADO', observaciones: 'Sin novedad' });
     await expect(firstValueFrom(repo.marcar(r.id, ['est-1'], 'A_BORDO'))).rejects.toThrow('finalizado');
-    await expect(firstValueFrom(repo.iniciar(ruta.asignacionId, 'RECOGIDA'))).rejects.toThrow('ya fue registrada');
+    // Iniciar un trayecto que ya existe devuelve el mismo recorrido (no crea otro).
+    expect((await firstValueFrom(repo.iniciar(ruta.asignacionId, 'RECOGIDA'))).id).toBe(r.id);
 
     // La entrega recorre la ruta al revés.
     const entrega = await firstValueFrom(repo.iniciar(ruta.asignacionId, 'ENTREGA'));
     expect(entrega.paradas.map((p) => p.estudianteId)).toEqual(['est-2', 'est-1']);
     const [hoy] = await firstValueFrom(repo.rutasDelDia(fechaIso()));
     expect(hoy.recorridos.map((x) => [x.trayecto, x.estado])).toEqual([['RECOGIDA', 'FINALIZADO'], ['ENTREGA', 'EN_CURSO']]);
+  });
+
+  it('si el conductor ya inició, la monitora se une al mismo recorrido', async () => {
+    entrar('emp-1');
+    const [ruta] = await firstValueFrom(repo.rutasDelDia(fechaIso()));
+    const r = await firstValueFrom(repo.marcar((await firstValueFrom(repo.iniciar(ruta.asignacionId, 'RECOGIDA'))).id, ['est-1'], 'A_BORDO'));
+    entrar('emp-6', 'MONITORA');
+    const unida = await firstValueFrom(repo.iniciar(ruta.asignacionId, 'RECOGIDA'));
+    expect(unida.id).toBe(r.id);
+    expect(unida.paradas[0].estado).toBe('A_BORDO');
+    // El otro trayecto sigue bloqueado mientras este está en curso.
+    await expect(firstValueFrom(repo.iniciar(ruta.asignacionId, 'ENTREGA'))).rejects.toThrow('en curso');
+  });
+
+  it('la monitora reordena y el conductor recibe el nuevo orden', async () => {
+    entrar('emp-1');
+    const [ruta] = await firstValueFrom(repo.rutasDelDia(fechaIso()));
+    const r = await firstValueFrom(repo.iniciar(ruta.asignacionId, 'RECOGIDA'));
+    await expect(firstValueFrom(repo.reordenar(r.id, ['est-2', 'est-1']))).rejects.toThrow('Solo la monitora');
+
+    entrar('emp-6', 'MONITORA');
+    await expect(firstValueFrom(repo.reordenar(r.id, ['est-2']))).rejects.toThrow('cambió');
+    const nuevo = await firstValueFrom(repo.reordenar(r.id, ['est-2', 'est-1']));
+    expect(nuevo.ordenActualizado).toMatchObject({ empleadoId: 'emp-6' });
+
+    entrar('emp-1');
+    const visto = await firstValueFrom(repo.obtener(r.id));
+    expect(visto.paradas.map((p) => p.estudianteId)).toEqual(['est-2', 'est-1']);
   });
 
   it('sin asignación vigente no hay rutas', async () => {

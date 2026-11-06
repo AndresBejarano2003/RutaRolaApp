@@ -1,4 +1,5 @@
-import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, computed, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NgTemplateOutlet } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
@@ -7,6 +8,7 @@ import { AuthService } from 'src/app/core/auth';
 import { mensajeDeError } from 'src/app/shared/crud/crud';
 import { NotificacionesService } from 'src/app/shared/notificaciones/notificaciones';
 import {
+  CambioOrden,
   ESTADOS_PARADA,
   EstadoParada,
   Parada,
@@ -16,6 +18,9 @@ import {
   contarParadas,
   enlaceMapa,
   enlaceWhatsapp,
+  moverEnLista,
+  paradasEnOrden,
+  puedeReordenar,
   siguientePaso,
 } from '../recorrido';
 import { RecorridosRepositorio } from '../recorridos-repositorio';
@@ -23,9 +28,21 @@ import { RecorridosRepositorio } from '../recorridos-repositorio';
 /** Estado al que vuelve cada uno con "Deshacer". */
 const DESHACER: Partial<Record<EstadoParada, EstadoParada>> = { A_BORDO: 'PENDIENTE', ENTREGADO: 'A_BORDO', AUSENTE: 'PENDIENTE' };
 
+/** Arrastre en curso de un estudiante por visitar (índices dentro de la lista de pendientes). */
+interface Arrastre {
+  estudianteId: string;
+  desde: number;
+  hasta: number;
+}
+
+/** Margen (px) del borde de la pantalla en el que el arrastre desplaza la página. */
+const MARGEN_DESPLAZAMIENTO = 72;
+
 /**
  * Recorrido en curso: muestra SIEMPRE el siguiente paso (a quién recoger o entregar),
  * con acceso a la dirección y al acudiente, y la lista completa para marcar fuera de orden o deshacer.
+ * La monitora (o el conductor si la ruta no tiene monitora) cambia el orden de los que faltan
+ * arrastrándolos; el compañero ve el cambio al instante (`observar`) con un aviso.
  */
 @Component({
   selector: 'app-recorrido-page',
@@ -38,6 +55,7 @@ export default class RecorridoPage implements OnInit {
   private readonly avisos = inject(NotificacionesService);
   private readonly id = inject(ActivatedRoute).snapshot.paramMap.get('id') ?? '';
   private readonly sesion = inject(AuthService).sesion;
+  private readonly destroyRef = inject(DestroyRef);
 
   protected readonly estados = ESTADOS_PARADA;
   protected readonly enlaceMapa = enlaceMapa;
@@ -57,9 +75,45 @@ export default class RecorridoPage implements OnInit {
   });
   protected readonly enCurso = computed(() => this.recorrido()?.estado === 'EN_CURSO');
   protected readonly esRecogida = computed(() => this.recorrido()?.trayecto === 'RECOGIDA');
+  /** ¿El usuario de la sesión puede cambiar el orden de visita? */
+  protected readonly ordenable = computed(() => {
+    const r = this.recorrido();
+    return !!r && puedeReordenar(r, this.sesion()?.empleadoId);
+  });
+  protected readonly arrastre = signal<Arrastre | null>(null);
+  /** Lista en pantalla: visitadas y luego las que faltan (con la vista previa del arrastre). */
+  protected readonly lista = computed(() => {
+    const r = this.recorrido();
+    if (!r) return { visitadas: [], pendientes: [] };
+    const { visitadas, pendientes } = paradasEnOrden(r);
+    const a = this.arrastre();
+    return { visitadas, pendientes: a ? moverEnLista(pendientes, a.desde, a.hasta) : pendientes };
+  });
+  /** El compañero cambió el orden mientras este usuario tenía abierto el recorrido. */
+  protected readonly avisoOrden = signal<CambioOrden | null>(null);
+  protected readonly anuncio = signal('');
 
   ngOnInit(): void {
-    void this.cargar();
+    void this.cargar().then(() => this.sincronizar());
+  }
+
+  /** Recibe los cambios del compañero (marcas y orden) mientras el recorrido está en curso. */
+  private sincronizar(): void {
+    if (!this.enCurso()) return;
+    this.repositorio
+      .observar(this.id)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((nuevo) => {
+        // No se interrumpe al usuario mientras arrastra o guarda: su propia respuesta trae lo último.
+        if (this.arrastre() || this.procesando()) return;
+        const antes = this.recorrido()?.ordenActualizado?.hora;
+        const cambio = nuevo.ordenActualizado;
+        if (cambio && cambio.hora !== antes && cambio.empleadoId !== this.sesion()?.empleadoId) {
+          this.avisoOrden.set(cambio);
+          navigator.vibrate?.(200);
+        }
+        this.recorrido.set(nuevo);
+      });
   }
 
   protected async cargar(): Promise<void> {
@@ -90,6 +144,79 @@ export default class RecorridoPage implements OnInit {
 
   protected idsCon(estado: EstadoParada): string[] {
     return (this.recorrido()?.paradas ?? []).filter((p) => p.estado === estado).map((p) => p.estudianteId);
+  }
+
+  // --- Orden de visita -------------------------------------------------------------------------
+
+  /** Arrastre con puntero (dedo o mouse) desde la manija ⠿ de un estudiante por visitar. */
+  protected iniciarArrastre(evento: PointerEvent, indice: number, p: Parada): void {
+    if (this.procesando() || evento.button > 0) return;
+    evento.preventDefault();
+    (evento.currentTarget as HTMLElement).setPointerCapture?.(evento.pointerId);
+    this.arrastre.set({ estudianteId: p.estudianteId, desde: indice, hasta: indice });
+  }
+
+  protected moverArrastre(evento: PointerEvent): void {
+    const a = this.arrastre();
+    if (!a) return;
+    const lista = (evento.currentTarget as HTMLElement).closest('ol');
+    if (!lista) return;
+    // Nueva posición = cuántos de los OTROS estudiantes quedan por encima del dedo.
+    let hasta = 0;
+    for (const fila of Array.from(lista.querySelectorAll<HTMLElement>('[data-por-visitar]'))) {
+      if (fila.dataset['porVisitar'] === a.estudianteId) continue;
+      const caja = fila.getBoundingClientRect();
+      if (evento.clientY > caja.top + caja.height / 2) hasta++;
+    }
+    if (hasta !== a.hasta) this.arrastre.set({ ...a, hasta });
+    if (evento.clientY < MARGEN_DESPLAZAMIENTO) window.scrollBy(0, -12);
+    else if (evento.clientY > window.innerHeight - MARGEN_DESPLAZAMIENTO) window.scrollBy(0, 12);
+  }
+
+  protected soltar(): void {
+    const a = this.arrastre();
+    if (!a) return;
+    const ids = this.lista().pendientes.map((p) => p.estudianteId);
+    this.arrastre.set(null);
+    if (a.desde !== a.hasta) void this.guardarOrden(ids, a.estudianteId, a.hasta);
+  }
+
+  protected cancelarArrastre(): void {
+    this.arrastre.set(null);
+  }
+
+  /** Alternativa sin arrastre (teclado y lectores de pantalla): subir o bajar una posición. */
+  protected mover(indice: number, delta: -1 | 1): void {
+    const pendientes = this.lista().pendientes;
+    const hasta = indice + delta;
+    if (hasta < 0 || hasta >= pendientes.length) return;
+    const ids = moverEnLista(pendientes, indice, hasta).map((p) => p.estudianteId);
+    void this.guardarOrden(ids, pendientes[indice].estudianteId, hasta);
+  }
+
+  private async guardarOrden(ids: string[], movidoId: string, hasta: number): Promise<void> {
+    const r = this.recorrido();
+    if (!r) return;
+    const movido = r.paradas.find((p) => p.estudianteId === movidoId);
+    // Se muestra el nuevo orden de inmediato; si el servidor lo rechaza se recarga el recorrido.
+    const { visitadas } = paradasEnOrden(r);
+    const porId = new Map(r.paradas.map((p) => [p.estudianteId, p]));
+    this.recorrido.set({ ...r, paradas: [...visitadas, ...ids.map((id) => porId.get(id) as Parada)] });
+    this.procesando.set(true);
+    try {
+      this.recorrido.set(await firstValueFrom(this.repositorio.reordenar(this.id, ids)));
+      this.anuncio.set(`${movido?.estudiante ?? 'Estudiante'} quedó de ${hasta + 1} entre los que faltan.`);
+    } catch (error) {
+      this.avisos.error(mensajeDeError(error));
+      this.procesando.set(false);
+      await this.cargar();
+    } finally {
+      this.procesando.set(false);
+    }
+  }
+
+  protected cerrarAvisoOrden(): void {
+    this.avisoOrden.set(null);
   }
 
   protected finalizar(): Promise<void> {
@@ -125,6 +252,10 @@ export default class RecorridoPage implements OnInit {
         ? `Hola, ${p.acudiente}. Soy ${quien}. Vamos en camino a recoger a ${p.estudiante}.`
         : `Hola, ${p.acudiente}. Soy ${quien}. Vamos en camino a entregar a ${p.estudiante}.`;
     return enlaceWhatsapp(p.telefonoAcudiente, texto);
+  }
+
+  protected estadoDe(p: Parada): (typeof ESTADOS_PARADA)[EstadoParada] {
+    return this.estados[p.estado];
   }
 
   protected momento(p: Parada): string {

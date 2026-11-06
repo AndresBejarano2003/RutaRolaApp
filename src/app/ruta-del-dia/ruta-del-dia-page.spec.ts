@@ -81,4 +81,98 @@ describe('Ruta del día (conductor)', () => {
     expect(el.textContent).toContain('Finalizado');
     expect(el.textContent).toContain('100 %');
   });
+
+  it('la monitora cambia el orden y el conductor lo ve con un aviso', async () => {
+    const repo = TestBed.inject(RecorridosRepositorio);
+    const auth = TestBed.inject(AuthService);
+    const [ruta] = await firstValueFrom(repo.rutasDelDia(fechaIso()));
+    const r = await firstValueFrom(repo.iniciar(ruta.asignacionId, 'RECOGIDA'));
+    const [primero, segundo] = r.paradas;
+
+    // Conductor con el recorrido abierto: no puede ordenar.
+    const harness = await RouterTestingHarness.create();
+    await harness.navigateByUrl(`/ruta-del-dia/recorrido/${r.id}`, RecorridoPage);
+    await estabilizar(harness.fixture, 4);
+    const el = harness.routeNativeElement as HTMLElement;
+    expect(el.querySelector(`[aria-label="Arrastrar a ${primero.estudiante}"]`)).toBeNull();
+
+    // La monitora (en su celular) baja al primero; el conductor recibe el cambio.
+    const sesionConductor = auth.sesion();
+    auth.abrirSesion({ usuario: 'ycharry', nombre: 'Yolanda Charry', correo: '', rol: 'MONITORA', empleadoId: 'emp-6', imagen: '', inicio: '' });
+    await firstValueFrom(repo.reordenar(r.id, [segundo.estudianteId, primero.estudianteId]));
+    if (sesionConductor) auth.abrirSesion(sesionConductor);
+    window.dispatchEvent(new StorageEvent('storage', { key: 'rutarola.recorridos' }));
+    await estabilizar(harness.fixture, 4);
+
+    const aviso = el.querySelector('[role="alert"]')?.textContent ?? '';
+    expect(aviso).toContain('Yolanda Charry cambió el orden');
+    expect(aviso).toContain(`Ahora sigue: ${segundo.estudiante}`);
+    expect(el.querySelector('[aria-live="polite"]')?.textContent).toContain(segundo.estudiante);
+    pantalla(el).boton('Entendido').click();
+    await estabilizar(harness.fixture, 2);
+    expect(el.querySelector('[role="alert"]')).toBeNull();
+  });
+
+  it('la monitora ve la manija de arrastre y puede subir o bajar estudiantes', async () => {
+    const repo = TestBed.inject(RecorridosRepositorio);
+    const [ruta] = await firstValueFrom(repo.rutasDelDia(fechaIso()));
+    const r = await firstValueFrom(repo.iniciar(ruta.asignacionId, 'RECOGIDA'));
+    const [primero, segundo] = r.paradas;
+    TestBed.inject(AuthService).abrirSesion({
+      usuario: 'ycharry', nombre: 'Yolanda Charry', correo: '', rol: 'MONITORA', empleadoId: 'emp-6', imagen: '', inicio: '',
+    });
+
+    const harness = await RouterTestingHarness.create();
+    await harness.navigateByUrl(`/ruta-del-dia/recorrido/${r.id}`, RecorridoPage);
+    await estabilizar(harness.fixture, 4);
+    const el = harness.routeNativeElement as HTMLElement;
+    expect(el.querySelector(`[aria-label="Arrastrar a ${primero.estudiante}"]`)).not.toBeNull();
+    expect(el.textContent).toContain('Arrastra a un estudiante');
+
+    (el.querySelector(`[aria-label="Bajar a ${primero.estudiante}"]`) as HTMLButtonElement).click();
+    await estabilizar(harness.fixture, 4);
+    const orden = Array.from(el.querySelectorAll('[data-por-visitar]')).map((x) => x.getAttribute('data-por-visitar'));
+    expect(orden).toEqual([segundo.estudianteId, primero.estudianteId]);
+    expect(el.querySelector('[aria-live="polite"]')?.textContent).toContain(segundo.estudiante);
+    expect(el.textContent).toContain('Orden ajustado por Yolanda Charry');
+  });
+
+  it('la lista se actualiza cuando el compañero inicia y al tocar Iniciar se une a su recorrido', async () => {
+    const repo = TestBed.inject(RecorridosRepositorio);
+    const auth = TestBed.inject(AuthService);
+    auth.abrirSesion({ usuario: 'ycharry', nombre: 'Yuli Andrea Charry Ortiz', correo: '', rol: 'MONITORA', empleadoId: 'emp-6', imagen: '', inicio: '' });
+    const harness = await RouterTestingHarness.create();
+    await harness.navigateByUrl('/ruta-del-dia', RutaDelDiaPage);
+    await estabilizar(harness.fixture, 4);
+    const el = harness.routeNativeElement as HTMLElement;
+    const iniciar = pantalla(el).boton('Iniciar recogida');
+
+    // El conductor inicia en su celular; la monitora tiene la lista desactualizada abierta.
+    const monitora = auth.sesion();
+    auth.abrirSesion({ usuario: 'jcardenas', nombre: 'José', correo: '', rol: 'CONDUCTOR', empleadoId: 'emp-1', imagen: '', inicio: '' });
+    const [ruta] = await firstValueFrom(repo.rutasDelDia(fechaIso()));
+    const r = await firstValueFrom(repo.iniciar(ruta.asignacionId, 'RECOGIDA'));
+    if (monitora) auth.abrirSesion(monitora);
+
+    // Tocar "Iniciar" en la lista vieja la lleva al MISMO recorrido, sin error.
+    iniciar.click();
+    await estabilizar(harness.fixture, 4);
+    expect(TestBed.inject(Router).url).toBe(`/ruta-del-dia/recorrido/${r.id}`);
+    expect(document.body.textContent).not.toContain('ya fue registrada');
+  });
+
+  it('la lista muestra "Continuar" en cuanto el compañero inicia', async () => {
+    const repo = TestBed.inject(RecorridosRepositorio);
+    const harness = await RouterTestingHarness.create();
+    await harness.navigateByUrl('/ruta-del-dia', RutaDelDiaPage);
+    await estabilizar(harness.fixture, 4);
+    const el = harness.routeNativeElement as HTMLElement;
+    expect(el.textContent).not.toContain('Continuar');
+
+    const [ruta] = await firstValueFrom(repo.rutasDelDia(fechaIso()));
+    await firstValueFrom(repo.iniciar(ruta.asignacionId, 'RECOGIDA'));
+    window.dispatchEvent(new StorageEvent('storage', { key: 'rutarola.recorridos' }));
+    await estabilizar(harness.fixture, 4);
+    expect(el.textContent).toContain('Continuar');
+  });
 });

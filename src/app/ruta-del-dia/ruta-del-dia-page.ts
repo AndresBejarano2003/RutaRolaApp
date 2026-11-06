@@ -1,4 +1,5 @@
-import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, computed, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router, RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { AuthService } from 'src/app/core/auth';
@@ -20,6 +21,7 @@ export default class RutaDelDiaPage implements OnInit {
   private readonly repositorio = inject(RecorridosRepositorio);
   private readonly avisos = inject(NotificacionesService);
   private readonly router = inject(Router);
+  private readonly destroyRef = inject(DestroyRef);
 
   protected readonly modoLocal = esFuenteLocal(this.repositorio);
   protected readonly sesion = inject(AuthService).sesion;
@@ -61,6 +63,13 @@ export default class RutaDelDiaPage implements OnInit {
 
   ngOnInit(): void {
     void this.cargar();
+    // Si el compañero inicia o avanza un recorrido, la lista se actualiza sola ("Continuar").
+    this.repositorio
+      .observarRutasDelDia(fechaIso())
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((rutas) => {
+        if (!this.iniciando()) this.rutas.set(rutas);
+      });
   }
 
   protected async cargar(): Promise<void> {
@@ -83,6 +92,16 @@ export default class RutaDelDiaPage implements OnInit {
     this.iniciando.set(`${ruta.asignacionId}:${trayecto}`);
     try {
       const recorrido = await firstValueFrom(this.repositorio.iniciar(ruta.asignacionId, trayecto));
+      // Ya lo había iniciado el compañero: se une al mismo recorrido, donde va.
+      if (recorrido.iniciadoPor !== this.sesion()?.empleadoId) {
+        const quien = ruta.companero?.nombre.split(' ')[0] ?? 'Tu compañero';
+        const nombre = TRAYECTOS.find((t) => t.id === trayecto)?.nombre.toLowerCase() ?? '';
+        this.avisos.info(
+          recorrido.estado === 'EN_CURSO'
+            ? `${quien} ya había iniciado la ${nombre}. Continúas donde va el recorrido.`
+            : `La ${nombre} de hoy ya fue finalizada.`,
+        );
+      }
       await this.router.navigate(['/ruta-del-dia/recorrido', recorrido.id]);
     } catch (error) {
       this.avisos.error(mensajeDeError(error));

@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { Observable, defer, forkJoin, map, switchMap } from 'rxjs';
+import { EMPTY, Observable, catchError, defer, distinctUntilChanged, filter, forkJoin, fromEvent, interval, map, merge, switchMap } from 'rxjs';
 import { AuthService } from 'src/app/core/auth';
 import { Asignacion, FILTROS_ASIGNACION_VACIOS } from 'src/app/operacion/asignaciones/asignacion';
 import { AsignacionesRepositorio } from 'src/app/operacion/asignaciones/asignaciones-repositorio';
@@ -30,8 +30,11 @@ import {
   cambiarEstado,
   motivoNoFinalizar,
   ordenarParadas,
+  puedeReordenar,
+  reordenarParadas,
   resumirRecorrido,
 } from './recorrido';
+import { INTERVALO_SINCRONIZACION_MS } from './recorridos-http';
 import { RecorridosRepositorio } from './recorridos-repositorio';
 
 /** ¿La asignación cubre la fecha? (`fechaFin` vacía = indefinida). */
@@ -105,6 +108,13 @@ export class RecorridosLocal extends RecorridosRepositorio implements FuenteLoca
     });
   }
 
+  observarRutasDelDia(fecha: string): Observable<RutaAsignada[]> {
+    return this.cambios().pipe(
+      switchMap(() => this.rutasDelDia(fecha).pipe(catchError(() => EMPTY))),
+      distinctUntilChanged((a, b) => JSON.stringify(a) === JSON.stringify(b)),
+    );
+  }
+
   obtener(id: string): Observable<Recorrido> {
     return defer(() => {
       const empleadoId = this.empleadoId();
@@ -122,10 +132,9 @@ export class RecorridosLocal extends RecorridosRepositorio implements FuenteLoca
           if (!asignada) {
             throw new ErrorCrud('Esta ruta no está asignada a ti para hoy. Consulta con el administrador.', 'VALIDACION');
           }
-          const nombre = TRAYECTOS.find((t) => t.id === trayecto)?.nombre.toLowerCase() ?? trayecto;
-          if (asignada.recorridos.some((r) => r.trayecto === trayecto)) {
-            throw new ErrorCrud(`La ${nombre} de hoy en ${asignada.ruta} ya fue registrada.`, 'DUPLICADO');
-          }
+          // El compañero ya lo inició: se une al mismo recorrido (no se crea otro ni es un error).
+          const existente = this.leer().find((r) => r.asignacionId === asignacionId && r.fecha === fecha && r.trayecto === trayecto);
+          if (existente) return responderLocal(() => existente, this.latenciaMs);
           if (this.leer().some((r) => r.asignacionId === asignacionId && r.estado === 'EN_CURSO')) {
             throw new ErrorCrud(`Hay un recorrido en curso en ${asignada.ruta}. Finalízalo antes de iniciar otro.`, 'DUPLICADO');
           }
@@ -213,6 +222,42 @@ export class RecorridosLocal extends RecorridosRepositorio implements FuenteLoca
     });
   }
 
+  reordenar(id: string, estudianteIds: string[]): Observable<Recorrido> {
+    return this.modificar(id, (r, empleadoId) => {
+      if (!puedeReordenar(r, empleadoId)) {
+        throw new ErrorCrud(
+          r.monitoraId ? 'Solo la monitora puede cambiar el orden de los estudiantes.' : 'Solo el conductor puede cambiar el orden de los estudiantes.',
+          'VALIDACION',
+        );
+      }
+      try {
+        const paradas = reordenarParadas(r, estudianteIds);
+        const nombre = this.auth.sesion()?.nombre ?? '';
+        return { ...r, paradas, ordenActualizado: { empleadoId, nombre, hora: new Date().toISOString() } };
+      } catch (error) {
+        throw new ErrorCrud((error as Error).message, 'DUPLICADO');
+      }
+    });
+  }
+
+  /**
+   * En modo local el "otro dispositivo" es otra pestaña del navegador: el evento `storage` avisa al
+   * instante; además se consulta cada `INTERVALO_SINCRONIZACION_MS`, como lo hará `RecorridosHttp`.
+   */
+  observar(id: string): Observable<Recorrido> {
+    return this.cambios().pipe(
+      // Un fallo puntual (sin red) no corta la sincronización: se reintenta en el siguiente aviso.
+      switchMap(() => this.obtener(id).pipe(catchError(() => EMPTY))),
+      distinctUntilChanged((a, b) => a.fechaActualizacion === b.fechaActualizacion),
+    );
+  }
+
+  /** Avisos de cambio: otra pestaña escribió los recorridos (al instante) o pasó el intervalo de consulta. */
+  private cambios(): Observable<unknown> {
+    const otraPestana = fromEvent<StorageEvent>(window, 'storage').pipe(filter((e) => e.key === this.clave));
+    return merge(otraPestana, interval(INTERVALO_SINCRONIZACION_MS));
+  }
+
   finalizar(id: string, observaciones: string): Observable<Recorrido> {
     return this.modificar(id, (r) => {
       const motivo = motivoNoFinalizar(r.paradas);
@@ -222,7 +267,7 @@ export class RecorridosLocal extends RecorridosRepositorio implements FuenteLoca
   }
 
   /** Cambia un recorrido EN CURSO del empleado autenticado. */
-  private modificar(id: string, cambio: (r: Recorrido) => Recorrido): Observable<Recorrido> {
+  private modificar(id: string, cambio: (r: Recorrido, empleadoId: string) => Recorrido): Observable<Recorrido> {
     return defer(() => {
       const empleadoId = this.empleadoId();
       return responderLocal(() => {
@@ -231,7 +276,7 @@ export class RecorridosLocal extends RecorridosRepositorio implements FuenteLoca
         if (actual.estado !== 'EN_CURSO') {
           throw new ErrorCrud('Este recorrido ya fue finalizado y no se puede modificar.', 'VALIDACION');
         }
-        const actualizado = { ...cambio(actual), fechaActualizacion: new Date().toISOString() };
+        const actualizado = { ...cambio(actual, empleadoId), fechaActualizacion: new Date().toISOString() };
         this.escribir(registros.map((r) => (r.id === id ? actualizado : r)));
         return actualizado;
       }, this.latenciaMs);

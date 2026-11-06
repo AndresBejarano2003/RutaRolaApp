@@ -49,6 +49,20 @@
       </div>
     </header>
 
+    <!-- Cambio de orden hecho por el compañero -->
+    @if (avisoOrden(); as aviso) {
+      <div role="alert" class="alert alert-info alert-soft items-start">
+        <i class="fa-solid fa-arrow-down-up-across-line mt-0.5" aria-hidden="true"></i>
+        <div class="min-w-0">
+          <p class="font-semibold">{{ aviso.nombre || 'La monitora' }} cambió el orden ({{ hora(aviso.hora) }})</p>
+          @if (lista().pendientes[0]; as siguiente) {
+            <p class="text-sm">Ahora sigue: <strong>{{ siguiente.estudiante }}</strong> · {{ siguiente.direccion }}</p>
+          }
+        </div>
+        <button type="button" class="btn btn-sm bg-base-300 border-neutral hover:bg-neutral" (click)="cerrarAvisoOrden()">Entendido</button>
+      </div>
+    }
+
     <!-- Siguiente paso -->
     @if (paso(); as p) {
       <section class="card bg-base-200 border-2 border-primary/60 shadow-xl" aria-live="polite">
@@ -142,54 +156,97 @@
     <!-- Lista completa -->
     <section class="card bg-base-200 border border-base-300">
       <div class="card-body p-0 gap-0">
-        <h2 class="px-4 pt-4 pb-2 text-sm text-info font-semibold uppercase tracking-wide">
-          Estudiantes en orden de {{ esRecogida() ? 'recogida' : 'entrega' }}
-        </h2>
+        <div class="px-4 pt-4 pb-2">
+          <h2 class="text-sm text-info font-semibold uppercase tracking-wide">
+            Estudiantes en orden de {{ esRecogida() ? 'recogida' : 'entrega' }}
+          </h2>
+          @if (ordenable() && lista().pendientes.length > 1) {
+            <p class="text-sm text-base-content/70 mt-1">
+              <i class="fa-solid fa-grip-vertical" aria-hidden="true"></i>
+              Arrastra a un estudiante para cambiar el orden de los que faltan; el conductor lo ve al instante.
+            </p>
+          }
+          @if (r.ordenActualizado; as cambio) {
+            <p class="text-xs text-base-content/70 mt-1">Orden ajustado por {{ cambio.nombre || 'la monitora' }} · {{ hora(cambio.hora) }}</p>
+          }
+        </div>
         <ol class="divide-y divide-base-300">
-          @for (e of r.paradas; track e.estudianteId; let i = $index) {
+          @for (e of lista().visitadas; track e.estudianteId; let i = $index) {
             <li class="px-4 py-3 flex flex-wrap items-center gap-x-3 gap-y-2">
-              <span class="w-7 h-7 rounded-full bg-base-300 grid place-items-center text-sm font-semibold shrink-0">{{ i + 1 }}</span>
-              <div class="min-w-0 flex-1 basis-48">
-                <p class="font-medium truncate">{{ e.estudiante }}</p>
-                <p class="text-xs text-base-content/70 truncate">{{ e.grado }} · {{ e.direccion }}</p>
-              </div>
-              <span class="badge badge-sm gap-1 shrink-0" [class]="estados[e.estado].badge">
-                <i [class]="estados[e.estado].icono" aria-hidden="true"></i> {{ momento(e) }}
-              </span>
-              @if (enCurso()) {
-                <div class="flex flex-wrap gap-1 w-full sm:w-auto justify-end">
-                  @if (e.estado === 'PENDIENTE') {
-                    <button type="button" class="btn btn-xs btn-soft btn-info" [disabled]="procesando()" (click)="marcar([e.estudianteId], 'A_BORDO')">
-                      {{ esRecogida() ? 'Recogido' : 'Subió' }}
-                    </button>
-                    <button type="button" class="btn btn-xs btn-soft btn-warning" [disabled]="procesando()" (click)="marcar([e.estudianteId], 'AUSENTE')">
-                      No asistió
-                    </button>
-                  } @else if (e.estado === 'A_BORDO') {
-                    <button type="button" class="btn btn-xs btn-soft btn-success" [disabled]="procesando()" (click)="marcar([e.estudianteId], 'ENTREGADO')">
-                      Entregado
-                    </button>
-                  }
-                  @if (puedeDeshacer(e)) {
-                    <button type="button" class="btn btn-xs btn-ghost" [disabled]="procesando()" (click)="deshacer(e)"
-                      [attr.aria-label]="'Deshacer ' + e.estudiante">
-                      <i class="fa-solid fa-rotate-left" aria-hidden="true"></i> Deshacer
-                    </button>
-                  }
-                  @if (e.telefonoAcudiente) {
-                    <a class="btn btn-xs btn-ghost text-secondary" [href]="telefono(e.telefonoAcudiente)" [attr.aria-label]="'Llamar a ' + e.acudiente">
-                      <i class="fa-solid fa-phone" aria-hidden="true"></i>
-                    </a>
-                  }
+              <ng-container *ngTemplateOutlet="fila; context: { $implicit: e, numero: i + 1 }" />
+            </li>
+          }
+          @for (e of lista().pendientes; track e.estudianteId; let j = $index, primero = $first, ultimo = $last) {
+            <li class="px-4 py-3 flex flex-wrap items-center gap-x-3 gap-y-2 transition-colors" [attr.data-por-visitar]="e.estudianteId"
+              [class]="arrastre()?.estudianteId === e.estudianteId ? 'bg-primary/10 outline-2 outline-primary -outline-offset-2 relative z-10 shadow-xl' : ''">
+              @if (ordenable() && lista().pendientes.length > 1) {
+                <!-- Subir / arrastrar / bajar: arrastre con el dedo y alternativa con botones o flechas del teclado -->
+                <div class="flex flex-col items-center -ml-2 shrink-0" role="group" [attr.aria-label]="'Orden de ' + e.estudiante">
+                  <button type="button" class="btn btn-ghost btn-square btn-xs" [disabled]="primero || procesando()" (click)="mover(j, -1)"
+                    [attr.aria-label]="'Subir a ' + e.estudiante" title="Subir">
+                    <i class="fa-solid fa-chevron-up" aria-hidden="true"></i>
+                  </button>
+                  <button type="button" class="btn btn-ghost btn-square btn-sm touch-none cursor-grab active:cursor-grabbing text-base-content/70"
+                    [attr.aria-label]="'Arrastrar a ' + e.estudiante" title="Arrastrar para cambiar el orden" [disabled]="procesando()"
+                    (pointerdown)="iniciarArrastre($event, j, e)" (pointermove)="moverArrastre($event)" (pointerup)="soltar()"
+                    (pointercancel)="cancelarArrastre()" (keydown.arrowup)="$event.preventDefault(); mover(j, -1)"
+                    (keydown.arrowdown)="$event.preventDefault(); mover(j, 1)">
+                    <i class="fa-solid fa-grip-vertical text-lg" aria-hidden="true"></i>
+                  </button>
+                  <button type="button" class="btn btn-ghost btn-square btn-xs" [disabled]="ultimo || procesando()" (click)="mover(j, 1)"
+                    [attr.aria-label]="'Bajar a ' + e.estudiante" title="Bajar">
+                    <i class="fa-solid fa-chevron-down" aria-hidden="true"></i>
+                  </button>
                 </div>
               }
+              <ng-container *ngTemplateOutlet="fila; context: { $implicit: e, numero: lista().visitadas.length + j + 1 }" />
             </li>
           }
         </ol>
+        <p class="sr-only" role="status">{{ anuncio() }}</p>
       </div>
     </section>
   }
 </section>
+
+<!-- Fila de la lista: número, estudiante, estado y acciones -->
+<ng-template #fila let-e let-numero="numero">
+  <span class="w-7 h-7 rounded-full bg-base-300 grid place-items-center text-sm font-semibold shrink-0">{{ numero }}</span>
+  <div class="min-w-0 flex-1 basis-40">
+    <p class="font-medium truncate">{{ e.estudiante }}</p>
+    <p class="text-xs text-base-content/70 truncate">{{ e.grado }} · {{ e.direccion }}</p>
+  </div>
+  <span class="badge badge-sm gap-1 shrink-0" [class]="estadoDe(e).badge">
+    <i [class]="estadoDe(e).icono" aria-hidden="true"></i> {{ momento(e) }}
+  </span>
+  @if (enCurso()) {
+    <div class="flex flex-wrap gap-1 w-full sm:w-auto justify-end">
+      @if (e.estado === 'PENDIENTE') {
+        <button type="button" class="btn btn-xs btn-soft btn-info" [disabled]="procesando()" (click)="marcar([e.estudianteId], 'A_BORDO')">
+          {{ esRecogida() ? 'Recogido' : 'Subió' }}
+        </button>
+        <button type="button" class="btn btn-xs btn-soft btn-warning" [disabled]="procesando()" (click)="marcar([e.estudianteId], 'AUSENTE')">
+          No asistió
+        </button>
+      } @else if (e.estado === 'A_BORDO') {
+        <button type="button" class="btn btn-xs btn-soft btn-success" [disabled]="procesando()" (click)="marcar([e.estudianteId], 'ENTREGADO')">
+          Entregado
+        </button>
+      }
+      @if (puedeDeshacer(e)) {
+        <button type="button" class="btn btn-xs btn-ghost" [disabled]="procesando()" (click)="deshacer(e)"
+          [attr.aria-label]="'Deshacer ' + e.estudiante">
+          <i class="fa-solid fa-rotate-left" aria-hidden="true"></i> Deshacer
+        </button>
+      }
+      @if (e.telefonoAcudiente) {
+        <a class="btn btn-xs btn-ghost text-secondary" [href]="telefono(e.telefonoAcudiente)" [attr.aria-label]="'Llamar a ' + e.acudiente">
+          <i class="fa-solid fa-phone" aria-hidden="true"></i>
+        </a>
+      }
+    </div>
+  }
+</ng-template>
 
 <!-- Tarjeta del estudiante del siguiente paso: dirección, acudiente y contacto -->
 <ng-template #parada let-p let-titulo="titulo">
