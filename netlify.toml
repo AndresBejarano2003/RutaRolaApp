@@ -1,0 +1,10 @@
+# Configuración de Netlify (tiene prioridad sobre la del panel).
+# Angular (builder "application") deja la app en dist/RutaRolaApp/browser; @netlify/angular-runtime
+# exige exactamente esa carpeta. Rutas con hash (#/...), así que no hace falta redirección de SPA.
+[build]
+  command = "npm run build"
+  publish = "dist/RutaRolaApp/browser"
+
+[build.environment]
+  # Angular 21 requiere Node ^20.19 || ^22.12 || >=24
+  NODE_VERSION = "22"
