@@ -7,7 +7,8 @@ Construido con **Angular 21** (standalone, zoneless, signals), **Tailwind CSS 4*
 
 ```bash
 npm install            # instalar dependencias
-npm start              # servidor de desarrollo → http://localhost:4200
+npm start              # servidor de desarrollo → http://localhost:4200 (con el API: cd ../api && docker compose up)
+npm run start:local    # igual, pero todo en modo local (localStorage), sin API
 npm test               # pruebas unitarias (Vitest)
 npm run build          # build de producción → dist/RutaRolaApp
 ```
@@ -136,7 +137,17 @@ Implementa los contratos que documenta cada `<plural>-http.ts`:
 - errores ProblemDetails con `mensaje`;
 - enums en `UPPER_SNAKE`, fechas `YYYY-MM-DD`, horas `HH:mm` e ids UUID como texto.
 
-Para pasar un módulo a la base de datos real basta con cambiar su `useClass` a `XHttp` en `core/repositorios.ts`.
+Los módulos que ya tienen API se registran con `api(XRepositorio, XLocal, XHttp)` en `core/repositorios.ts`:
+usan HTTP cuando `environment.usarApi` es `true` (desarrollo, `npm start`) y local con `npm run start:local`
+(`environment.local.ts`), en producción mientras no se despliegue el API y en las pruebas
+(`repositoriosDePrueba()` siempre es local). Para pasar otro módulo basta con cambiar su línea a `api(...)`.
+
+- **Con API hoy:** colegios, vehículos, empleados, acudientes, estudiantes, la vista de conductores y el login.
+- `RepositorioHttp.motivoNoEliminar` consulta `GET /x/{id}/motivo-no-eliminar` → `{ motivo }` antes de pedir
+  confirmación (el `DELETE` igual responde 409 con el mensaje).
+- `listar` con `SIN_PAGINAR` trae como máximo 1000 registros por petición.
+- Los textos opcionales vacíos viajan como `""` y una fecha opcional vacía también (`vencimientoLicencia` de una monitora).
+- El contrato del empleado llega con `url` vacía en los listados; el detalle (`obtener`) trae el archivo.
 
 ### Repositorios: un solo registro para toda la app
 
@@ -228,8 +239,10 @@ Cada tipo de usuario entra a SU sistema; el rol lo decide el servidor al iniciar
 
   Cerrar sesión también revoca el refresh token (`POST /auth/logout`). En modo local no hay tokens y el
   interceptor no hace nada.
-  Se pasa a `AutenticacionHttp` en `core/repositorios.ts` junto con Personas, porque los usuarios de
-  conductores, monitoras y acudientes se crean desde sus formularios.
+  `AutenticacionHttp` se usa junto con Personas (`api(...)`), porque los usuarios de conductores,
+  monitoras y acudientes se crean desde sus formularios. El API crea su usuario con el rol de su tipo,
+  cambiar la contraseña cierra sus sesiones y eliminar a la persona libera el usuario. Con los datos demo del
+  API ingresan `jcardenas`, `ycharry`, `mperez`… con la clave `SEED_DEMO_PASSWORD`.
 - **El login pide "Usuario"** (no correo): cada quien decide si es su correo, documento u otro texto.
 - **Credenciales de empleados y acudientes:** los formularios de Personas › Empleados y Personas ›
   Acudientes tienen la sección "Acceso a la app" (`<app-campos-acceso>` y `controlesAcceso`/
@@ -603,16 +616,22 @@ Las pantallas que aún usan grises fijos se migran a estas clases cuando se modi
 
 ## 5. Pendientes conocidos
 
-- **Autenticación provisional:** `AutenticacionLocal` guarda las contraseñas sin hash en el navegador (solo
-  demo) y el administrador es fijo (`admin`). El API ya tiene login, refresh y logout, y el frontend ya
-  tiene el interceptor y `AutenticacionHttp` listos. Falta cambiar el provider (junto con Personas) y crear
-  el módulo de usuarios administrativos.
+- **Autenticación en modo local:** `AutenticacionLocal` guarda las contraseñas sin hash en el navegador (solo
+  demo) y el administrador es fijo (`admin`). Con API (`npm start`) el login ya es `AutenticacionHttp`. Falta el
+  módulo de usuarios administrativos.
   Datos locales creados antes de este cambio no tienen usuario: editar el empleado o limpiar los datos.
+- **Modo mixto (desarrollo con API):** Personas, colegios y vehículos vienen del API, pero rutas, asignaciones,
+  recorridos y Finanzas siguen en `localStorage` con sus datos de ejemplo, que apuntan a ids locales
+  (`est-1`, `veh-1`…): esas pantallas muestran referencias sin resolver hasta migrarlas (fases 4 y 6). La
+  Ruta del día de un conductor del API sale vacía (sus asignaciones son locales) y el Portal del acudiente
+  no carga (lee estudiantes, que el acudiente no puede consultar) hasta que existan `/recorridos` y `GET /portal`.
+  Para la demo completa sin API: `npm run start:local`.
 - **Portal del acudiente:** se calcula en el navegador (`PortalLocal`) hasta que exista `GET /portal`.
 - **Ruta del día:** los recorridos se guardan en `localStorage` (`RecorridosLocal`). Falta que el servidor
   avise al acudiente (recogido, entregado, no asistió).
-- **Modo local:** todas las pantallas de Personas, Operación y Finanzas funcionan con `localStorage`
-  hasta que exista el API (cambiar `useClass` en `core/repositorios.ts`).
+- **Modo local:** rutas, asignaciones, recorridos y Finanzas funcionan con `localStorage` hasta que exista su
+  API (cambiar su línea a `api(...)` en `core/repositorios.ts`). En producción todo sigue local hasta desplegar
+  el API (`environment.ts` → `usarApi: true`).
 - **Envíos automáticos:** la programación de facturación solo guarda la configuración; el envío por
   WhatsApp/correo y su historial los debe hacer el servidor (`WhatsappService` apunta a
   `${apiUrl}/whatsapp/enviar.php`, que no existe aún).
