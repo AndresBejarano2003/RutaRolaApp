@@ -17,13 +17,20 @@ import { RecorridosRepositorio } from './recorridos-repositorio';
  * | marcar      | `PATCH /recorridos/{id}/paradas` `{estudianteIds, estado}` → `Recorrido` |
  * | reordenar   | `PUT /recorridos/{id}/orden` `{estudianteIds}` → `Recorrido` (guarda `ordenActualizado`) |
  * | finalizar   | `POST /recorridos/{id}/finalizar` `{observaciones}` → `Recorrido` |
- * | observar    | `GET /recorridos/{id}` cada `INTERVALO_SINCRONIZACION_MS` (se puede cambiar por SSE/WebSocket) |
+ * | observar    | `GET /recorridos/{id}` cada `INTERVALO_SINCRONIZACION_MS` (se puede cambiar por el hub, abajo) |
+ *
+ * Ya disponible en el API, aún sin uso en esta app:
+ * - GPS: `POST /recorridos/{id}/gps {posiciones: [{latitud, longitud, velocidad?, rumbo?, fecha ISO UTC}]}`
+ *   (máx. 500 por lote; repetidas o fuera del periodo del recorrido se descartan) → `{recibidas, descartadas, ultima}`;
+ *   `GET /recorridos/{id}/gps/ultima` (204 si no hay) y `GET /recorridos/{id}/gps?desde=`.
+ * - Tiempo real: hub SignalR `/hubs/recorridos?access_token=` → `Seguir(recorridoId)`; eventos
+ *   `posicion` y `recorridoActualizado {recorridoId, fechaActualizacion}`.
  *
  * Reglas (iguales a `RecorridosLocal`):
  * - 422: asignación inactiva, fuera de su periodo o de otro empleado; ruta inactiva o sin estudiantes;
  *   transición de estado no permitida (`transicionPermitida`); recorrido ya finalizado;
  *   finalizar con estudiantes pendientes o A BORDO (`motivoNoFinalizar`).
- * - 409: otro recorrido (del otro trayecto) EN_CURSO en la asignación;
+ * - 409: otro recorrido (del otro trayecto) EN_CURSO en la asignación ese mismo día;
  *   reordenar con una lista que no es EXACTAMENTE la de las paradas por visitar (`reordenarParadas`).
  * - 403: reordenar sin ser la monitora de la asignación (o el conductor si no tiene monitora) — `puedeReordenar`.
  * - El servidor guarda la hora de cada cambio y puede avisar al acudiente (recogido, entregado, no asistió).

@@ -119,6 +119,17 @@ describe('RecorridosLocal', () => {
     expect(hoy.recorridos.map((x) => [x.trayecto, x.estado])).toEqual([['RECOGIDA', 'FINALIZADO'], ['ENTREGA', 'EN_CURSO']]);
   });
 
+  it('un recorrido que quedó abierto otro día no bloquea el de hoy', async () => {
+    entrar('emp-1');
+    const [ruta] = await firstValueFrom(repo.rutasDelDia(fechaIso()));
+    const ayer = await firstValueFrom(repo.iniciar(ruta.asignacionId, 'RECOGIDA'));
+
+    vi.setSystemTime(new Date('2026-11-06T06:30:00'));
+    const hoy = await firstValueFrom(repo.iniciar(ruta.asignacionId, 'RECOGIDA'));
+    expect(hoy.id).not.toBe(ayer.id);
+    expect(hoy.fecha).toBe('2026-11-06');
+  });
+
   it('si el conductor ya inició, la monitora se une al mismo recorrido', async () => {
     entrar('emp-1');
     const [ruta] = await firstValueFrom(repo.rutasDelDia(fechaIso()));

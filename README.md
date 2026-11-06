@@ -628,8 +628,13 @@ Las pantallas que aún usan grises fijos se migran a estas clases cuando se modi
   Para la demo completa sin API: `npm run start:local`.
 - **Portal del acudiente:** se calcula en el navegador (`PortalLocal`) hasta que exista `GET /portal`.
 - **Ruta del día:** con API los recorridos viven en el servidor (`RecorridosHttp`, sincronización por consulta
-  cada 10 s); en modo local en `localStorage` (`RecorridosLocal`). Falta que el servidor avise al acudiente
-  (recogido, entregado, no asistió).
+  cada 10 s); en modo local en `localStorage` (`RecorridosLocal`). Solo puede haber un recorrido en curso por
+  asignación y día: uno que quedó abierto otro día no bloquea el de hoy. Falta que el servidor avise al
+  acudiente (recogido, entregado, no asistió).
+- **GPS y tiempo real:** el API ya recibe lotes de posiciones (`POST /recorridos/{id}/gps`), da la última
+  posición y el trayecto, y emite `posicion`/`recorridoActualizado` por el hub SignalR `/hubs/recorridos`
+  (contrato en `recorridos-http.ts`). Falta que la Ruta del día envíe la ubicación del teléfono, que la
+  sincronización use el hub en vez de consultar cada 10 s y el mapa del administrador / del acudiente.
 - **Modo local:** Finanzas, el inicio, las notificaciones y el portal funcionan con `localStorage` hasta que exista su
   API (cambiar su línea a `api(...)` en `core/repositorios.ts`). En producción todo sigue local hasta desplegar
   el API (`environment.ts` → `usarApi: true`).
