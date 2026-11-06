@@ -3,6 +3,7 @@ import { environment } from "@environments/environment";
 import { AutenticacionHttp } from "../autenticacion/autenticacion-http";
 import { AutenticacionLocal } from "../autenticacion/autenticacion-local";
 import { AutenticacionRepositorio } from "../autenticacion/autenticacion-repositorio";
+import { PortalHttp } from "../portal/portal-http";
 import { PortalLocal } from "../portal/portal-local";
 import { PortalRepositorio } from "../portal/portal-repositorio";
 import { RecorridosHttp } from "../ruta-del-dia/recorridos-http";
@@ -12,6 +13,7 @@ import { TableroHttp } from "../inicio/dashboard/tablero-http";
 import { TableroLocal } from "../inicio/dashboard/tablero-local";
 import { TableroRepositorio } from "../inicio/dashboard/tablero-repositorio";
 import { CentroNotificaciones } from "../inicio/notificaciones/centro-notificaciones";
+import { NotificacionesHttp } from "../inicio/notificaciones/notificaciones-http";
 import { NotificacionesLocal } from "../inicio/notificaciones/notificaciones-local";
 import { NotificacionesRepositorio } from "../inicio/notificaciones/notificaciones-repositorio";
 import { CotizacionesHttp } from "../finanzas/cotizaciones/cotizaciones-http";
@@ -107,12 +109,12 @@ export function proveerRepositorios({
     api(TableroRepositorio, TableroLocal, TableroHttp),
     // Notificaciones (leen datos de todos los módulos). `CentroNotificaciones` es el estado
     // compartido de la campana y la página; va aquí porque necesita estos repositorios.
-    { provide: NotificacionesRepositorio, useClass: NotificacionesLocal },
+    api(NotificacionesRepositorio, NotificacionesLocal, NotificacionesHttp),
     CentroNotificaciones,
     // Acceso (el login local resuelve el rol con los empleados) y ruta del día de conductores/monitoras
     api(AutenticacionRepositorio, AutenticacionLocal, AutenticacionHttp),
     api(RecorridosRepositorio, RecorridosLocal, RecorridosHttp),
     // Portal del acudiente (lee todos los módulos)
-    { provide: PortalRepositorio, useClass: PortalLocal },
+    api(PortalRepositorio, PortalLocal, PortalHttp),
   ];
 }

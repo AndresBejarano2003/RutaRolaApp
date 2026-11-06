@@ -353,8 +353,9 @@ La campana de la barra superior y la página `/inicio/notificaciones` muestran l
 No confundir con los toasts (`shared/notificaciones`), que son mensajes pasajeros de una acción.
 
 - **Quién las crea:** el **servidor** (por evento y con un proceso diario). El usuario solo las lee,
-  marca como leídas/no leídas, archiva/restaura y elimina. Hoy, en modo local, las genera
-  `NotificacionesLocal` a partir de los datos del navegador.
+  marca como leídas/no leídas, archiva/restaura y elimina. Con API las crea el servidor para los
+  administradores de la empresa (al pedir el resumen, si hubo cambios o pasó un minuto, y en el proceso
+  periódico); en modo local las genera `NotificacionesLocal` a partir de los datos del navegador.
 - **Qué se notifica** (reglas en `generar-notificaciones.ts`, que el API debe replicar):
 
   | Categoría | Hecho | Prioridad |
@@ -620,13 +621,10 @@ Las pantallas que aún usan grises fijos se migran a estas clases cuando se modi
   demo) y el administrador es fijo (`admin`). Con API (`npm start`) el login ya es `AutenticacionHttp`. Falta el
   módulo de usuarios administrativos.
   Datos locales creados antes de este cambio no tienen usuario: editar el empleado o limpiar los datos.
-- **Modo mixto (desarrollo con API):** Personas, Operación (colegios, vehículos, rutas, asignaciones,
-  conductores, Ruta del día e historial de recorridos), Finanzas (cotizaciones, facturas, recibos, programación
-  y reportes) y el tablero de inicio vienen del API. Solo las notificaciones y el portal siguen calculándose en
-  el navegador (leen los demás módulos por HTTP) hasta la fase 7. El
-  Portal del acudiente no carga (lee estudiantes, que el acudiente no puede consultar) hasta que exista `GET /portal`.
-  Para la demo completa sin API: `npm run start:local`.
-- **Portal del acudiente:** se calcula en el navegador (`PortalLocal`) hasta que exista `GET /portal`.
+- **Con API (`npm start`):** todos los módulos con endpoint vienen del servidor: Personas, Operación, Finanzas,
+  tablero, notificaciones (`NotificacionesHttp`, las crea el servidor) y el Portal del acudiente (`PortalHttp`,
+  `GET /portal`). Solo el Centro de Ayuda sigue en `localStorage`. Para la demo completa sin API:
+  `npm run start:local`.
 - **Ruta del día:** con API los recorridos viven en el servidor (`RecorridosHttp`, sincronización por consulta
   cada 10 s); en modo local en `localStorage` (`RecorridosLocal`). Solo puede haber un recorrido en curso por
   asignación y día: uno que quedó abierto otro día no bloquea el de hoy. Falta que el servidor avise al
@@ -635,17 +633,15 @@ Las pantallas que aún usan grises fijos se migran a estas clases cuando se modi
   posición y el trayecto, y emite `posicion`/`recorridoActualizado` por el hub SignalR `/hubs/recorridos`
   (contrato en `recorridos-http.ts`). Falta que la Ruta del día envíe la ubicación del teléfono, que la
   sincronización use el hub en vez de consultar cada 10 s y el mapa del administrador / del acudiente.
-- **Programación de cobro:** el historial de envíos viene del API, pero los envíos automáticos (WhatsApp/correo)
-  todavía no se hacen: los creará el proceso del servidor (fase 7).
-- **Modo local:** las notificaciones, el portal y el Centro de Ayuda funcionan con `localStorage` hasta que exista su
-  API (cambiar su línea a `api(...)` en `core/repositorios.ts`). En producción todo sigue local hasta desplegar
-  el API (`environment.ts` → `usarApi: true`).
-- **Envíos automáticos:** la programación de facturación solo guarda la configuración; el envío por
-  WhatsApp/correo y su historial los debe hacer el servidor (`WhatsappService` apunta a
-  `${apiUrl}/whatsapp/enviar.php`, que no existe aún).
+- **Envíos automáticos:** el proceso del servidor envía los recordatorios de la programación de cobro y guarda
+  su historial y el registro de WhatsApp, pero todavía **no hay proveedor real**: en desarrollo los canales son
+  simulados y en producción están deshabilitados hasta conectar WhatsApp Business y un servicio de correo.
+  `WhatsappService` (`core/whatsapp.ts`, apunta a `${apiUrl}/whatsapp/enviar.php`) no lo usa ninguna pantalla:
+  los mensajes los envía el servidor.
+- **Modo local** (`npm run start:local`, pruebas y producción hasta desplegar el API, `environment.ts` →
+  `usarApi`): todo funciona con `localStorage`; el inicio (`TableroLocal`), las notificaciones
+  (`NotificacionesLocal`) y el portal (`PortalLocal`) se calculan en el navegador con las mismas reglas del API.
 - **Datos fijos:** el perfil del administrador local (`USUARIO_DEMO`) y Planes y Membresías siguen
-  con datos de ejemplo. El inicio se calcula en el navegador (`TableroLocal`) hasta que exista `GET /tablero`.
-- **Notificaciones:** se generan en el navegador (`NotificacionesLocal`) a partir de los datos locales;
-  con API, el servidor debe crearlas con las mismas reglas y cambiar a `NotificacionesHttp`.
+  con datos de ejemplo.
 - **Soporte:** las solicitudes del Centro de Ayuda se guardan en `localStorage`
   (`SolicitudesSoporteService`) hasta que exista el API de soporte (envío, adjuntos, estado y respuesta).

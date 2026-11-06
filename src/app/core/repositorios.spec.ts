@@ -9,9 +9,9 @@ import { ColegiosHttp } from '../operacion/colegios/colegios-http';
 import { ColegiosRepositorio } from '../operacion/colegios/colegios-repositorio';
 import { FacturasHttp } from '../finanzas/facturas/facturas-http';
 import { FacturasRepositorio } from '../finanzas/facturas/facturas-repositorio';
-import { NotificacionesLocal } from '../inicio/notificaciones/notificaciones-local';
+import { NotificacionesHttp } from '../inicio/notificaciones/notificaciones-http';
 import { NotificacionesRepositorio } from '../inicio/notificaciones/notificaciones-repositorio';
-import { PortalLocal } from '../portal/portal-local';
+import { PortalHttp } from '../portal/portal-http';
 import { PortalRepositorio } from '../portal/portal-repositorio';
 import { TableroHttp } from '../inicio/dashboard/tablero-http';
 import { TableroRepositorio } from '../inicio/dashboard/tablero-repositorio';
@@ -29,7 +29,7 @@ describe('Registro de repositorios', () => {
       providers: [provideHttpClient(), provideHttpClientTesting(), ...proveerRepositorios({ usarApi })],
     });
 
-  it('con API usa HTTP en los módulos migrados (y el login) y local en los demás', () => {
+  it('con API usa HTTP en todos los módulos con endpoint (y el login)', () => {
     configurar(true);
 
     expect(TestBed.inject(ColegiosRepositorio)).toBeInstanceOf(ColegiosHttp);
@@ -38,9 +38,8 @@ describe('Registro de repositorios', () => {
     expect(TestBed.inject(RecorridosRepositorio)).toBeInstanceOf(RecorridosHttp);
     expect(TestBed.inject(FacturasRepositorio)).toBeInstanceOf(FacturasHttp);
     expect(TestBed.inject(TableroRepositorio)).toBeInstanceOf(TableroHttp);
-    // Pendientes de la fase 7 (comunicación).
-    expect(TestBed.inject(NotificacionesRepositorio)).toBeInstanceOf(NotificacionesLocal);
-    expect(TestBed.inject(PortalRepositorio)).toBeInstanceOf(PortalLocal);
+    expect(TestBed.inject(NotificacionesRepositorio)).toBeInstanceOf(NotificacionesHttp);
+    expect(TestBed.inject(PortalRepositorio)).toBeInstanceOf(PortalHttp);
   });
 
   it('sin API todo es local', () => {
