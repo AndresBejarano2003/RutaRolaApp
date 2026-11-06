@@ -36,6 +36,7 @@ export const MENU_OPERATIVO: OpcionMenu[] = [
         etiqueta: 'Programación de facturación',
         ruta: '/finanzas/programacion-facturacion',
       },
+      { icono: 'fa-brands fa-whatsapp', etiqueta: 'Mensajes de WhatsApp', ruta: '/finanzas/mensajes-whatsapp' },
       {
         icono: 'fa-solid fa-chart-line',
         etiqueta: 'Reportes financieros',
@@ -65,6 +66,7 @@ export const MENU_OPERATIVO: OpcionMenu[] = [
       { icono: 'fa-solid fa-id-badge', etiqueta: 'Conductores', ruta: '/operacion/conductores' },
       { icono: 'fa-solid fa-diagram-project', etiqueta: 'Asignaciones', ruta: '/operacion/asignaciones' },
       { icono: 'fa-solid fa-clock-rotate-left', etiqueta: 'Recorridos', ruta: '/operacion/recorridos' },
+      { icono: 'fa-solid fa-map-location-dot', etiqueta: 'Monitoreo en vivo', ruta: '/operacion/monitoreo' },
     ],
   },
 ];

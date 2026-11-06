@@ -1,0 +1,75 @@
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 max-w-5xl">
+  <section class="card bg-base-200 border border-base-300 shadow-xl">
+    <div class="card-body gap-4">
+      <h2 class="card-title">Mi cuenta</h2>
+      @if (sesion(); as s) {
+        <div class="flex items-center gap-4">
+          <div class="avatar avatar-placeholder">
+            <div class="w-16 rounded-full bg-primary/15 text-primary text-xl font-semibold">
+              @if (s.imagen) {
+                <img [src]="s.imagen" alt="" />
+              } @else {
+                <span>{{ s.nombre.charAt(0) }}</span>
+              }
+            </div>
+          </div>
+          <div class="min-w-0">
+            <p class="text-lg font-semibold truncate">{{ s.nombre }}</p>
+            <p class="text-sm text-base-content/70">{{ rol() }}</p>
+          </div>
+        </div>
+        <dl class="grid sm:grid-cols-2 gap-x-4 gap-y-3 text-sm">
+          <div><dt class="text-base-content/70">Usuario</dt><dd class="font-mono">{{ s.usuario }}</dd></div>
+          <div><dt class="text-base-content/70">Correo</dt><dd class="break-all">{{ s.correo || '—' }}</dd></div>
+          @if (s.empresa) {
+            <div><dt class="text-base-content/70">Empresa</dt><dd>{{ s.empresa.nombre }}</dd></div>
+          }
+          <div><dt class="text-base-content/70">Sesión iniciada</dt><dd>{{ inicio() }}</dd></div>
+        </dl>
+        <p class="text-sm text-base-content/70">
+          <i class="fa-solid fa-circle-info text-info" aria-hidden="true"></i>
+          Tus datos personales y tu usuario los actualiza el administrador de la empresa.
+        </p>
+      }
+    </div>
+  </section>
+
+  <section class="card bg-base-200 border border-base-300 shadow-xl">
+    <form class="card-body gap-4" [formGroup]="form" (ngSubmit)="cambiar()" novalidate>
+      <h2 class="card-title">Cambiar contraseña</h2>
+      <p class="text-sm text-base-content/70">
+        @if (modoLocal) {
+          Modo local: la contraseña se guarda solo en este navegador.
+        } @else {
+          Al cambiarla se cierra la sesión en tus otros dispositivos.
+        }
+      </p>
+      <label app-campo etiqueta="Contraseña actual" requerido [error]="error('actual')">
+        <input [type]="visible() ? 'text' : 'password'" formControlName="actual" autocomplete="current-password"
+          class="input input-bordered bg-base-100 border-neutral w-full" [class.input-error]="!!error('actual')" />
+      </label>
+      <label app-campo etiqueta="Nueva contraseña" requerido [error]="error('contrasena')" ayuda="Mínimo 6 caracteres.">
+        <input [type]="visible() ? 'text' : 'password'" formControlName="contrasena" autocomplete="new-password"
+          class="input input-bordered bg-base-100 border-neutral w-full" [class.input-error]="!!error('contrasena')" />
+      </label>
+      <label app-campo etiqueta="Confirmar nueva contraseña" requerido [error]="error('confirmarContrasena')">
+        <input [type]="visible() ? 'text' : 'password'" formControlName="confirmarContrasena" autocomplete="new-password"
+          class="input input-bordered bg-base-100 border-neutral w-full" [class.input-error]="!!error('confirmarContrasena')" />
+      </label>
+      <label class="label cursor-pointer justify-start gap-2 text-sm">
+        <input type="checkbox" class="checkbox checkbox-sm" [checked]="visible()" (change)="visible.set(!visible())" />
+        Mostrar contraseñas
+      </label>
+      <div class="flex justify-end">
+        <button type="submit" class="btn btn-primary" [disabled]="guardando()">
+          @if (guardando()) {
+            <span class="loading loading-spinner loading-sm" aria-hidden="true"></span>
+          } @else {
+            <i class="fa-solid fa-key" aria-hidden="true"></i>
+          }
+          Cambiar contraseña
+        </button>
+      </div>
+    </form>
+  </section>
+</div>

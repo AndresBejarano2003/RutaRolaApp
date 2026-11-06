@@ -73,6 +73,7 @@
                   <li class="flex items-center gap-2" [class]="s.clase"><i [class]="s.icono + ' w-4'" aria-hidden="true"></i> {{ s.texto }}</li>
                 }
               </ul>
+              <app-mapa-ruta [estudiante]="e" />
             }
           </div>
         } @empty {

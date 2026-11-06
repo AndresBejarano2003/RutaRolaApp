@@ -1,5 +1,6 @@
-import { Injectable, inject, signal } from '@angular/core';
-import { firstValueFrom } from 'rxjs';
+import { DestroyRef, Injectable, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { auditTime, firstValueFrom } from 'rxjs';
 import { mensajeDeError } from 'src/app/shared/crud/crud';
 import { esFuenteLocal } from 'src/app/shared/crud/repositorio-local';
 import { PortalAcudiente } from './portal';
@@ -15,8 +16,16 @@ export class PortalEstado {
   readonly cargando = signal(false);
   readonly error = signal<string | null>(null);
 
-  async cargar(): Promise<void> {
-    this.cargando.set(true);
+  /** Recarga sin mostrar el estado de carga cada vez que cambia un recorrido de sus estudiantes. */
+  escuchar(destroyRef: DestroyRef): void {
+    this.repositorio
+      .observarCambios()
+      .pipe(auditTime(1_000), takeUntilDestroyed(destroyRef))
+      .subscribe(() => void this.cargar(true));
+  }
+
+  async cargar(silencioso = false): Promise<void> {
+    if (!silencioso) this.cargando.set(true);
     try {
       this.datos.set(await firstValueFrom(this.repositorio.obtener()));
       this.error.set(null);

@@ -2,10 +2,10 @@ export const environment = {
   production: true,
   nombreEmpresa: "RutaRola",
   /**
-   * URL del API en producción: `https://<host-del-api>/api/v1`. Se define al desplegar el API
-   * (o se usa un proxy de Netlify de `/api/*` al API).
+   * URL del API desplegado (`render.yaml` del repo rutarola-api → servicio `rutarola-api`). Se llama
+   * directo y no por un proxy de Netlify porque el hub SignalR necesita WebSocket; el API permite este
+   * origen en `Cors__Origenes`. Si Render asigna otro nombre al servicio, cambiarlo aquí.
    */
-  apiUrl: "/api/v1",
-  /** Producción sigue en modo local hasta desplegar el API; entonces pasar a `true`. */
-  usarApi: false,
+  apiUrl: "https://rutarola-api.onrender.com/api/v1",
+  usarApi: true,
 };

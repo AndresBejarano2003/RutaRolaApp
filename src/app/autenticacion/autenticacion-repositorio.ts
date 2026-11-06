@@ -8,4 +8,9 @@ import { Credenciales, Sesion } from 'src/app/core/auth';
  */
 export abstract class AutenticacionRepositorio {
   abstract iniciarSesion(credenciales: Credenciales): Observable<Sesion>;
+  /**
+   * Cambia la contraseña del usuario de la SESIÓN (exige la actual; la nueva, mínimo 6). Con el API
+   * cierra sus demás sesiones (otros teléfonos o navegadores); la actual sigue abierta.
+   */
+  abstract cambiarContrasena(actual: string, nueva: string): Observable<void>;
 }

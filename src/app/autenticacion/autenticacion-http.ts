@@ -8,7 +8,7 @@ import { AutenticacionRepositorio } from './autenticacion-repositorio';
 
 /** Respuesta de `POST /auth/login`. */
 export interface RespuestaLogin {
-  /** `rol` puede ser también `SUPER_ADMIN` (plataforma), que no entra a esta aplicación. */
+  /** `rol`: uno de `ROLES_USUARIO` (`SUPER_ADMIN` entra a la plataforma, `/plataforma`). */
   sesion: Omit<Sesion, 'tokens' | 'rol'> & { rol: string };
   tokens: TokensSesion;
 }
@@ -18,9 +18,12 @@ export interface RespuestaLogin {
  * `usuario` puede ser el usuario de ingreso o el correo. El SERVIDOR decide el rol:
  * - empleado activo (Personas › Empleados) → CONDUCTOR/MONITORA y `empleadoId`;
  * - acudiente activo (Personas › Acudientes) → ACUDIENTE y `acudienteId`;
- * - administrador de la empresa → ADMINISTRADOR.
+ * - administrador de la empresa → ADMINISTRADOR; super administrador de la plataforma → SUPER_ADMIN.
  * 401 `Usuario o contraseña incorrectos.`; 403 usuario, empresa o persona inactivos (con `{mensaje}`).
  * Los tokens viajan dentro de la sesión; `interceptorAutenticacion` los usa y los renueva.
+ *
+ * `PUT {apiUrl}/auth/contrasena {actual, nueva}` → 204 (422 `La contraseña actual no es correcta.`,
+ * 400 nueva < 6) y revoca las demás sesiones del usuario.
  */
 @Injectable()
 export class AutenticacionHttp extends AutenticacionRepositorio {
@@ -37,5 +40,9 @@ export class AutenticacionHttp extends AutenticacionRepositorio {
           return { ...sesion, rol: sesion.rol as RolUsuario, tokens };
         }),
       );
+  }
+
+  cambiarContrasena(actual: string, nueva: string): Observable<void> {
+    return this.http.put<void>(`${environment.apiUrl}/auth/contrasena`, { actual, nueva });
   }
 }

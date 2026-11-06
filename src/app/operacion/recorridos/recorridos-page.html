@@ -156,6 +156,10 @@
         </dl>
       </div>
       <div>
+        <h4 class="text-sm font-semibold uppercase tracking-wide text-info mb-2 border-b border-base-300 pb-1">Trayecto</h4>
+        <app-mapa-trayecto [recorridoId]="r.id" [enCurso]="r.estado === 'EN_CURSO'" />
+      </div>
+      <div>
         <h4 class="text-sm font-semibold uppercase tracking-wide text-info mb-2 border-b border-base-300 pb-1">
           Estudiantes ({{ r.paradas.length }})
         </h4>

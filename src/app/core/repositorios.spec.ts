@@ -21,6 +21,14 @@ import { RecorridosHttp } from '../ruta-del-dia/recorridos-http';
 import { RecorridosRepositorio } from '../ruta-del-dia/recorridos-repositorio';
 import { EstudiantesLocal } from '../personas/estudiantes/estudiantes-local';
 import { EstudiantesRepositorio } from '../personas/estudiantes/estudiantes-repositorio';
+import { GpsHttp } from '../ruta-del-dia/gps/gps-http';
+import { GpsRepositorio } from '../ruta-del-dia/gps/gps-repositorio';
+import { MensajesWhatsappHttp } from '../finanzas/mensajes-whatsapp/mensajes-whatsapp-http';
+import { MensajesWhatsappRepositorio } from '../finanzas/mensajes-whatsapp/mensajes-whatsapp-repositorio';
+import { ConfiguracionHttp } from '../inicio/configuracion/configuracion-http';
+import { ConfiguracionRepositorio } from '../inicio/configuracion/configuracion-repositorio';
+import { EmpresasHttp } from '../plataforma/empresas/empresas-http';
+import { EmpresasRepositorio } from '../plataforma/empresas/empresas-repositorio';
 import { proveerRepositorios } from './repositorios';
 
 describe('Registro de repositorios', () => {
@@ -40,6 +48,31 @@ describe('Registro de repositorios', () => {
     expect(TestBed.inject(TableroRepositorio)).toBeInstanceOf(TableroHttp);
     expect(TestBed.inject(NotificacionesRepositorio)).toBeInstanceOf(NotificacionesHttp);
     expect(TestBed.inject(PortalRepositorio)).toBeInstanceOf(PortalHttp);
+    expect(TestBed.inject(GpsRepositorio)).toBeInstanceOf(GpsHttp);
+    expect(TestBed.inject(MensajesWhatsappRepositorio)).toBeInstanceOf(MensajesWhatsappHttp);
+    expect(TestBed.inject(ConfiguracionRepositorio)).toBeInstanceOf(ConfiguracionHttp);
+    expect(TestBed.inject(EmpresasRepositorio)).toBeInstanceOf(EmpresasHttp);
+  });
+
+  it('GPS por HTTP: lote, última (204 = sin posición) y mapa', async () => {
+    configurar(true);
+    const api = TestBed.inject(HttpTestingController);
+    const gps = TestBed.inject(GpsRepositorio);
+    const url = `${environment.apiUrl}/recorridos`;
+
+    const lote = firstValueFrom(gps.enviar('r-1', [{ latitud: 1, longitud: 2, velocidad: null, rumbo: null, fecha: '2026-11-05T12:00:00Z' }]));
+    const peticion = api.expectOne(`${url}/r-1/gps`);
+    expect(peticion.request.body.posiciones).toHaveLength(1);
+    peticion.flush({ recibidas: 1, descartadas: 0, ultima: null });
+    expect((await lote).recibidas).toBe(1);
+
+    const ultima = firstValueFrom(gps.ultima('r-1'));
+    api.expectOne(`${url}/r-1/gps/ultima`).flush(null, { status: 204, statusText: 'No Content' });
+    expect(await ultima).toBeNull();
+
+    const mapa = firstValueFrom(gps.enCurso());
+    api.expectOne(`${url}/en-curso`).flush([]);
+    expect(await mapa).toEqual([]);
   });
 
   it('sin API todo es local', () => {

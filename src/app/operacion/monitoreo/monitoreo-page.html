@@ -1,0 +1,79 @@
+<section class="card bg-base-200 border border-base-300 shadow-xl">
+  <div class="card-body gap-4">
+    <div class="flex flex-wrap items-start justify-between gap-3">
+      <div class="min-w-0">
+        <h2 class="text-xl font-bold flex items-center gap-2">
+          Monitoreo en vivo
+          @if (modoLocal) {
+            <span class="badge badge-soft badge-warning badge-sm">Modo local</span>
+          }
+        </h2>
+        <p class="text-sm text-base-content/70">
+          Recorridos en curso con la ubicación que comparte el teléfono de la monitora (o del conductor si la ruta no tiene).
+        </p>
+      </div>
+      <div class="flex flex-wrap gap-2">
+        <a routerLink="/operacion/recorridos" class="btn bg-base-300 border-neutral hover:bg-neutral">
+          <i class="fa-solid fa-clock-rotate-left" aria-hidden="true"></i> Historial
+        </a>
+        <button type="button" class="btn bg-base-300 border-neutral hover:bg-neutral" [disabled]="cargando()" (click)="cargar()">
+          <i class="fa-solid fa-rotate" aria-hidden="true"></i> Actualizar
+        </button>
+      </div>
+    </div>
+
+    @if (error()) {
+      <div role="alert" class="alert alert-error alert-soft">
+        <i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i>
+        <span>{{ error() }}</span>
+      </div>
+    }
+
+    <div class="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_20rem] gap-4">
+      <div class="relative">
+        <app-mapa class="h-[55dvh] min-h-72" titulo="Vehículos en ruta" [marcadores]="marcadores()" (seleccionar)="seleccionar($event)" />
+        @if (!cargando() && recorridos().length > 0 && conPosicion() === 0) {
+          <p class="absolute inset-x-3 bottom-3 z-[1000] rounded-box bg-base-200/95 border border-base-300 p-3 text-sm">
+            Ningún vehículo ha compartido su ubicación todavía. Se verá cuando el teléfono de la ruta tenga señal GPS.
+          </p>
+        }
+      </div>
+
+      <div class="space-y-2" aria-live="polite">
+        <h3 class="text-sm font-semibold uppercase tracking-wide text-info">En curso ({{ recorridos().length }})</h3>
+        @if (cargando()) {
+          @for (_ of [1, 2, 3]; track $index) {
+            <div class="skeleton h-20 w-full"></div>
+          }
+        } @else {
+          @for (r of recorridos(); track r.recorridoId) {
+            <button type="button" class="card w-full text-left border bg-base-100 p-3 gap-1 hover:bg-base-300/50"
+              [class]="r.recorridoId === seleccionado() ? 'border-primary' : 'border-base-300'"
+              [attr.aria-pressed]="r.recorridoId === seleccionado()" (click)="seleccionar(r.recorridoId)">
+              <span class="flex items-center justify-between gap-2">
+                <span class="font-semibold truncate">{{ r.ruta }}</span>
+                <span class="badge badge-soft badge-info badge-sm shrink-0">{{ nombreTrayecto(r.trayecto) }}</span>
+              </span>
+              <span class="text-xs text-base-content/70 truncate">{{ r.vehiculo }} · {{ r.conductor }}</span>
+              <span class="text-xs">
+                {{ r.conteo.entregados + r.conteo.ausentes }}/{{ r.conteo.total }} resueltos · {{ r.conteo.aBordo }} a bordo
+              </span>
+              @if (!r.posicion) {
+                <span class="text-xs text-warning flex items-center gap-1"><i class="fa-solid fa-location-pin-lock" aria-hidden="true"></i> Sin ubicación</span>
+              } @else if (sinSenal(r)) {
+                <span class="text-xs text-warning flex items-center gap-1"><i class="fa-solid fa-signal" aria-hidden="true"></i> Sin señal · {{ ultima(r) }}</span>
+              } @else {
+                <span class="text-xs text-success flex items-center gap-1"><i class="fa-solid fa-location-crosshairs" aria-hidden="true"></i> {{ ultima(r) }}</span>
+              }
+            </button>
+          } @empty {
+            <div class="rounded-box border border-base-300 bg-base-100 p-4 text-center text-sm text-base-content/70">
+              <i class="fa-solid fa-van-shuttle text-2xl text-base-content/50 mb-2" aria-hidden="true"></i>
+              <p>No hay recorridos en curso en este momento.</p>
+            </div>
+          }
+        }
+      </div>
+    </div>
+  </div>
+</section>

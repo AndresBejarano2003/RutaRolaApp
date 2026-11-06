@@ -14,14 +14,16 @@ export interface Credenciales {
  * - `ADMINISTRADOR` → sistema administrativo (`/inicio`, todos los módulos).
  * - `CONDUCTOR` / `MONITORA` → app de la ruta del día (`/ruta-del-dia`).
  * - `ACUDIENTE` → portal del acudiente (`/portal`): sus estudiantes, facturas, pagos y cotizaciones.
+ * - `SUPER_ADMIN` → plataforma (`/plataforma`): empresas de transporte (solo con API).
  */
-export type RolUsuario = 'ADMINISTRADOR' | 'CONDUCTOR' | 'MONITORA' | 'ACUDIENTE';
+export type RolUsuario = 'ADMINISTRADOR' | 'CONDUCTOR' | 'MONITORA' | 'ACUDIENTE' | 'SUPER_ADMIN';
 
 export const ROLES_USUARIO: { id: RolUsuario; nombre: string; inicio: string }[] = [
   { id: 'ADMINISTRADOR', nombre: 'Administrador', inicio: '/inicio' },
   { id: 'CONDUCTOR', nombre: 'Conductor', inicio: '/ruta-del-dia' },
   { id: 'MONITORA', nombre: 'Monitora', inicio: '/ruta-del-dia' },
   { id: 'ACUDIENTE', nombre: 'Acudiente', inicio: '/portal' },
+  { id: 'SUPER_ADMIN', nombre: 'Plataforma RutaRola', inicio: '/plataforma' },
 ];
 
 /** Roles que usan la app de la ruta del día. */

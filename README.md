@@ -122,6 +122,10 @@ Endpoints adicionales (solo lectura o calculados en el servidor):
 | Reporte de ingresos | `GET /reportes/ingresos?desde=&hasta=&medioPago=` | totales, por mes, por medio y recibos |
 | Facturas pendientes | `GET /reportes/facturas-pendientes?texto=&acudienteId=&situacion=` | cuotas sin recibo |
 | Morosos | `GET /reportes/morosos?texto=&diasMinimos=` | acudientes con cuotas vencidas |
+| Mensajes de WhatsApp | `GET /mensajes-whatsapp?texto=&acudienteId=&estado=&desde=&hasta=` | registro paginado |
+| Configuración | `GET/PUT /empresas/actual`, `GET /configuracion`, `PUT /configuracion/{clave} {valor}` | empresa y parámetros |
+| GPS | `POST /recorridos/{id}/gps`, `GET …/gps/ultima`, `GET …/gps`, `GET /recorridos/en-curso` | ver `gps/gps-http.ts` |
+| Plataforma | `GET/POST/PUT /empresas` (SUPER_ADMIN) | empresas |
 
 
 Errores: el API puede responder `{ "mensaje": "..." }` y se mostrará tal cual; si no, se usa un mensaje
@@ -206,6 +210,13 @@ lo obtiene de forma diferida con `Injector.get()` dentro del método, no con `in
   hace el servidor y se ven en el historial.
 - **Reportes:** ingresos (recibos válidos por fecha de pago), facturas pendientes (meses sin recibo hasta
   el mes en curso) y morosos (cuotas vencidas según el día límite de la programación, o el día 5).
+- **Mensajes de WhatsApp (`finanzas/mensajes-whatsapp`):** registro de solo lectura de los recordatorios que
+  envió el servidor (fecha, acudiente, estudiante, teléfono, texto, estado y respuesta del proveedor), con filtros
+  por texto, acudiente, estado y fechas. En modo local está vacío: los envía el proceso del servidor.
+- **Configuración (`inicio/configuracion`):** el administrador edita los datos de contacto de su empresa (el NIT
+  y el estado los cambia la plataforma) y los parámetros: **día límite de pago** (1–31, por defecto 5; para
+  facturas sin programación) y **días de alerta de vencimiento** (1–120, por defecto 30). Un solo "Guardar
+  cambios"; con el API los aplica el servidor en reportes, portal, tablero, notificaciones y conductores.
 - **Centro de Ayuda (`sistema/soporte`):** manuales, tutoriales y preguntas frecuentes se editan solo en
   `contenido-ayuda.ts`; las respuestas deben coincidir con las rutas y reglas vigentes (actualizarlas
   cuando cambie un módulo). La búsqueda filtra los tres a la vez. Una **solicitud de soporte** exige tipo
@@ -222,6 +233,16 @@ Cada tipo de usuario entra a SU sistema; el rol lo decide el servidor al iniciar
 | `ADMINISTRADOR` | `/inicio` | Sistema administrativo completo (menú lateral, todos los módulos) |
 | `CONDUCTOR` / `MONITORA` | `/ruta-del-dia` | Solo la app de la ruta del día (layout `shell-conductor`, sin menú lateral) |
 | `ACUDIENTE` | `/portal` | Solo el portal del acudiente (layout `shell-portal`): sus estudiantes, facturas, pagos y cotizaciones |
+| `SUPER_ADMIN` | `/plataforma` | Solo con API: empresas de transporte (layout `shell-plataforma`, `plataforma/empresas`) |
+
+- **Mi cuenta** (`autenticacion/cuenta/cuenta-page`, en `/inicio/perfil`, `/ruta-del-dia/cuenta`, `/portal/cuenta` y
+  `/plataforma/cuenta`): datos de la sesión y cambio de la contraseña propia
+  (`AutenticacionRepositorio.cambiarContrasena`, `PUT /auth/contrasena {actual, nueva}`; con el API cierra las
+  demás sesiones; en modo local cambia `rutarola.credenciales`, salvo el `admin` de demostración).
+  `/editar-usuario` redirige aquí.
+- **Plataforma › Empresas** (SUPER_ADMIN): lista con filtros, alta con su primer administrador opcional
+  (usuario, correo, contraseña) y edición; no se eliminan, se dejan INACTIVAS (`EmpresasRepositorio`,
+  `GET/POST/PUT /empresas`). El SuperAdmin del API es `superadmin` (`SEED_SUPERADMIN_PASSWORD`).
 
 - `AutenticacionRepositorio` (`AutenticacionLocal` → `AutenticacionHttp`, `POST /auth/login` → `Sesion`)
   valida las credenciales; `AuthService` guarda la sesión (`rutarola.sesion`: `localStorage` con
@@ -288,9 +309,24 @@ App para el celular del conductor y la monitora, dentro del vehículo.
   (`reordenarParadas`, si cambió mientras arrastraba → 409 y se recarga). Se guarda `ordenActualizado`
   (quién y cuándo). `PUT /recorridos/{id}/orden {estudianteIds}`.
 - **Sincronización conductor ↔ monitora:** la pantalla del recorrido escucha los cambios del compañero
-  (`observar`: en modo local, el evento `storage` de otra pestaña al instante; además consulta cada 10 s,
-  como `RecorridosHttp` hasta que haya SSE/WebSocket). Si la monitora cambió el orden, el conductor ve el
-  aviso "… cambió el orden · Ahora sigue: …" (con vibración) y el siguiente paso actualizado.
+  (`observar`). Con API, por el hub SignalR (`core/tiempo-real.ts`, `TiempoReal`: una conexión perezosa a
+  `/hubs/recorridos`, se reconecta sola y vuelve a `Seguir`; el paquete se carga solo al conectar) y una
+  consulta de respaldo cada 60 s; "Mis rutas" se refresca con los avisos que el servidor envía al personal. En
+  modo local, el evento `storage` de otra pestaña y una consulta cada 10 s. Si la monitora cambió el orden, el
+  conductor ve el aviso "… cambió el orden · Ahora sigue: …" (con vibración) y el siguiente paso actualizado.
+- **GPS** (`ruta-del-dia/gps/`): mientras el recorrido está EN CURSO, el teléfono de la monitora (o del conductor
+  si no hay monitora, el mismo criterio de `puedeReordenar`: uno solo por vehículo) comparte la ubicación con
+  `EmisorGps`: `watchPosition` → lecturas con precisión ≤ 100 m y una cada ≥ 5 s → cola en `localStorage`
+  (`rutarola.gps.pendientes`, sobrevive a recargas y a la falta de señal, máx. 5000 por recorrido) → lotes de
+  ≤ 500 cada 15 s y al volver la red; lo pendiente de recorridos anteriores se reenvía al abrir (el servidor
+  acepta hasta 5 min después del fin y descarta repetidas; un 4xx descarta el lote). La pantalla muestra
+  "Compartiendo ubicación", "Buscando señal", sin permiso o cuántas lecturas faltan por enviar; el compañero ve
+  quién comparte. `GpsRepositorio` (`GpsLocal`, `rutarola.gps` → `GpsHttp`): enviar, última, trayecto, en curso
+  y observar (hub). Las ubicaciones se conservan **30 días** (`DIAS_RETENCION_GPS`, `Gps:DiasRetencion` en el API).
+- **Mapas** (`shared/mapa/mapa.ts`, `<app-mapa>`: Leaflet + OpenStreetMap con atribución, cargado solo al
+  mostrarse; marcadores Font Awesome con `divIcon`): Operación › **Monitoreo en vivo** (`operacion/monitoreo`,
+  recorridos en curso con su posición en vivo, "sin señal" a los 3 min, lista seleccionable), el **trayecto** en
+  el detalle del historial (en vivo si sigue en curso) y "**Ver en el mapa**" del portal.
 - **Finalizar** solo con todos ENTREGADOS o AUSENTES: **ningún estudiante puede quedar a bordo**.
   Un recorrido finalizado no se modifica. Si se cierra la app, el recorrido en curso se retoma desde "Mis rutas".
 - **Historial** (Operación › Recorridos, solo lectura, administrador): todos los recorridos del más
@@ -318,7 +354,11 @@ sesión/token, nunca de un parámetro: solo ve SUS estudiantes, facturas, recibo
   día 5. Las facturas anuladas no generan cuotas y los recibos anulados no cuentan. Próximo pago:
   primero lo vencido, luego lo pendiente y luego lo programado, por fecha.
 - **Hoy en la ruta:** estado del recorrido de hoy por trayecto (`situacionRecorrido`): aún no inicia, la
-  ruta va en camino, a bordo desde…, entregado…, no asistió.
+  ruta va en camino, a bordo desde…, entregado…, no asistió. Se actualiza solo (`PortalRepositorio.observarCambios`:
+  el servidor avisa al acudiente de cada cambio del recorrido de sus estudiantes; local: evento `storage`).
+- **Ver en el mapa** (`portal/mapa-ruta`): solo mientras el recorrido de SU estudiante está EN CURSO; muestra el
+  vehículo en vivo y al terminar el recorrido el botón desaparece y el modal se cierra (el API deja de entregar la
+  ubicación).
 
 ### Inicio (`inicio/dashboard/`)
 
@@ -625,23 +665,25 @@ Las pantallas que aún usan grises fijos se migran a estas clases cuando se modi
   tablero, notificaciones (`NotificacionesHttp`, las crea el servidor) y el Portal del acudiente (`PortalHttp`,
   `GET /portal`). Solo el Centro de Ayuda sigue en `localStorage`. Para la demo completa sin API:
   `npm run start:local`.
-- **Ruta del día:** con API los recorridos viven en el servidor (`RecorridosHttp`, sincronización por consulta
-  cada 10 s); en modo local en `localStorage` (`RecorridosLocal`). Solo puede haber un recorrido en curso por
-  asignación y día: uno que quedó abierto otro día no bloquea el de hoy. Falta que el servidor avise al
-  acudiente (recogido, entregado, no asistió).
-- **GPS y tiempo real:** el API ya recibe lotes de posiciones (`POST /recorridos/{id}/gps`), da la última
-  posición y el trayecto, y emite `posicion`/`recorridoActualizado` por el hub SignalR `/hubs/recorridos`
-  (contrato en `recorridos-http.ts`). Falta que la Ruta del día envíe la ubicación del teléfono, que la
-  sincronización use el hub en vez de consultar cada 10 s y el mapa del administrador / del acudiente.
+- **Ruta del día:** con API los recorridos viven en el servidor (`RecorridosHttp`, hub SignalR + respaldo cada
+  60 s); en modo local en `localStorage` (`RecorridosLocal`). Solo puede haber un recorrido en curso por
+  asignación y día: uno que quedó abierto otro día no bloquea el de hoy. Falta un aviso push/WhatsApp al
+  acudiente (recogido, entregado, no asistió); hoy lo ve en el portal al instante.
+- **GPS:** el navegador solo da la ubicación por HTTPS (o `localhost`) y con la pantalla encendida: si el
+  teléfono bloquea la pantalla o cambia de app, se pausan las lecturas (una app nativa o PWA con permiso en
+  segundo plano lo resolvería). Las teselas son de OpenStreetMap (uso moderado); para mucho tráfico, un
+  proveedor de mapas con clave.
+- **Varias instancias del API:** SignalR necesitará un backplane (Redis o Azure SignalR); hoy corre una sola.
 - **Envíos automáticos:** el proceso del servidor envía los recordatorios de la programación de cobro y guarda
   su historial y el registro de WhatsApp, pero todavía **no hay proveedor real**: en desarrollo los canales son
   simulados y en producción están deshabilitados hasta conectar WhatsApp Business y un servicio de correo.
   `WhatsappService` (`core/whatsapp.ts`, apunta a `${apiUrl}/whatsapp/enviar.php`) no lo usa ninguna pantalla:
   los mensajes los envía el servidor.
-- **Modo local** (`npm run start:local`, pruebas y producción hasta desplegar el API, `environment.ts` →
-  `usarApi`): todo funciona con `localStorage`; el inicio (`TableroLocal`), las notificaciones
+- **Modo local** (`npm run start:local` y pruebas; producción ya usa el API desplegado, `environment.ts` →
+  `apiUrl`/`usarApi`): todo funciona con `localStorage`; Configuración guarda los parámetros pero los cálculos del
+  navegador usan los valores por defecto (día 5, 30 días); el inicio (`TableroLocal`), las notificaciones
   (`NotificacionesLocal`) y el portal (`PortalLocal`) se calculan en el navegador con las mismas reglas del API.
 - **Datos fijos:** el perfil del administrador local (`USUARIO_DEMO`) y Planes y Membresías siguen
-  con datos de ejemplo.
+  con datos de ejemplo. El registro público (`/registro`) no tiene endpoint: las empresas las crea la plataforma.
 - **Soporte:** las solicitudes del Centro de Ayuda se guardan en `localStorage`
   (`SolicitudesSoporteService`) hasta que exista el API de soporte (envío, adjuntos, estado y respuesta).

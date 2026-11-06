@@ -243,7 +243,7 @@ export class RecorridosLocal extends RecorridosRepositorio implements FuenteLoca
 
   /**
    * En modo local el "otro dispositivo" es otra pestaña del navegador: el evento `storage` avisa al
-   * instante; además se consulta cada `INTERVALO_SINCRONIZACION_MS`, como lo hará `RecorridosHttp`.
+   * instante; además se consulta cada `INTERVALO_SINCRONIZACION_MS` (`RecorridosHttp` usa el hub).
    */
   observar(id: string): Observable<Recorrido> {
     return this.cambios().pipe(

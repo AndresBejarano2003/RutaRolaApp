@@ -125,7 +125,7 @@ export const PREGUNTAS_FRECUENTES: PreguntaFrecuente[] = [
     modulo: 'Finanzas',
     pregunta: '¿Cómo funcionan los recordatorios automáticos de cobro?',
     respuesta:
-      'En Finanzas › Programación de facturación configura, por factura, el día límite de pago, cuántos días antes avisar y el mensaje "En uso" de cada canal (WhatsApp o correo). El envío lo hace el servidor y queda en el historial.',
+      'En Finanzas › Programación de facturación configura, por factura, el día límite de pago, cuántos días antes avisar y el mensaje "En uso" de cada canal (WhatsApp o correo). El envío lo hace el servidor y queda en el historial; los mensajes de WhatsApp se consultan en Finanzas › Mensajes de WhatsApp. Si una factura no tiene programación, la cuota vence el día límite de pago de Inicio › Configuración (por defecto el 5).',
   },
   {
     modulo: 'Operación',
@@ -140,10 +140,22 @@ export const PREGUNTAS_FRECUENTES: PreguntaFrecuente[] = [
       'Ingresan con el usuario y la contraseña que se les asigna al crearlos en Personas › Empleados (sección "Acceso a la app") y el sistema los lleva a "Ruta del día" (no ven los módulos administrativos). Allí aparecen las rutas de sus asignaciones activas y vigentes; inician la recogida (casa → colegio) o la entrega (colegio → casa) y marcan a cada estudiante como recogido, entregado o "No asistió". Si hay que cambiar el orden (por ejemplo, un acudiente avisa que recojan a su hijo de último), la monitora arrastra al estudiante a su nueva posición y el conductor ve el nuevo orden al instante con un aviso. Un recorrido solo se finaliza cuando ningún estudiante queda a bordo. El administrador los consulta en Operación › Recorridos.',
   },
   {
+    modulo: 'Operación',
+    pregunta: '¿Cómo veo dónde va un vehículo?',
+    respuesta:
+      'Mientras un recorrido está en curso, el teléfono de la monitora (o del conductor si la ruta no tiene monitora) comparte su ubicación desde la Ruta del día: hay que permitir la ubicación en el navegador y mantener la pantalla encendida; sin señal, las ubicaciones se guardan y se envían al recuperarla. El administrador ve todos los vehículos en Operación › Monitoreo en vivo y el trayecto de cada recorrido en su detalle de Operación › Recorridos. El acudiente ve el vehículo en "Ver en el mapa" de su portal solo mientras la ruta de su estudiante está en curso. Las ubicaciones se conservan 30 días.',
+  },
+  {
     modulo: 'Personas',
     pregunta: '¿Cómo consultan los acudientes sus facturas y pagos?',
     respuesta:
       'Ingresan con el usuario y la contraseña que se les asigna en Personas › Acudientes (sección "Acceso a la app") y el sistema los lleva al Portal del acudiente, donde solo ven su información: sus estudiantes (colegio, ruta, vehículo, conductor y monitora, y el estado de la ruta de hoy), sus facturas con el estado de cada mes (pagada, vencida, por pagar o programada), sus recibos y sus cotizaciones. El portal es de solo consulta. El usuario no puede repetirse entre empleados y acudientes.',
+  },
+  {
+    modulo: 'General',
+    pregunta: '¿Cómo cambio mi contraseña?',
+    respuesta:
+      'Entra a Mi cuenta (en el menú de tu usuario o el ícono de la persona con engranaje), escribe tu contraseña actual y la nueva dos veces (mínimo 6 caracteres). Se cierra la sesión en tus otros dispositivos. Si la olvidaste, el administrador te asigna una nueva en Personas.',
   },
   {
     modulo: 'General',

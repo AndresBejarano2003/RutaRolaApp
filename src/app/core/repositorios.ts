@@ -6,12 +6,21 @@ import { AutenticacionRepositorio } from "../autenticacion/autenticacion-reposit
 import { PortalHttp } from "../portal/portal-http";
 import { PortalLocal } from "../portal/portal-local";
 import { PortalRepositorio } from "../portal/portal-repositorio";
+import { EmpresasHttp } from "../plataforma/empresas/empresas-http";
+import { EmpresasLocal } from "../plataforma/empresas/empresas-local";
+import { EmpresasRepositorio } from "../plataforma/empresas/empresas-repositorio";
+import { GpsHttp } from "../ruta-del-dia/gps/gps-http";
+import { GpsLocal } from "../ruta-del-dia/gps/gps-local";
+import { GpsRepositorio } from "../ruta-del-dia/gps/gps-repositorio";
 import { RecorridosHttp } from "../ruta-del-dia/recorridos-http";
 import { RecorridosLocal } from "../ruta-del-dia/recorridos-local";
 import { RecorridosRepositorio } from "../ruta-del-dia/recorridos-repositorio";
 import { TableroHttp } from "../inicio/dashboard/tablero-http";
 import { TableroLocal } from "../inicio/dashboard/tablero-local";
 import { TableroRepositorio } from "../inicio/dashboard/tablero-repositorio";
+import { ConfiguracionHttp } from "../inicio/configuracion/configuracion-http";
+import { ConfiguracionLocal } from "../inicio/configuracion/configuracion-local";
+import { ConfiguracionRepositorio } from "../inicio/configuracion/configuracion-repositorio";
 import { CentroNotificaciones } from "../inicio/notificaciones/centro-notificaciones";
 import { NotificacionesHttp } from "../inicio/notificaciones/notificaciones-http";
 import { NotificacionesLocal } from "../inicio/notificaciones/notificaciones-local";
@@ -25,6 +34,9 @@ import { FacturasRepositorio } from "../finanzas/facturas/facturas-repositorio";
 import { ProgramacionesHttp } from "../finanzas/programacion/programaciones-http";
 import { ProgramacionesLocal } from "../finanzas/programacion/programaciones-local";
 import { ProgramacionesRepositorio } from "../finanzas/programacion/programaciones-repositorio";
+import { MensajesWhatsappHttp } from "../finanzas/mensajes-whatsapp/mensajes-whatsapp-http";
+import { MensajesWhatsappLocal } from "../finanzas/mensajes-whatsapp/mensajes-whatsapp-local";
+import { MensajesWhatsappRepositorio } from "../finanzas/mensajes-whatsapp/mensajes-whatsapp-repositorio";
 import { RecibosHttp } from "../finanzas/recibos/recibos-http";
 import { RecibosLocal } from "../finanzas/recibos/recibos-local";
 import { RecibosRepositorio } from "../finanzas/recibos/recibos-repositorio";
@@ -105,8 +117,10 @@ export function proveerRepositorios({
     api(RecibosRepositorio, RecibosLocal, RecibosHttp),
     api(ProgramacionesRepositorio, ProgramacionesLocal, ProgramacionesHttp),
     api(ReportesRepositorio, ReportesLocal, ReportesHttp),
-    // Inicio (resumen de todos los módulos)
+    api(MensajesWhatsappRepositorio, MensajesWhatsappLocal, MensajesWhatsappHttp),
+    // Inicio (resumen de todos los módulos) y configuración de la empresa
     api(TableroRepositorio, TableroLocal, TableroHttp),
+    api(ConfiguracionRepositorio, ConfiguracionLocal, ConfiguracionHttp),
     // Notificaciones (leen datos de todos los módulos). `CentroNotificaciones` es el estado
     // compartido de la campana y la página; va aquí porque necesita estos repositorios.
     api(NotificacionesRepositorio, NotificacionesLocal, NotificacionesHttp),
@@ -114,7 +128,11 @@ export function proveerRepositorios({
     // Acceso (el login local resuelve el rol con los empleados) y ruta del día de conductores/monitoras
     api(AutenticacionRepositorio, AutenticacionLocal, AutenticacionHttp),
     api(RecorridosRepositorio, RecorridosLocal, RecorridosHttp),
+    // Ubicación de los vehículos (Ruta del día la envía; mapas del administrador y del acudiente)
+    api(GpsRepositorio, GpsLocal, GpsHttp),
     // Portal del acudiente (lee todos los módulos)
     api(PortalRepositorio, PortalLocal, PortalHttp),
+    // Plataforma (SUPER_ADMIN, solo existe con el API)
+    api(EmpresasRepositorio, EmpresasLocal, EmpresasHttp),
   ];
 }

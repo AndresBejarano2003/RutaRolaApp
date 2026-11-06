@@ -6,12 +6,13 @@ import { Trayecto } from 'src/app/ruta-del-dia/recorrido';
 import { diasEntre, fechaCorta, fechaIso, nombrePeriodo } from 'src/app/shared/fechas/fechas';
 import { EstudiantePortal, situacionRecorrido } from '../portal';
 import { PortalEstado } from '../portal-estado';
+import { MapaRuta } from '../mapa-ruta/mapa-ruta';
 
 /** Inicio del portal: cómo va la cuenta, dónde están hoy los estudiantes y los últimos pagos. */
 @Component({
   selector: 'app-portal-inicio-page',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CurrencyPipe, RouterLink],
+  imports: [CurrencyPipe, RouterLink, MapaRuta],
   templateUrl: './portal-inicio-page.html',
 })
 export default class PortalInicioPage {

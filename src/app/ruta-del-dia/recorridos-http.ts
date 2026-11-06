@@ -1,6 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { EMPTY, Observable, catchError, distinctUntilChanged, interval, switchMap } from 'rxjs';
+import { EMPTY, Observable, auditTime, catchError, distinctUntilChanged, interval, merge, switchMap } from 'rxjs';
+import { TiempoReal } from 'src/app/core/tiempo-real';
 import { environment } from '@environments/environment';
 import { EstadoParada, Recorrido, RutaAsignada, Trayecto } from './recorrido';
 import { RecorridosRepositorio } from './recorridos-repositorio';
@@ -12,19 +13,14 @@ import { RecorridosRepositorio } from './recorridos-repositorio';
  * |-------------|----------|
  * | rutasDelDia | `GET /recorridos/del-dia?fecha=YYYY-MM-DD` → `RutaAsignada[]` |
  * | obtener     | `GET /recorridos/{id}` (403 si no es de una asignación del empleado) |
- * | rutas (sync)| `observarRutasDelDia`: `GET /recorridos/del-dia` cada `INTERVALO_SINCRONIZACION_MS` |
+ * | rutas (sync)| `observarRutasDelDia`: `GET /recorridos/del-dia` con cada `recorridoActualizado` del hub (le llegan al personal sin `Seguir`) y cada `INTERVALO_RESPALDO_MS` |
  * | iniciar     | `POST /recorridos` `{asignacionId, trayecto}` → 201 `Recorrido` con snapshot de ruta, colegio, vehículo y paradas; 200 con el EXISTENTE si ese trayecto ya se inició hoy (el compañero se une) |
  * | marcar      | `PATCH /recorridos/{id}/paradas` `{estudianteIds, estado}` → `Recorrido` |
  * | reordenar   | `PUT /recorridos/{id}/orden` `{estudianteIds}` → `Recorrido` (guarda `ordenActualizado`) |
  * | finalizar   | `POST /recorridos/{id}/finalizar` `{observaciones}` → `Recorrido` |
- * | observar    | `GET /recorridos/{id}` cada `INTERVALO_SINCRONIZACION_MS` (se puede cambiar por el hub, abajo) |
+ * | observar    | hub `/hubs/recorridos` (`core/tiempo-real.ts`): `Seguir(id)` → con cada `recorridoActualizado {recorridoId, fechaActualizacion, estado}` (y al reconectar) `GET /recorridos/{id}`; respaldo cada `INTERVALO_RESPALDO_MS` |
  *
- * Ya disponible en el API, aún sin uso en esta app:
- * - GPS: `POST /recorridos/{id}/gps {posiciones: [{latitud, longitud, velocidad?, rumbo?, fecha ISO UTC}]}`
- *   (máx. 500 por lote; repetidas o fuera del periodo del recorrido se descartan) → `{recibidas, descartadas, ultima}`;
- *   `GET /recorridos/{id}/gps/ultima` (204 si no hay) y `GET /recorridos/{id}/gps?desde=`.
- * - Tiempo real: hub SignalR `/hubs/recorridos?access_token=` → `Seguir(recorridoId)`; eventos
- *   `posicion` y `recorridoActualizado {recorridoId, fechaActualizacion}`.
+ * El GPS (`POST /recorridos/{id}/gps`, última posición, trayecto, mapa) está en `gps/gps-http.ts`.
  *
  * Reglas (iguales a `RecorridosLocal`):
  * - 422: asignación inactiva, fuera de su periodo o de otro empleado; ruta inactiva o sin estudiantes;
@@ -35,12 +31,15 @@ import { RecorridosRepositorio } from './recorridos-repositorio';
  * - 403: reordenar sin ser la monitora de la asignación (o el conductor si no tiene monitora) — `puedeReordenar`.
  * - El servidor guarda la hora de cada cambio y puede avisar al acudiente (recogido, entregado, no asistió).
  */
-/** Cada cuánto se consulta el recorrido en curso para ver los cambios del compañero. */
+/** Modo local (sin hub): cada cuánto se consulta el recorrido en curso para ver los cambios del compañero. */
 export const INTERVALO_SINCRONIZACION_MS = 10_000;
+/** Con el hub: consulta de respaldo por si se perdió un aviso. */
+export const INTERVALO_RESPALDO_MS = 60_000;
 
 @Injectable()
 export class RecorridosHttp extends RecorridosRepositorio {
   private readonly http = inject(HttpClient);
+  private readonly tiempoReal = inject(TiempoReal);
   private readonly url = `${environment.apiUrl}/recorridos`;
 
   rutasDelDia(fecha: string): Observable<RutaAsignada[]> {
@@ -48,7 +47,8 @@ export class RecorridosHttp extends RecorridosRepositorio {
   }
 
   observarRutasDelDia(fecha: string): Observable<RutaAsignada[]> {
-    return interval(INTERVALO_SINCRONIZACION_MS).pipe(
+    return merge(this.tiempoReal.avisos(), interval(INTERVALO_RESPALDO_MS)).pipe(
+      auditTime(500),
       switchMap(() => this.rutasDelDia(fecha).pipe(catchError(() => EMPTY))),
       distinctUntilChanged((a, b) => JSON.stringify(a) === JSON.stringify(b)),
     );
@@ -71,7 +71,8 @@ export class RecorridosHttp extends RecorridosRepositorio {
   }
 
   observar(id: string): Observable<Recorrido> {
-    return interval(INTERVALO_SINCRONIZACION_MS).pipe(
+    return merge(this.tiempoReal.cambiosDe(id), interval(INTERVALO_RESPALDO_MS)).pipe(
+      auditTime(300),
       // Un fallo puntual (sin red) no corta la sincronización: se reintenta en el siguiente aviso.
       switchMap(() => this.obtener(id).pipe(catchError(() => EMPTY))),
       distinctUntilChanged((a, b) => a.fechaActualizacion === b.fechaActualizacion),

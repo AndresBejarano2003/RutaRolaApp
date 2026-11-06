@@ -32,5 +32,10 @@ export default [
     loadComponent: () => import('./recorridos/recorridos-page'),
     data: { breadcrumb: ['Operación', 'Recorridos'] },
   },
+  {
+    path: 'monitoreo',
+    loadComponent: () => import('./monitoreo/monitoreo-page'),
+    data: { breadcrumb: ['Operación', 'Monitoreo en vivo'] },
+  },
   { path: '**', redirectTo: 'colegios' },
 ] satisfies Routes;

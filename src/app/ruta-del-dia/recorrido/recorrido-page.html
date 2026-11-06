@@ -49,6 +49,38 @@
       </div>
     </header>
 
+    <!-- Ubicación del vehículo -->
+    @if (enCurso()) {
+      <div class="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-box border border-base-300 bg-base-200 px-4 py-2 text-sm" role="status">
+        @if (reportaUbicacion()) {
+          @switch (gps.estado()) {
+            @case ('ACTIVO') {
+              <span class="flex items-center gap-2 text-success"><i class="fa-solid fa-location-crosshairs" aria-hidden="true"></i> Compartiendo ubicación</span>
+              @if (gps.ultimaLectura(); as ultima) {
+                <span class="text-base-content/70">Última lectura {{ haceCuanto(ultima) }}</span>
+              }
+            }
+            @case ('BUSCANDO') {
+              <span class="flex items-center gap-2 text-info"><span class="loading loading-spinner loading-xs" aria-hidden="true"></span> Buscando señal GPS…</span>
+            }
+            @case ('SIN_PERMISO') {
+              <span class="flex items-center gap-2 text-warning"><i class="fa-solid fa-location-pin-lock" aria-hidden="true"></i>
+                Permite la ubicación en el navegador para que el colegio y los acudientes vean la ruta.</span>
+            }
+            @case ('NO_DISPONIBLE') {
+              <span class="flex items-center gap-2 text-warning"><i class="fa-solid fa-location-pin-lock" aria-hidden="true"></i> Este equipo no tiene ubicación.</span>
+            }
+          }
+          @if (gps.pendientes() > 0 && gps.sinConexion()) {
+            <span class="badge badge-soft badge-warning">{{ gps.pendientes() }} sin enviar · se enviarán al volver la señal</span>
+          }
+        } @else {
+          <span class="flex items-center gap-2 text-base-content/80"><i class="fa-solid fa-location-dot" aria-hidden="true"></i>
+            La ubicación la comparte el teléfono de {{ r.monitoraId ? r.monitora : r.conductor }}.</span>
+        }
+      </div>
+    }
+
     <!-- Cambio de orden hecho por el compañero -->
     @if (avisoOrden(); as aviso) {
       <div role="alert" class="alert alert-info alert-soft items-start">

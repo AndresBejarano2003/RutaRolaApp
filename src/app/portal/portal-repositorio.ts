@@ -8,4 +8,6 @@ import { PortalAcudiente } from './portal';
  */
 export abstract class PortalRepositorio {
   abstract obtener(): Observable<PortalAcudiente>;
+  /** Avisa cuando conviene recargar: cambió un recorrido de sus estudiantes (inició, una marca o terminó). */
+  abstract observarCambios(): Observable<unknown>;
 }

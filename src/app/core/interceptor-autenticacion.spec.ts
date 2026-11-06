@@ -133,7 +133,7 @@ describe('Interceptor de autenticación con el API', () => {
     expect(auth.sesion()).toBeNull();
   });
 
-  it('AutenticacionHttp arma la sesión con sus tokens y rechaza usuarios de la plataforma', async () => {
+  it('AutenticacionHttp arma la sesión con sus tokens, acepta la plataforma y rechaza roles desconocidos', async () => {
     const repo = TestBed.inject(AutenticacionHttp);
     const datos = { usuario: 'admin', nombre: 'Admin', correo: 'a@b.co', empleadoId: null, acudienteId: null, imagen: '', inicio: '2026-01-01T00:00:00Z' };
 
@@ -145,6 +145,10 @@ describe('Interceptor de autenticación con el API', () => {
 
     const plataforma = firstValueFrom(repo.iniciarSesion({ usuario: 'superadmin', contrasena: 'x' }));
     api.expectOne(`${API}/auth/login`).flush({ sesion: { ...datos, rol: 'SUPER_ADMIN' }, tokens: tokens(2) });
-    await expect(plataforma).rejects.toThrow('no tiene acceso');
+    expect(await plataforma).toMatchObject({ rol: 'SUPER_ADMIN' });
+
+    const desconocido = firstValueFrom(repo.iniciarSesion({ usuario: 'otro', contrasena: 'x' }));
+    api.expectOne(`${API}/auth/login`).flush({ sesion: { ...datos, rol: 'AUDITOR' }, tokens: tokens(3) });
+    await expect(desconocido).rejects.toThrow('no tiene acceso');
   });
 });

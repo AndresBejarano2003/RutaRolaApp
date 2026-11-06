@@ -12,6 +12,7 @@ export default [
       { path: 'estudiantes', loadComponent: () => import('./estudiantes/portal-estudiantes-page'), data: { breadcrumb: ['Mis estudiantes'] } },
       { path: 'pagos', loadComponent: () => import('./pagos/portal-pagos-page'), data: { breadcrumb: ['Facturas y pagos'] } },
       { path: 'cotizaciones', loadComponent: () => import('./cotizaciones/portal-cotizaciones-page'), data: { breadcrumb: ['Cotizaciones'] } },
+      { path: 'cuenta', loadComponent: () => import('../autenticacion/cuenta/cuenta-page'), data: { breadcrumb: ['Mi cuenta'] } },
       { path: '**', redirectTo: '' },
     ],
   },
